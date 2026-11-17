@@ -67,6 +67,8 @@ export interface PrepInput {
   agreed: AgreedItem[] | null
   market: MarketFacts | null
   traits: TraitFact[] | null
+  /** Find your strengths, finished areas only (strength and the member's own line; never weak spots). Undefined or null: not loaded. */
+  ownStrengths?: { strength: string; sayIt: string }[] | null
 }
 
 export interface Stat {
