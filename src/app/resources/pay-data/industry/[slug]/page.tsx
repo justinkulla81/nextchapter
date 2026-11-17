@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { redirect } from 'next/navigation'
+import { permanentRedirect } from 'next/navigation'
 import { GroupDetail } from '@/components/pay-data/GroupDetail'
 import { PAY_DATA, PayDataPending } from '@/components/pay-data/PayDataFrame'
 import { loadPayData } from '@/lib/pay-data/load'
@@ -31,6 +31,6 @@ export default async function IndustryPayPage({ params }: { params: Promise<{ sl
   const d = await loadPayData()
   if (!d) return <PayDataPending path={`${PAY_DATA}/industry/${slug}`} title="Industry pay" />
   const g = findGroup(d.byIndustry, slug, 'industry')
-  if (!g) redirect(`${PAY_DATA}/industry`)
+  if (!g) permanentRedirect(`${PAY_DATA}/industry`)
   return <GroupDetail d={d} g={g} cut="industry" />
 }

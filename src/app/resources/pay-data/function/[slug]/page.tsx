@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { redirect } from 'next/navigation'
+import { permanentRedirect } from 'next/navigation'
 import { GroupDetail } from '@/components/pay-data/GroupDetail'
 import { PAY_DATA, PayDataPending } from '@/components/pay-data/PayDataFrame'
 import { loadPayData } from '@/lib/pay-data/load'
@@ -31,6 +31,6 @@ export default async function FunctionPayPage({ params }: { params: Promise<{ sl
   const d = await loadPayData()
   if (!d) return <PayDataPending path={`${PAY_DATA}/function/${slug}`} title="Function pay" />
   const g = findGroup(d.byFunction, slug, 'function')
-  if (!g) redirect(`${PAY_DATA}/function`)
+  if (!g) permanentRedirect(`${PAY_DATA}/function`)
   return <GroupDetail d={d} g={g} cut="function" />
 }

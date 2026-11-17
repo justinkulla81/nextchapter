@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound, permanentRedirect, redirect } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { Chips, FactGrid, JobList, LINK, RankList, Section, TopicShell } from '@/components/topics/blocks'
 import { FitCheck } from '@/components/capture/FitCheck'
 import { AiPremiumSection } from '@/components/salaries/AiPremiumSection'
@@ -41,13 +41,13 @@ export default async function RolePage({ params }: { params: Promise<{ slug: str
   const known = roleForAddress(slug)
   if (!known) {
     if (!/^[a-z0-9-]{3,80}$/.test(slug)) notFound()
-    redirect(`/jobs?q=${encodeURIComponent(slug.replace(/-/g, ' '))}`)
+    permanentRedirect(`/jobs?q=${encodeURIComponent(slug.replace(/-/g, ' '))}`)
   }
   // An acronym or another word order ("/roles/cro", "/roles/head-of-sales") goes to the one address that holds the page.
   if (known.slug !== slug) permanentRedirect(`/roles/${known.slug}`)
   const d = await getRoleDetail(slug)
   // A role with too few open jobs has no page; send the visitor to a search for it instead of a 404.
-  if (!d) redirect(`/jobs?q=${encodeURIComponent(known.spelled)}`)
+  if (!d) permanentRedirect(`/jobs?q=${encodeURIComponent(known.spelled)}`)
   const { role, stat, figure } = d
   const path = `/roles/${slug}`
   const seo = roleSeo(role, stat.jobs, stat.median)

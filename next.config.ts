@@ -90,18 +90,18 @@ const nextConfig: NextConfig = {
       // The signed-in page followed: /dashboard/membership became /dashboard/alumni-plan (2026-11-04). Permanent, because emails already sent link to the old address.
       { source: '/dashboard/membership', destination: '/dashboard/alumni-plan', permanent: true },
       // /skills/by and /skills/by/<dimension> are only folders of the skills lists, so they go to the skills hub.
-      { source: '/skills/by', destination: '/skills', permanent: false },
-      { source: '/skills/by/:dim', destination: '/skills', permanent: false },
+      { source: '/skills/by', destination: '/skills', permanent: true },
+      { source: '/skills/by/:dim', destination: '/skills', permanent: true },
       // /jobs/entry-level/category is only the folder of category pages, so it goes to the entry-level hub.
-      { source: '/jobs/entry-level/category', destination: '/jobs/entry-level', permanent: false },
+      { source: '/jobs/entry-level/category', destination: '/jobs/entry-level', permanent: true },
       // /feeds is the feeds directory page; /feeds/industries is only a folder of feeds, so it goes there.
-      { source: '/feeds/industries', destination: '/feeds', permanent: false },
+      { source: '/feeds/industries', destination: '/feeds', permanent: true },
       // /rankings/topic/[family] is one topic's page; the folder itself has no page.
-      { source: '/rankings/topic', destination: '/rankings', permanent: false },
+      { source: '/rankings/topic', destination: '/rankings', permanent: true },
       // /for-colleges is only a folder of ad landing pages; its parent address goes to the higher education page.
-      { source: '/for-colleges', destination: '/higher-education', permanent: false },
+      { source: '/for-colleges', destination: '/higher-education', permanent: true },
       // Comparison pages live under /tools/ai-job-check/compare/[pair]; the folder itself has no page.
-      { source: '/tools/ai-job-check/compare', destination: '/tools/ai-job-check', permanent: false },
+      { source: '/tools/ai-job-check/compare', destination: '/tools/ai-job-check', permanent: true },
       // Nothing lives at /search; people and search engines' site-search boxes expect it to run a job search (/jobs?q=).
       { source: '/search', destination: '/jobs', permanent: true },
       // /start has only persona pages (/start/[persona]); the bare address is what people type and bookmark (alert 2026-11-12).
@@ -231,7 +231,7 @@ const nextConfig: NextConfig = {
       { source: '/layoffs/:year(20[0-1]\\d|202[0-5])', destination: '/layoffs/2026', permanent: true },
       { source: '/layoffs/:year(20[0-1]\\d|202[0-5])/:path+', destination: '/layoffs/2026', permanent: true },
       // redirect-non-candidate.ts sends contest employers here after sign-in; the address has no page of its own.
-      { source: '/noexperience/employers', destination: '/noexperience/employers/contests', permanent: false },
+      { source: '/noexperience/employers', destination: '/noexperience/employers/contests', permanent: true },
       // Retired 2026-10-23: the website shows plans, not prices.
       {
         source: '/insights/outplacement-cost-per-employee',

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound, redirect } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { Chips, JoinBand, LINK, Section, TopicShell } from '@/components/topics/blocks'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
@@ -32,7 +32,7 @@ export default async function EntryCategoryPage({ params }: { params: Promise<{ 
   const c = entryCategory(cat)
   if (!c) {
     if (!/^[a-z0-9-]{2,60}$/.test(cat)) notFound()
-    redirect('/jobs/entry-level')
+    permanentRedirect('/jobs/entry-level')
   }
   const path = `/jobs/entry-level/category/${cat}`
   const roles = rolesInCategory(cat)

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound, redirect } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { Chips, JobList, JoinBand, LINK, Section, TopicShell } from '@/components/topics/blocks'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
@@ -34,7 +34,7 @@ export default async function TitlePlaceJobsPage({ params }: { params: Promise<{
   if (!/^[a-z0-9-]{3,80}$/.test(slug) || !parsePlace(place)) notFound()
   const d = await getTitlePlaceDetail(slug, place)
   // Too few open listings here for a page of its own: the title page shows the whole market for the title.
-  if (!d) redirect(`/jobs/title/${slug}`)
+  if (!d) permanentRedirect(`/jobs/title/${slug}`)
   const { stat, place: p, jobs } = d
   const path = `/jobs/title/${slug}/${place}`
   const seo = titlePlaceJobsSeo(titleLabel(stat.name, slug), p.name, p.jobs, p.median)

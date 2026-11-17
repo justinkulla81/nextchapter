@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { redirect } from 'next/navigation'
+import { permanentRedirect } from 'next/navigation'
 import { Chips, Section } from '@/components/topics/blocks'
 import { PAY_DATA, PayDataFrame, PayDataPending } from '@/components/pay-data/PayDataFrame'
 import { paysLess, paysMore } from '@/lib/pay-data/assemble'
@@ -32,7 +32,7 @@ export default async function SkillPayPage({ params }: { params: Promise<{ slug:
   const d = await loadPayData()
   if (!d) return <PayDataPending path={`${PAY_DATA}/skills/${slug}`} title="Skill pay" />
   const s = findSkill(d, slug)
-  if (!s) redirect(`${PAY_DATA}/skills`)
+  if (!s) permanentRedirect(`${PAY_DATA}/skills`)
   const path = skillPath(s)
   const name = skillName(s.skill)
   const topFn = s.topFunctions[0]

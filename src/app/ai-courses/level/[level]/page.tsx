@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { redirect } from 'next/navigation'
+import { permanentRedirect } from 'next/navigation'
 import { Chips, JoinBand, Section, TopicShell } from '@/components/topics/blocks'
 import { CatalogNote, CourseGrid } from '@/components/ai-courses/blocks'
 import { LevelFinder } from '@/components/ai-courses/LevelFinder'
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ level: st
 
 export default async function LevelPage({ params }: { params: Promise<{ level: string }> }) {
   const l = levelBySlug((await params).level)
-  if (!l) redirect('/ai-courses')
+  if (!l) permanentRedirect('/ai-courses')
   const catalog = await getPublicCatalog()
   const courses = sortByLevel(catalog.filter((c) => c.level === l.level))
   const faq = [
