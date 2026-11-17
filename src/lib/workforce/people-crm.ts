@@ -81,7 +81,8 @@ export function matchBenefits(p: MatchInput): BenefitMatch[] {
         if (p.training) add({ category: 'childcare', name: 'Supportive services during training (childcare)', why: 'In training, with childcare to cover.' })
       }
       if (v === 'RENT_MORTGAGE') add({ category: 'housing', name: 'Rental and mortgage assistance, and a free housing counselor', why: said(v) })
-      if (v === 'HEALTH_INSURANCE') add({ category: 'health', name: 'Health coverage after a layoff (COBRA or a marketplace plan)', why: said(v) })
+      if (v === 'HEALTH_INSURANCE')
+        add(p.laidOffFrom ? { category: 'health', name: 'Health coverage after a layoff (COBRA or a marketplace plan)', why: said(v) } : { category: 'health', name: 'Health coverage (a marketplace plan or Medicaid)', why: said(v) })
       if (v === 'DEBT_PAYMENTS' || v === 'NO_EMERGENCY_SAVINGS' || v === 'SUPPORTING_FAMILY') add({ category: 'income', name: 'Free nonprofit credit counseling and emergency assistance', why: said(v) })
       if (v === 'IMMIGRATION_STATUS') add({ category: 'legal', name: 'Free legal help on work authorization and benefits', why: said(v) })
     }
