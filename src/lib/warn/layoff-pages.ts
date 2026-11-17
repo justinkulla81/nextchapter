@@ -131,7 +131,9 @@ async function loadPublicNotices(): Promise<PublicNotice[]> {
 /** Bumped by forgetLayoffCaches so the next read on this instance loads again instead of waiting out the hour. */
 let noticesVersion = 0
 export const forgetLayoffNotices = () => { noticesVersion++ }
-const sharedNotices = memoTtl(60 * 60_000, () => `all:${noticesVersion}`, () => heavy(() => sharedLoad('public-notices', 3600, loadPublicNotices)))
+// Six hours in the shared cache since 2026-11-17 (egress: ~4k rows, re-read ~24 times an hour as instances refreshed it): a filing still
+// shows at once, because every path that files one (warn-sync, layoff-news, the admin actions) calls publishLayoffsNow, which clears it.
+const sharedNotices = memoTtl(60 * 60_000, () => `all:${noticesVersion}`, () => heavy(() => sharedLoad('public-notices', 6 * 3600, loadPublicNotices)))
 export const getPublicNotices = cache(() => sharedNotices())
 
 export interface StateSummary {
