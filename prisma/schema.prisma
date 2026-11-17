@@ -13154,6 +13154,7 @@ model InstitutionMember {
   opportunitiesPosted  AlumniOpportunity[]
   opportunityInterests OpportunityInterest[]
   groupMemberships     AlumniGroupMember[]
+  groupLeaves          AlumniGroupLeave[]
   auditRequests        AuditRequest[]
   mentoringSignups     MentoringSignup[]
   pairsAsMentor        MentoringPair[]         @relation("PairMentor")
@@ -15930,6 +15931,9 @@ model AlumniGroup {
   name          String
   description   String?     @db.Text
   metro         String? // chapters: the metro it serves
+  // Majors (normalizeMajor) whose joined alumni are added automatically.
+  // Empty = join by click only. See src/lib/higher-ed/major-groups.ts.
+  majors        String[]    @default([])
   isActive      Boolean     @default(true)
   createdBy     String
   isSampleData  Boolean     @default(false)
@@ -15938,6 +15942,7 @@ model AlumniGroup {
 
   members AlumniGroupMember[]
   events  CollegeEvent[]
+  leaves  AlumniGroupLeave[]
 
   @@index([institutionId, kind])
 }
@@ -15949,9 +15954,24 @@ model AlumniGroupMember {
   memberId     String
   member       InstitutionMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
   role         String            @default("MEMBER") // MEMBER | LEADER
+  joinedVia    String            @default("MANUAL") // MANUAL | AUTO_MAJOR
   isSampleData Boolean           @default(false)
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
+
+  @@unique([groupId, memberId])
+  @@index([memberId])
+}
+
+// A member who left a group. Auto-join never adds them back; joining by
+// click again deletes the row.
+model AlumniGroupLeave {
+  id       String            @id @default(cuid())
+  groupId  String
+  group    AlumniGroup       @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  memberId String
+  member   InstitutionMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  leftAt   DateTime          @default(now())
 
   @@unique([groupId, memberId])
   @@index([memberId])

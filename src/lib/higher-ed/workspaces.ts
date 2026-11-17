@@ -151,6 +151,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'volunteers', label: 'Volunteers', comingIn: null },
       { key: 'connect', label: 'Circles, fairs & class notes', comingIn: null },
       { key: 'engagement', label: 'Engagement', comingIn: null },
+      { key: 'data', label: 'Alumni data', comingIn: null },
       // Layoffs come last: the workspace starts with what is going well (src/lib/higher-ed/workspaces.ts, owner rule 2026-10-27).
       { key: 'layoffs', label: 'Layoff alerts', comingIn: null },
     ],

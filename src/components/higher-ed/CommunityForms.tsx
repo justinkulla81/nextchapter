@@ -194,9 +194,22 @@ export function ListedToggle({ slug, listed: initial }: { slug: string; listed: 
   )
 }
 
-export function GroupForm({ slug }: { slug: string }) {
+type MajorOption = { major: string; n: number }
+
+// The roster's majors as suggestions for the majors box (typed, comma-separated).
+function MajorList({ id, majors }: { id: string; majors: MajorOption[] }) {
+  return (
+    <datalist id={id}>
+      {majors.map((m) => (
+        <option key={m.major} value={m.major}>{`${m.n.toLocaleString()} on the roster`}</option>
+      ))}
+    </datalist>
+  )
+}
+
+export function GroupForm({ slug, majors = [] }: { slug: string; majors?: MajorOption[] }) {
   const [state, action] = useActionState<A.FormResult, FormData>(A.createGroupForm.bind(null, slug) as FormAction, undefined)
-  const { v, setV, bind } = useFields({ kind: 'affinity', name: '', description: '', metro: '', leaderEmail: '' })
+  const { v, setV, bind } = useFields({ kind: 'affinity', name: '', description: '', metro: '', leaderEmail: '', majors: '' })
   return (
     <form action={action} className="grid gap-3 sm:grid-cols-2">
       <fieldset className="space-y-1.5 sm:col-span-2">
@@ -217,6 +230,16 @@ export function GroupForm({ slug }: { slug: string }) {
         <Label htmlFor="gr-desc">What it’s for</Label>
         <Input id="gr-desc" {...bind('description')} />
       </div>
+      {v.kind === 'affinity' && (
+        <div className="space-y-1.5 sm:col-span-2">
+          <Label htmlFor="gr-majors">Add alumni with these majors automatically (optional)</Label>
+          <Input id="gr-majors" list="gr-majors-list" {...bind('majors')} placeholder="Computer Science, Information Systems" aria-describedby="gr-majors-help" />
+          <MajorList id="gr-majors-list" majors={majors} />
+          <p id="gr-majors-help" className="text-xs text-muted-foreground">
+            Separate majors with commas. Alumni who have joined and have one of these majors on your roster are added now, and new ones as they join. Anyone who leaves the group is never added back.
+          </p>
+        </div>
+      )}
       <div className="space-y-1.5 sm:col-span-2">
         <Label htmlFor="gr-lead">First leader’s email (optional, must be on the roster)</Label>
         <Input id="gr-lead" type="email" {...bind('leaderEmail')} />
@@ -225,6 +248,25 @@ export function GroupForm({ slug }: { slug: string }) {
         <SubmitButton pendingLabel="Adding…">Add group</SubmitButton>
         <Msg r={state} />
       </div>
+    </form>
+  )
+}
+
+export function GroupMajorsForm({ slug, groupId, current, majors = [] }: { slug: string; groupId: string; current: string; majors?: MajorOption[] }) {
+  const [state, action] = useActionState<A.FormResult, FormData>(A.setGroupMajorsForm.bind(null, slug, groupId) as FormAction, undefined)
+  const [value, setValue] = useState(current)
+  const listId = `gm-list-${groupId}`
+  return (
+    <form action={action} className="flex flex-wrap items-center gap-2">
+      <Label htmlFor={`gm-${groupId}`} className="text-xs text-muted-foreground">
+        Auto-join majors
+      </Label>
+      <Input id={`gm-${groupId}`} name="majors" list={listId} className="h-8 w-72" placeholder="None: join by click only" value={value} onChange={(e) => setValue(e.target.value)} />
+      <MajorList id={listId} majors={majors} />
+      <SubmitButton size="sm" variant="outline" pendingLabel="Saving…">
+        Save majors
+      </SubmitButton>
+      <Msg r={state} />
     </form>
   )
 }

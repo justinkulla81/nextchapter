@@ -114,6 +114,7 @@ export function inviteCapMessage(cap: number, waiting: number): string {
 export const GATED_SCREENS: Record<string, EntitlementFeature> = {
   'development:home': 'reporting',
   'career:outcomes': 'reporting',
+  'alumni:data': 'reporting',
   'admin:board': 'reporting',
   'development:crm': 'crmExchange',
   'admin:activity': 'auditLog',

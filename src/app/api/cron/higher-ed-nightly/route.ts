@@ -8,6 +8,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { withCronRun } from '@/lib/cron/run'
 import { runMonthlyEmails } from '@/lib/higher-ed/monthly'
 import { cleanupExpiredDemos } from '@/lib/workforce/demo'
+import { autoJoinMajorGroups } from '@/lib/higher-ed/major-groups'
 
 export const maxDuration = 300
 
@@ -18,7 +19,9 @@ export const maxDuration = 300
 //   • new WARN notices are matched to alumni employers (staff approve the email);
 //   • engagement events are synced from what alumni did in NextChapter;
 //   • check-ins that came due are scheduled (staff approve the send);
-//   • the monthly alumni email goes out where a college switched it on.
+//   • the monthly alumni email goes out where a college switched it on;
+//   • joined alumni are added to the groups for their major (one statement,
+//     every college, no rows returned).
 // Demo colleges are skipped: their data comes from the demo seed.
 export const GET = withCronRun('higher-ed-nightly', async () => {
   const startedAt = new Date()
@@ -42,7 +45,12 @@ export const GET = withCronRun('higher-ed-nightly', async () => {
     console.error('[higher-ed-nightly] monthly email', err)
     return []
   })
-  const result = { ...grace, ...totals, colleges: colleges.length, monthlySent: monthly.reduce((n, m) => n + m.sent, 0), demosRemoved: demos.removed }
+  // Catches members whose major arrived with a later roster import. A member who left a group is never re-added.
+  const majorGroupJoins = await autoJoinMajorGroups().catch((err) => {
+    console.error('[higher-ed-nightly] major groups', err)
+    return 0
+  })
+  const result = { ...grace, ...totals, majorGroupJoins, colleges: colleges.length, monthlySent: monthly.reduce((n, m) => n + m.sent, 0), demosRemoved: demos.removed }
   captureServerEvent('cron', 'he_nightly_ran', { ...result, ms: Date.now() - startedAt.getTime() })
   return NextResponse.json({ ok: true, ...result })
 })

@@ -195,13 +195,31 @@ export async function listGroups(institutionId: string, memberId: string | null)
       events: { where: { cancelledAt: null, startsAt: { gte: new Date() } }, orderBy: { startsAt: 'asc' }, take: 2, select: { id: true, title: true, startsAt: true } },
     },
   })
-  const mine = memberId ? new Set((await prisma.alumniGroupMember.findMany({ where: { memberId }, select: { groupId: true, role: true } })).map((m) => m.groupId)) : new Set<string>()
-  return groups.map((g) => ({ ...g, joined: mine.has(g.id), leaders: g.members.map((l) => `${full(l.member.firstName, l.member.lastName)}${yr(l.member.classYear)}`) }))
+  const myRows = memberId ? await prisma.alumniGroupMember.findMany({ where: { memberId }, select: { groupId: true, joinedVia: true } }) : []
+  const mine = new Map(myRows.map((m) => [m.groupId, m.joinedVia]))
+  return groups.map((g) => ({
+    ...g,
+    joined: mine.has(g.id),
+    // Joined automatically because of their major: the card says so.
+    autoJoined: mine.get(g.id) === 'AUTO_MAJOR',
+    leaders: g.members.map((l) => `${full(l.member.firstName, l.member.lastName)}${yr(l.member.classYear)}`),
+  }))
 }
 
+// Leaving writes an AlumniGroupLeave row so auto-join by major never adds the
+// member back; joining by click clears it.
 export async function joinGroup(groupId: string, memberId: string, join: boolean) {
-  if (join) await prisma.alumniGroupMember.upsert({ where: { groupId_memberId: { groupId, memberId } }, create: { groupId, memberId }, update: {} })
-  else await prisma.alumniGroupMember.deleteMany({ where: { groupId, memberId, role: 'MEMBER' } })
+  if (join) {
+    await prisma.$transaction([
+      prisma.alumniGroupLeave.deleteMany({ where: { groupId, memberId } }),
+      prisma.alumniGroupMember.upsert({ where: { groupId_memberId: { groupId, memberId } }, create: { groupId, memberId }, update: {} }),
+    ])
+  } else {
+    await prisma.$transaction([
+      prisma.alumniGroupMember.deleteMany({ where: { groupId, memberId, role: 'MEMBER' } }),
+      prisma.alumniGroupLeave.upsert({ where: { groupId_memberId: { groupId, memberId } }, create: { groupId, memberId }, update: { leftAt: new Date() } }),
+    ])
+  }
   return { ok: true }
 }
 

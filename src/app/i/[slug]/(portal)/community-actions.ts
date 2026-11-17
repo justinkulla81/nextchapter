@@ -24,6 +24,7 @@ import {
 import { setConsent } from '@/lib/higher-ed/join'
 import { completeRequest, deleteMemberRecord, openRequest } from '@/lib/higher-ed/data-requests'
 import { collegeTimeZone, zonedToUtc } from '@/lib/higher-ed/time-zone'
+import { autoJoinMajorGroups, parseMajors } from '@/lib/higher-ed/major-groups'
 
 type Result = { error?: string; ok?: boolean; message?: string }
 export type FormResult = Result | undefined
@@ -142,8 +143,9 @@ export async function joinGroupAction(slug: string, groupId: string, join: boole
   if ('error' in m) return { error: m.error }
   const g = await prisma.alumniGroup.findFirst({ where: { id: groupId, institutionId: m.ctx.institution.id, isActive: true }, select: { id: true } })
   if (!g) return { error: 'That group is gone.' }
+  const was = join ? null : await prisma.alumniGroupMember.findUnique({ where: { groupId_memberId: { groupId, memberId: m.memberId } }, select: { joinedVia: true } })
   await joinGroup(groupId, m.memberId, join)
-  captureServerEvent(m.ctx.userId, 'he_group_joined', { institutionId: m.ctx.institution.id, groupId, join })
+  captureServerEvent(m.ctx.userId, 'he_group_joined', { institutionId: m.ctx.institution.id, groupId, join, wasAutoJoined: was?.joinedVia === 'AUTO_MAJOR' })
   revalidatePath(`/i/${slug}/candidate/network`)
   return { ok: true }
 }
@@ -154,16 +156,36 @@ export async function createGroupForm(slug: string, _prev: FormResult, f: FormDa
   const name = str(f, 'name')
   const kind = str(f, 'kind') === 'chapter' ? 'chapter' : 'affinity'
   if (!name) return { error: 'Name the group.' }
-  const g = await prisma.alumniGroup.create({ data: { institutionId: ctx.institution.id, kind, name, description: str(f, 'description') || null, metro: kind === 'chapter' ? str(f, 'metro') || null : null, createdBy: ctx.email ?? ctx.userId }, select: { id: true } })
+  const majors = kind === 'affinity' ? parseMajors(str(f, 'majors')) : []
+  const g = await prisma.alumniGroup.create({ data: { institutionId: ctx.institution.id, kind, name, description: str(f, 'description') || null, metro: kind === 'chapter' ? str(f, 'metro') || null : null, majors, createdBy: ctx.email ?? ctx.userId }, select: { id: true } })
   // Optional first leader by roster email.
   const leaderEmail = str(f, 'leaderEmail').toLowerCase()
   if (leaderEmail) {
     const leader = await prisma.institutionMember.findFirst({ where: { institutionId: ctx.institution.id, email: leaderEmail }, select: { id: true } })
     if (leader) await prisma.alumniGroupMember.create({ data: { groupId: g.id, memberId: leader.id, role: 'LEADER' } })
   }
-  captureServerEvent(ctx.userId, 'he_group_created', { institutionId: ctx.institution.id, groupId: g.id, kind })
+  const added = majors.length ? await autoJoinMajorGroups({ groupId: g.id }) : 0
+  captureServerEvent(ctx.userId, 'he_group_created', { institutionId: ctx.institution.id, groupId: g.id, kind, majorCount: majors.length, autoJoined: added })
   revalidatePath(`/i/${slug}`, 'layout')
-  return { ok: true, message: leaderEmail ? 'Added, with its leader.' : 'Added. Alumni can join from their People tab.' }
+  const joinedNote = majors.length ? ` ${added.toLocaleString()} alumni with ${majors.length === 1 ? 'that major' : 'those majors'} were added; more join as they sign up.` : ' Alumni can join from their People tab.'
+  return { ok: true, message: `${leaderEmail ? 'Added, with its leader.' : 'Added.'}${joinedNote}` }
+}
+
+// Change which majors a group adds automatically. Adding a major adds its
+// joined alumni now; removing one leaves current members in place.
+export async function setGroupMajorsForm(slug: string, groupId: string, _prev: FormResult, f: FormData): Promise<FormResult> {
+  const ctx = await staff(slug, 'alumni', ALUMNI)
+  if (!ctx) return { error: 'Only Alumni Relations or an admin can change a group’s majors.' }
+  const g = await prisma.alumniGroup.findFirst({ where: { id: groupId, institutionId: ctx.institution.id, isActive: true }, select: { id: true, kind: true } })
+  if (!g) return { error: 'That group is gone.' }
+  if (g.kind !== 'affinity') return { error: 'Only affinity groups add alumni by major. Chapters are by city.' }
+  const majors = parseMajors(str(f, 'majors'))
+  await prisma.alumniGroup.update({ where: { id: g.id }, data: { majors } })
+  const added = majors.length ? await autoJoinMajorGroups({ groupId: g.id }) : 0
+  captureServerEvent(ctx.userId, 'he_group_majors_set', { institutionId: ctx.institution.id, groupId: g.id, majorCount: majors.length, autoJoined: added })
+  revalidatePath(`/i/${slug}`, 'layout')
+  if (!majors.length) return { ok: true, message: 'Saved. Alumni now join this group by click only; current members stay.' }
+  return { ok: true, message: `Saved. ${added.toLocaleString()} more alumni were added.` }
 }
 
 export async function setGroupLeader(slug: string, groupId: string, memberEmail: string): Promise<Result> {
