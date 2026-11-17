@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { sharedPartsLoad } from '@/lib/db/heavy'
 import { heapBlockCount, heapRangeSql, heapRanges } from '@/lib/db/heap-ranges'
 import { logBoardMemory } from '@/lib/jobs/board-light-rows'
-import { boardFingerprint, inBackground, readManifest, readParts, snapshotsDisabled, snapshotUsable, writeSnapshot } from '@/lib/jobs/board-snapshot'
+import { boardFingerprint, claimSnapshotRefresh, inBackground, readManifest, readParts, REFRESH_GRACE_MS, snapshotsDisabled, snapshotUsable, writeSnapshot } from '@/lib/jobs/board-snapshot'
 import { decodeOccupations, encodeOccupations } from '@/lib/jobs/board-snapshot-codec'
 import { resolveCandidateOccupation } from '@/lib/careers/candidate-occupation'
 import { jobIndustryBucket, memberIndustryBuckets } from '@/lib/profile/industry-reading'
@@ -180,9 +180,9 @@ const emptyOccupations = (): JobOccupations => ({
  * past the fresh window is served while a fresh read runs, as a warm instance's held
  * copy is. Else the database, and the result is written as the next snapshot.
  */
-async function snapshotJobSocs(): Promise<{ at: number; value: JobOccupations } | null> {
+async function snapshotJobSocs(graceMs = 0): Promise<{ at: number; value: JobOccupations } | null> {
   const [manifest, fingerprint] = await Promise.all([readManifest('occupations'), boardFingerprint()])
-  if (!manifest || !snapshotUsable(manifest, fingerprint, { freshMs: JOB_SOC_SNAPSHOT_FRESH_MS, otherBuildMaxMs: JOB_SOC_OTHER_BUILD_MAX_MS })) return null
+  if (!manifest || !snapshotUsable(manifest, fingerprint, { freshMs: JOB_SOC_SNAPSHOT_FRESH_MS + graceMs, otherBuildMaxMs: JOB_SOC_OTHER_BUILD_MAX_MS + graceMs })) return null
   const parts = await readParts(manifest)
   const value = parts?.length === 1 ? decodeOccupations(parts[0]) : null
   return value ? { at: Math.max(manifest.at, Date.now() - JOB_SOC_STALE_MS + 60_000), value } : null
@@ -199,6 +199,11 @@ async function firstJobSocs(opts: { holdingCopy?: boolean } = {}): Promise<{ at:
         await new Promise((resolve) => setTimeout(resolve, Math.random() * JOB_SOC_REFRESH_JITTER_MS))
         const again = await snapshotJobSocs()
         if (again) return again
+      }
+      // Another instance is already reading the replacement: keep serving the last snapshot a little longer (board-snapshot.ts).
+      if (!(await claimSnapshotRefresh('occupations'))) {
+        const late = await snapshotJobSocs(REFRESH_GRACE_MS)
+        if (late) return late
       }
     } catch (error) {
       console.error('Job occupations: snapshot unreadable, reading the database', error)

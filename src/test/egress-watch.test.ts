@@ -10,6 +10,8 @@ describe('egress watch', () => {
     expect(rowBytes('SELECT id, left(description, $1) AS d FROM "ExclusiveJobPosting"')).toBe(1200)
     expect(rowBytes('SELECT "companyName", left("description", $4) AS "description" FROM (SELECT "companyName", "description", row_number() OVER () FROM x) s')).toBe(1200)
     expect(rowBytes('SELECT "id", "title" FROM "BoardLightRow"')).toBe(250)
+    expect(rowBytes('SELECT id FROM "ExclusiveJobPosting" WHERE cardinality("aiSkillGroups") > $3')).toBe(40)
+    expect(rowBytes('SELECT "public"."BoardLightRow"."id" FROM "public"."BoardLightRow" WHERE 1=1')).toBe(250)
   })
   it('takes rows since the snapshot, and all of them after a reset or for a new statement', () => {
     const d = dailyDelta(
