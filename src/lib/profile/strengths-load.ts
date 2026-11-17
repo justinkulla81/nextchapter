@@ -11,7 +11,8 @@ import { scoreStrengths, strengthHeadline, type StrengthProfile } from './streng
 const MIN_PEERS = 20
 const MODEL = 'claude-haiku-5-5'
 
-export type WhyHire = { statement: string; proofPoints: string[]; generatedAt: string }
+// employerNeed: the hiring manager's problem this person solves, said from their side (absent on write-ups made before it existed).
+export type WhyHire = { statement: string; proofPoints: string[]; employerNeed?: string; generatedAt: string }
 export type Strengths = StrengthProfile & { headline: string; whyHire: WhyHire | null }
 
 async function perfPercentile(candidateId: string, primaryFunction: string | null, mine: { execution: number; judgment: number; composure: number; influence: number }) {
@@ -138,7 +139,7 @@ export async function loadStrengths(candidateId: string, opts: { writeUp?: boole
   const superpowers = refs?.map((r) => r.superpowerText).filter((x): x is string => !!x?.trim()) ?? []
   const skills = topSkills(profile, 8)
   const key = createHash('sha256')
-    .update(JSON.stringify({ f: profile.primaryFunction, t: profile.targetRoleType, l: profile.highestLevelReached, peaks: result.peaks.map((x) => [x.key, x.evidence]), broad: result.broad.map((x) => x.key), skills, superpowers }))
+    .update(JSON.stringify({ v: 2, f: profile.primaryFunction, t: profile.targetRoleType, l: profile.highestLevelReached, peaks: result.peaks.map((x) => [x.key, x.evidence]), broad: result.broad.map((x) => x.key), skills, superpowers }))
     .digest('hex')
     .slice(0, 32)
   if (profile.strengthCacheKey === key && cached) return { ...result, headline, whyHire: cached }
@@ -153,6 +154,7 @@ export async function loadStrengths(candidateId: string, opts: { writeUp?: boole
 
 const schema = z.object({
   statement: z.string(),
+  employerNeed: z.string(),
   proofPoints: z.array(z.string()).max(3),
 })
 
@@ -167,7 +169,7 @@ async function writeWhyHire(args: {
   try {
     const stream = getAnthropicClient().messages.stream({
       model: MODEL,
-      max_tokens: 500,
+      max_tokens: 700,
       thinking: { type: 'disabled' },
       output_config: { format: zodOutputFormat(schema), effort: 'low' },
       messages: [
@@ -184,13 +186,14 @@ What references said they're best at: ${args.superpowers.slice(0, 3).join(' | ')
 
 Return:
 - statement: two sentences, under 45 words, that a hiring manager would remember. Name the strengths and the kind of role they make this person great at.
+- employerNeed: one sentence, under 30 words, from the hiring manager's side: the problem they have that this person solves, starting "You need someone who" (e.g. "You need someone who can take a program that is slipping and get it shipped without burning out the team."). Ground it in the strengths above.
 - proofPoints: up to three short lines, each a concrete piece of the evidence above, written as a fact (e.g. "Led a team of 21–50 and owned a $1M–$10M budget").`,
         },
       ],
     })
     const msg = await stream.finalMessage()
     const out = msg.parsed_output
-    return out ? { statement: out.statement.trim(), proofPoints: out.proofPoints.map((x) => x.trim()).filter(Boolean), generatedAt: new Date().toISOString() } : null
+    return out ? { statement: out.statement.trim(), employerNeed: out.employerNeed.trim() || undefined, proofPoints: out.proofPoints.map((x) => x.trim()).filter(Boolean), generatedAt: new Date().toISOString() } : null
   } catch (error) {
     console.error('Why hire me: generation failed', error)
     return null

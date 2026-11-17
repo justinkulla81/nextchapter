@@ -336,8 +336,19 @@ export async function rebuildHiringProfiles(companyIds?: string[]): Promise<numb
         avg(CASE WHEN "payAnnualMid" IS NOT NULL THEN 1.0 ELSE 0.0 END)::float8 AS posted_pay_share,
         percentile_cont(0.5) WITHIN GROUP (ORDER BY "payRatio") FILTER (WHERE "payRatio" IS NOT NULL AND opened >= now() - interval '${BENCHMARK_WINDOW_DAYS} days') AS pay_ratio,
         count("payRatio") FILTER (WHERE opened >= now() - interval '${BENCHMARK_WINDOW_DAYS} days') AS pay_n,
-        mode() WITHIN GROUP (ORDER BY industry) AS crawler_industry
+        mode() WITHIN GROUP (ORDER BY industry) AS crawler_industry,
+        -- The employer page's hiring history (historyFor in src/lib/seo/employer-insights.ts), on firstSeenAt as that page counts it.
+        count(*) FILTER (WHERE "closedAt" > now() - interval '12 months') AS h_closed,
+        min("firstSeenAt") AS h_first,
+        count(*) FILTER (WHERE "firstSeenAt" > now() - interval '90 days') AS h_last90,
+        count(*) FILTER (WHERE "firstSeenAt" <= now() - interval '90 days' AND "firstSeenAt" > now() - interval '180 days') AS h_prior90
       FROM o GROUP BY "companyId"
+    ),
+    hm AS (
+      SELECT "companyId", jsonb_agg(jsonb_build_object('month', month, 'opened', opened) ORDER BY month) AS months FROM (
+        SELECT "companyId", to_char(date_trunc('month', "firstSeenAt"), 'YYYY-MM') AS month, count(*)::int AS opened
+        FROM o WHERE "firstSeenAt" >= date_trunc('month', now()) - interval '11 months' GROUP BY 1, 2
+      ) m GROUP BY 1
     ),
     st AS (
       SELECT "companyId", array_agg(s ORDER BY n DESC, s) AS states FROM (
@@ -379,7 +390,7 @@ export async function rebuildHiringProfiles(companyIds?: string[]): Promise<numb
       id, "companyId", industry, "siteType", states, "topLocations", "remoteShare", "topFunctions", "levelMix",
       "directorPlusShare", "vpPlusShare", "openNow", "opened90d", "opened12mo", "totalSeen", "firstSeenAt", "lastSeenAt",
       "warnFilings12mo", "warnEmployees12mo", "lastWarnAt", "layoffNews12mo", "payLevel", "payLevelSample", "payLevelRatio",
-      "postedPayShare", "computedAt"
+      "postedPayShare", history, "computedAt"
     )
     SELECT 'chp' || substr(md5(agg."companyId"), 1, 22), agg."companyId", COALESCE(c.industry, agg.crawler_industry),
       CASE WHEN agg.sites > 1 THEN 'multi_site' WHEN agg.sites = 1 THEN 'single_site' WHEN agg.remote_n > 0 THEN 'remote_only' ELSE 'unknown' END,
@@ -388,7 +399,10 @@ export async function rebuildHiringProfiles(companyIds?: string[]): Promise<numb
       COALESCE(warn.filings, 0), COALESCE(warn.employees, 0), warn.last_at, COALESCE(news.n, 0),
       CASE WHEN agg.pay_n < ${MIN_EMPLOYER_PAY_SAMPLE} THEN 'insufficient' WHEN agg.pay_ratio > ${1 + IN_LINE_BAND} THEN 'high'
            WHEN agg.pay_ratio < ${1 - IN_LINE_BAND} THEN 'low' ELSE 'in_line' END,
-      agg.pay_n, CASE WHEN agg.pay_n >= ${MIN_EMPLOYER_PAY_SAMPLE} THEN agg.pay_ratio END, agg.posted_pay_share, now()
+      agg.pay_n, CASE WHEN agg.pay_n >= ${MIN_EMPLOYER_PAY_SAMPLE} THEN agg.pay_ratio END, agg.posted_pay_share,
+      jsonb_build_object('months', COALESCE(hm.months, '[]'::jsonb), 'closed', agg.h_closed, 'firstSeen', agg.h_first,
+        'last90', agg.h_last90, 'prior90', agg.h_prior90),
+      now()
     FROM agg
     JOIN "Company" c ON c.id = agg."companyId"
     LEFT JOIN st ON st."companyId" = agg."companyId"
@@ -397,6 +411,7 @@ export async function rebuildHiringProfiles(companyIds?: string[]): Promise<numb
     LEFT JOIN lv ON lv."companyId" = agg."companyId"
     LEFT JOIN warn ON warn."companyId" = agg."companyId"
     LEFT JOIN news ON news."companyId" = agg."companyId"
+    LEFT JOIN hm ON hm."companyId" = agg."companyId"
     ON CONFLICT ("companyId") DO UPDATE SET
       industry = EXCLUDED.industry, "siteType" = EXCLUDED."siteType", states = EXCLUDED.states,
       "topLocations" = EXCLUDED."topLocations", "remoteShare" = EXCLUDED."remoteShare", "topFunctions" = EXCLUDED."topFunctions",
@@ -406,7 +421,7 @@ export async function rebuildHiringProfiles(companyIds?: string[]): Promise<numb
       "warnFilings12mo" = EXCLUDED."warnFilings12mo", "warnEmployees12mo" = EXCLUDED."warnEmployees12mo",
       "lastWarnAt" = EXCLUDED."lastWarnAt", "layoffNews12mo" = EXCLUDED."layoffNews12mo", "payLevel" = EXCLUDED."payLevel",
       "payLevelSample" = EXCLUDED."payLevelSample", "payLevelRatio" = EXCLUDED."payLevelRatio",
-      "postedPayShare" = EXCLUDED."postedPayShare", "computedAt" = now()
+      "postedPayShare" = EXCLUDED."postedPayShare", history = EXCLUDED.history, "computedAt" = now()
     `,
     ...params
   )

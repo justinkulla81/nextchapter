@@ -14,7 +14,7 @@ describe('strengths', () => {
     expect(p.peaks[0].key).toBe('execution')
     expect(p.peaks.map((x) => x.key)).toContain('scale')
     expect(p.weakSpots.map((w) => w.key)).toContain('influence')
-    expect(strengthHeadline(p)).toMatch(/gets things done/)
+    expect(strengthHeadline(p)).toMatch(/getting things done/)
   })
   it('a pick alone never makes a peak; nothing measured = emerging', () => {
     const p = scoreStrengths({ picked: ['clear_communicator', 'team_player', 'fast_learner'] })
@@ -28,7 +28,7 @@ describe('strengths', () => {
     const n = strengthNotes({ peaks: ['execution'], weak: ['influence'] }, 'account_executive')
     expect(n.exposes).toMatch(/influence/)
     expect(n.delta).toBeLessThan(0)
-    expect(strengthNotes({ peaks: ['execution'], weak: [] }, 'project_management').plays).toMatch(/gets things done/)
+    expect(strengthNotes({ peaks: ['execution'], weak: [] }, 'project_management').plays).toMatch(/getting things done/)
     expect(strengthKeys(scoreStrengths({})).peaks).toEqual([])
   })
 })

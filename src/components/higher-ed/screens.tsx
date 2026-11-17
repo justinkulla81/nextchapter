@@ -1002,6 +1002,13 @@ const CONSENT_COPY: Record<string, { label: (c: string) => string; help: string 
   SHARE_NEEDS: { label: (c) => `Let ${c} see why I joined and the help I need`, help: 'Whether you are moving here, changing fields or starting out, and the money pressures and barriers you told NextChapter about, like childcare, rent or health coverage, so they can match you to local programs. Never amounts or messages.' },
 }
 
+// A workforce program has no career services office, alumni or college: the same settings in its own words.
+const WORKFORCE_CONSENT_COPY: Record<string, { label: (c: string) => string; help: string }> = {
+  SHARE_SEARCH_DETAIL_WITH_CAREER: { label: (c) => `Let ${c}'s career staff see my progress`, help: 'Weekly progress and activity, so a coach or counselor can help. Never assessments or messages.' },
+  SHARE_ENGAGEMENT: { label: (c) => `Count my activity in ${c}'s program totals`, help: 'That you used the tools and took calls, as totals. Never what you did in them.' },
+  SHARE_DOSSIER_WITH_EMPLOYERS: { label: (c) => `Show my Dossier to employers ${c} approves`, help: 'Member companies that are hiring can see your Dossier and ask for an introduction. You say yes or no each time.' },
+}
+
 async function CandidatePrivacy({ ctx }: ScreenProps) {
   if (!ctx.memberId) {
     return <p className="text-sm text-muted-foreground">This is a preview: there&apos;s no member record, so there are no settings to show.</p>
@@ -1022,6 +1029,7 @@ async function CandidatePrivacy({ ctx }: ScreenProps) {
   const views = await listProfileViews(ctx.memberId)
   const rows = Object.entries(CONSENT_COPY)
     .filter(([scope]) => workforce || scope !== 'SHARE_NEEDS')
+    .map(([scope, c]) => (workforce && WORKFORCE_CONSENT_COPY[scope] ? [scope, WORKFORCE_CONSENT_COPY[scope]] as const : [scope, c] as const))
     .map(([scope, c]) => ({ scope, label: c.label(ctx.institution.name), help: c.help, granted: granted[scope] }))
   return (
     <div className="max-w-2xl space-y-6">

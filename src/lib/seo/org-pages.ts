@@ -305,7 +305,8 @@ export function blocksFor(row: OrgRow, area: Area, sd: StateData): OrgBlocks {
   const centers = sd.centers.filter(inArea)
   const tokens = new Set(area.counties.map((c) => countyToken(c.name)))
   const overlaps = (r: OrgRow) => r.countyTokens === 'all' || r.countyTokens.some((t) => tokens.has(t))
-  const boards = area.statewide ? sd.boards : sd.boards.filter(overlaps)
+  // A board's own page does not list the board itself under "Other help in the same area".
+  const boards = (area.statewide ? sd.boards : sd.boards.filter(overlaps)).filter((b) => b.id !== row.id)
   const partners = area.statewide ? [] : sd.econDev.filter((r) => r.id !== row.id && r.countyTokens !== 'all' && overlaps(r))
   const keys = [...tokens]
   const laborRows = area.statewide ? [...sd.laborByToken.values()] : keys.map((t) => sd.laborByToken.get(t)).filter((x): x is NonNullable<typeof x> => !!x)
