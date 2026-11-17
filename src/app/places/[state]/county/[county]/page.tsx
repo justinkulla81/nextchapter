@@ -1,4 +1,5 @@
 import { placeCountySeo } from '@/lib/seo/templates'
+import { acrossStateForCounties } from '@/lib/seo/org-pages'
 import { boardForPlace } from '@/lib/onboarding/arrived-from'
 import { shownInSearch } from '@/lib/seo/shown-in-search'
 import { YourState } from '@/components/capture/YourState'
@@ -106,7 +107,7 @@ export default async function CountyPlacePage({ params }: { params: Promise<{ st
       <ConferenceSection id="conferences" title={`Conferences in ${c.name}`} intro={`Industry conferences and trade shows held in ${c.name}.`}
         source={`place:county:${code}:${c.slug}`} load={() => conferencesAtPlace('county', code, c.slug, 12)} more={{ href: '/conferences', label: 'All conferences' }} />
 
-      <WorkforceSection id="workforce" state={name} stateSlugValue={state} boards={d.boards} centers={d.centers} scope={c.name} />
+      <WorkforceSection id="workforce" state={name} stateSlugValue={state} boards={d.boards} centers={d.centers} scope={c.name} across={await acrossStateForCounties([c.fips], code).catch(() => [])} />
 
       <PlaceLinks id="cities" title={`Cities in ${c.name}`} links={d.cities.map((x) => ({ href: placeUrl.city(state, x.slug), label: x.name, note: x.jobs ? `${x.jobs.toLocaleString()} jobs` : undefined }))} />
 

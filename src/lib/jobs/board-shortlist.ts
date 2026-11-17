@@ -1,6 +1,7 @@
 import 'server-only'
 import type { ExclusiveJobPosting, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { captureServerEvent } from '@/lib/posthog/server'
 import { excerptOf } from '@/lib/jobs/posting-text'
 import { computeBoardListingFitBucket } from '@/lib/jobs/job-fit-bucket'
 import { boardListingFitBucketScorerFor, type FitScoringVersion } from '@/lib/jobs/email-fit-scoring'
@@ -916,7 +917,11 @@ export async function loadBoardShortlist(opts: {
   const inOrder = (ids: string[]) => ids.map((id) => full.get(id)).filter((p): p is ExclusiveJobPosting => !!p)
   lap.total = Date.now() - t0
   // A slow shortlist (a cold instance, a board reload) says where the time went, in Vercel's logs.
-  if (lap.total >= SLOW_SHORTLIST_MS) console.log('[board-timing]', JSON.stringify({ ...lap, jobs: light.length }))
+  if (lap.total >= SLOW_SHORTLIST_MS) {
+    console.log('[board-timing]', JSON.stringify({ ...lap, jobs: light.length }))
+    // Also as an event, so a slow Find a job load can be read back afterwards (Vercel's logs only stream live).
+    captureServerEvent(candidateId ?? 'system', 'board_shortlist_slow', { ...lap, jobs: light.length, views: Object.keys(opts.views?.keeps ?? {}).length, sourceViews: Object.keys(opts.sourceViews?.keeps ?? {}).length })
+  }
 
   let open = inOrder(ranked.openIds)
   if (demoteYears) open = demoteYearsMismatch(opts.candidate as Parameters<typeof emailLevelFit>[0], open, size)

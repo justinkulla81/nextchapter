@@ -53,6 +53,21 @@ const DOSSIER_LINES = [
   'HR business partner who led two reorganizations without losing a top performer.',
   'Software engineer with eight years in claims systems; wants a local product team.',
 ]
+// Coarse résumé fields for the sample candidates, by title (function, level, industry bucket, years, keywords).
+const PROFILES: Record<string, { fn: string; level: string; industry: string; years: number; kw: string[] }> = {
+  'Operations Manager': { fn: 'Operations', level: 'Manager', industry: 'Transportation & Logistics', years: 14, kw: ['Process improvement', 'Lean six sigma', 'Supply chain', 'Project management', 'Excel', 'Budgeting', 'SAP'] },
+  'Senior Financial Analyst': { fn: 'Finance', level: 'IC', industry: 'Financial Services & Banking', years: 9, kw: ['Financial modeling', 'Forecasting', 'SQL', 'Excel', 'Tableau', 'GAAP', 'Power BI'] },
+  'Customer Experience Director': { fn: 'Customer success', level: 'Director', industry: 'Retail & E-commerce', years: 15, kw: ['Customer experience', 'Salesforce', 'Data analysis', 'Change management', 'People management'] },
+  'Logistics Supervisor': { fn: 'Operations', level: 'Manager', industry: 'Transportation & Logistics', years: 8, kw: ['Supply chain', 'Logistics', 'Excel', 'SAP', 'Lean'] },
+  'HR Business Partner': { fn: 'People and HR', level: 'Manager', industry: 'Healthcare & Hospital Systems', years: 11, kw: ['Workday', 'Recruiting', 'Employee relations', 'Change management', 'Compliance'] },
+  'Marketing Manager': { fn: 'Marketing', level: 'Manager', industry: 'Consumer Packaged Goods', years: 10, kw: ['SEO', 'Content strategy', 'Salesforce', 'Data analysis', 'Generative AI'] },
+  'Software Engineer': { fn: 'Engineering', level: 'IC', industry: 'Technology & Software', years: 8, kw: ['Python', 'SQL', 'AWS', 'Agile', 'Generative AI'] },
+  'Claims Manager': { fn: 'Operations', level: 'Manager', industry: 'Insurance', years: 13, kw: ['Claims', 'Compliance', 'Excel', 'Data analysis', 'People management'] },
+  'Project Manager': { fn: 'Project management', level: 'Manager', industry: 'Professional Services & Consulting', years: 9, kw: ['Project management', 'Agile', 'Scrum', 'Change management'] },
+  'Account Executive': { fn: 'Sales', level: 'IC', industry: 'Technology & Software', years: 7, kw: ['Salesforce', 'Sales', 'Negotiation', 'Business development'] },
+  'Data Analyst': { fn: 'Data', level: 'IC', industry: 'Financial Services & Banking', years: 5, kw: ['SQL', 'Python', 'Tableau', 'Power BI', 'Excel'] },
+  'Plant Controller': { fn: 'Finance', level: 'Director', industry: 'Manufacturing & Industrial', years: 18, kw: ['GAAP', 'CPA', 'SAP', 'Budgeting', 'Forecasting'] },
+}
 const ELSEWHERE = [
   ['Nashville', 'TN'],
   ['Chicago', 'IL'],
@@ -324,6 +339,11 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
         benefitsPressures: PRESSURES.filter((_, j) => rand(seed, p.i, 30 + j) < (p.extra?.kind === 'growing' ? 0.08 : 0.3)),
         biggestBarriers: BARRIERS.filter((_, j) => rand(seed, p.i, 40 + j) < 0.25),
         metroArea: localTowns[0].city,
+        primaryFunction: PROFILES[p.title]?.fn ?? null,
+        highestLevelReached: PROFILES[p.title]?.level ?? null,
+        industryBucket: PROFILES[p.title]?.industry ?? null,
+        yearsExperience: PROFILES[p.title]?.years ?? null,
+        resumeKeywords: PROFILES[p.title]?.kw ?? [],
         positioningStatementText: sharesDossier(p.i) ? pick(DOSSIER_LINES, seed, p.i, 22) : null,
         isSampleData: true,
       } satisfies Prisma.CandidateProfileCreateManyInput

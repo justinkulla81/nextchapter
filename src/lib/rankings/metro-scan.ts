@@ -30,6 +30,10 @@ export const whiteCollarCitySql = () => Prisma.sql`
       count(*) FILTER (WHERE ${PAID})::int AS paid,
       (percentile_cont(0.5) WITHIN GROUP (ORDER BY ("salaryMin" + "salaryMax") / 2.0) FILTER (WHERE ${PAID}))::float AS pay_med,
       count(*) FILTER (WHERE "workArrangement" IN ('remote', 'hybrid'))::int AS flex,
+      count(*) FILTER (WHERE ${PAID} AND cardinality("aiSkillGroups") > 0)::int AS ai_paid,
+      (percentile_cont(0.5) WITHIN GROUP (ORDER BY ("salaryMin" + "salaryMax") / 2.0) FILTER (WHERE ${PAID} AND cardinality("aiSkillGroups") > 0))::float AS ai_pay_med,
+      count(*) FILTER (WHERE ${PAID} AND cardinality("aiSkillGroups") = 0)::int AS plain_paid,
+      (percentile_cont(0.5) WITHIN GROUP (ORDER BY ("salaryMin" + "salaryMax") / 2.0) FILTER (WHERE ${PAID} AND cardinality("aiSkillGroups") = 0))::float AS plain_pay_med,
       count(*) FILTER (WHERE ${SOC2} BETWEEN '11' AND '29')::int AS soc_n,
       (sum(${AI_CASE}) FILTER (WHERE ${SOC2} BETWEEN '11' AND '29'))::float AS ai_sum
     FROM "ExclusiveJobPosting"
@@ -38,14 +42,16 @@ export const whiteCollarCitySql = () => Prisma.sql`
 
 /** White-collar openings by county: one pass over the live board grouped by city, each city placed in its county. */
 export async function loadWhiteCollarByCounty(placeCounty: Record<string, string>): Promise<Map<string, WcCounts>> {
-  const rows = await longRead((tx) => tx.$queryRaw<{ st: string; city: string; n: number; paid: number; pay_med: number | null; flex: number; soc_n: number; ai_sum: number | null }[]>(whiteCollarCitySql()))
+  const rows = await longRead((tx) => tx.$queryRaw<{ st: string; city: string; n: number; paid: number; pay_med: number | null; flex: number; ai_paid: number; ai_pay_med: number | null; plain_paid: number; plain_pay_med: number | null; soc_n: number; ai_sum: number | null }[]>(whiteCollarCitySql()))
   const out = new Map<string, WcCounts>()
   for (const r of rows) {
     const fips = placeKeys(r.city).map((k) => placeCounty[`${r.st}|${k}`]).find(Boolean)
     if (!fips) continue
-    const cur = out.get(fips) ?? { n: 0, paid: 0, pay: [], flex: 0, socN: 0, aiSum: 0 }
+    const cur = out.get(fips) ?? { n: 0, paid: 0, pay: [], flex: 0, aiPay: [], plainPay: [], socN: 0, aiSum: 0 }
     cur.n += r.n; cur.paid += r.paid; cur.flex += r.flex; cur.socN += r.soc_n; cur.aiSum += r.ai_sum ?? 0
     if (r.pay_med != null && r.paid > 0) cur.pay.push([r.pay_med, r.paid])
+    if (r.ai_pay_med != null && r.ai_paid > 0) cur.aiPay.push([r.ai_pay_med, r.ai_paid])
+    if (r.plain_pay_med != null && r.plain_paid > 0) cur.plainPay.push([r.plain_pay_med, r.plain_paid])
     out.set(fips, cur)
   }
   return out
@@ -94,10 +100,12 @@ export async function loadWhiteCollarLayoffs(counties: { fips: string; st: strin
 
 /** Each county's public figures, its American Job Centers and its white-collar layoffs. */
 export async function loadCountyFacts(placeCounty: Record<string, string>): Promise<{ facts: Map<string, CountyFacts & { st: string; name: string }>; layoffNote: { placed: number; unplaced: number; blue: number } }> {
-  const [areas, centers] = await Promise.all([
+  const [areas, centers, orgRows] = await Promise.all([
     prisma.geoArea.findMany({ where: { level: 'COUNTY' }, select: { id: true, state: true, name: true, population: true, laborForce: true, whiteCollarShare: true, wcUnemploymentEst: true, higherEdCount: true, higherEdEnrollmentEst: true, higherEd: true } }),
     prisma.americanJobCenter.groupBy({ by: ['countyFips'], _count: { _all: true } }),
+    prisma.geoOrgLead.groupBy({ by: ['geoAreaId'], where: { kind: { in: ['ECON_DEV', 'JOB_TRAINING', 'WORKFORCE'] }, geoAreaId: { not: null } }, _count: { _all: true } }),
   ])
+  const orgs = new Map(orgRows.flatMap((r) => (r.geoAreaId ? [[r.geoAreaId, r._count._all] as const] : [])))
   const ajc = new Map(centers.flatMap((c) => (c.countyFips ? [[c.countyFips, c._count._all] as const] : [])))
   const layoffs = await loadWhiteCollarLayoffs(areas.map((a) => ({ fips: a.id, st: a.state, name: a.name })), placeCounty)
   // A notice with no county or city we can place is shared across its state's counties by their white-collar workers, so a state
@@ -107,10 +115,19 @@ export async function loadCountyFacts(placeCounty: Record<string, string>): Prom
   for (const a of areas) stateWc.set(a.state, (stateWc.get(a.state) ?? 0) + wcOf(a))
   const facts = new Map(areas.map((a) => [a.id, {
     st: a.state, name: a.name, population: a.population, laborForce: a.laborForce, whiteCollarShare: a.whiteCollarShare, wcUnemp: a.wcUnemploymentEst,
-    colleges: a.higherEdCount, enrollment: a.higherEdEnrollmentEst, communityColleges: communityColleges(a.higherEd), ajc: ajc.get(a.id) ?? 0,
+    colleges: a.higherEdCount, enrollment: a.higherEdEnrollmentEst, communityColleges: communityColleges(a.higherEd), supportOrgs: orgs.get(a.id) ?? 0, ajc: ajc.get(a.id) ?? 0,
     layoffWorkers: layoffs.states.has(a.state)
       ? (layoffs.byCounty.get(a.id) ?? 0) + ((layoffs.unplacedByState.get(a.state) ?? 0) * wcOf(a)) / Math.max(1, stateWc.get(a.state) ?? 0)
       : null,
   }]))
   return { facts, layoffNote: { placed: layoffs.placed, unplaced: layoffs.unplaced, blue: layoffs.blue } }
+}
+
+/** Open state retraining, job-seeker support and relocation programs in the benefits catalog, by state. */
+export async function loadStatePrograms(): Promise<Map<string, number>> {
+  const rows = await prisma.$queryRaw<{ state: string; n: number }[]>`
+    SELECT "state", count(*)::int AS n FROM "BenefitProgram"
+    WHERE "state" IS NOT NULL AND "status" IN ('OPEN', 'ROLLING') AND "category" IN ('STATE_TRAINING', 'SUPPORT', 'RELOCATION') AND "name" NOT LIKE '(none%'
+    GROUP BY 1`
+  return new Map(rows.map((r) => [r.state, r.n]))
 }

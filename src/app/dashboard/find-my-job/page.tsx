@@ -4,6 +4,7 @@ import { strengthKeys } from '@/lib/profile/strengths'
 import { isLocationInArea, localAreaForCandidate } from '@/lib/workforce/local'
 import { loadWorkProfile } from '@/lib/profile/work-profile-load'
 import { Suspense } from 'react'
+import { timed } from '@/lib/perf/timed'
 import { after } from 'next/server'
 import { TrackedLink } from '@/components/dashboard/TrackedLink'
 import Link from 'next/link'
@@ -1170,6 +1171,12 @@ function placePhrase(profile: { currentCity: string | null }, m: MemberBreadthVe
 
 const DISMISS_REASON_LABEL = new Map<string, string>(DISMISS_REASONS.map((r) => [r.key, r.label.toLowerCase()]))
 
+/** The Company Tracker's list, streamed after the rest of the page (timed as page_query_slow, route find_my_job, label watchlist). */
+async function CompanyWatchlistSection({ candidateId }: { candidateId: string }) {
+  const entries = await timed('find_my_job', 'watchlist', candidateId, getWatchlistView(candidateId))
+  return <CompanyWatchlist entries={entries} />
+}
+
 function FindMyJobBodySkeleton() {
   return (
     <div className="flex items-center gap-2 rounded-lg border border-border p-6 text-sm text-muted-foreground">
@@ -1437,8 +1444,10 @@ async function FindMyJobBody({
           urlParams,
         }
       : null
-  const [board, matchedRoles, watchlistView, myJobs, expertNetworks, passedOnJobs] = await Promise.all([
-    loadBoardShortlist({
+  // Each read is timed (page_query_slow, route 'find_my_job'), so a slow load names its step.
+  const step = <T,>(label: string, work: Promise<T>) => timed('find_my_job', label, profile.id, work)
+  const [board, matchedRoles, myJobs, expertNetworks, passedOnJobs] = await Promise.all([
+    step('board', loadBoardShortlist({
       candidate: boardProfile,
       isCandidatePlus,
       where: seniorityGroups.length > 0 ? { level: { in: seniorityGroups.flatMap(levelsInGroup) } } : {},
@@ -1480,11 +1489,10 @@ async function FindMyJobBody({
       },
       // The welcome lift: a tie-break within a fit level, after the level gate (board-shortlist.ts).
       lift: (p) => (changerLift && signalMap && isOpenToChangers(signalMap.get(p.id))) || (appliedSourceView === 'all' && isEmployerListed(p)),
-    }),
-    matchedRoleTypes.length > 0 ? getMatchedRolesForCandidate(profile.id, [...matchedRoleTypes]) : Promise.resolve([]),
-    getWatchlistView(profile.id),
-    loadMyJobs(profile.id, memberSkillKeywords(profile)),
-    onBoard && showIndependentToolkit && workTypes.includes('contract') ? loadExpertNetworks(profile.id) : Promise.resolve([]),
+    })),
+    step('matchedRoles', matchedRoleTypes.length > 0 ? getMatchedRolesForCandidate(profile.id, [...matchedRoleTypes]) : Promise.resolve([])),
+    step('myJobs', loadMyJobs(profile.id, memberSkillKeywords(profile))),
+    step('expertNetworks', onBoard && showIndependentToolkit && workTypes.includes('contract') ? loadExpertNetworks(profile.id) : Promise.resolve([])),
     // Board jobs they passed on, for "Review" (job-dismiss.ts).
     onBoard
       ? prisma.trackedJob.findMany({
@@ -2411,7 +2419,10 @@ async function FindMyJobBody({
         <Card>
           <CardContent className="space-y-4 pt-6">
             <CompanyWatchlistForm />
-            <CompanyWatchlist entries={watchlistView} />
+            {/* Its own boundary: the job list above never waits for the tracker. */}
+            <Suspense fallback={<p className="text-sm text-muted-foreground">Loading your companies…</p>}>
+              <CompanyWatchlistSection candidateId={profile.id} />
+            </Suspense>
           </CardContent>
         </Card>
       </div>

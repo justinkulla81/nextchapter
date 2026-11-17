@@ -24,11 +24,12 @@ import { loadDegreeCityRows, loadDegreeEntities, loadGroupStats, loadSocStats } 
 import { loadAiPayPremium } from '@/lib/market/ai-pay-premium-data'
 import { loadCityStats, loadCountyStats, loadFunctionCityRows, loadIndustryCityRows, loadIndustryStats, loadSkillStats } from '@/lib/rankings/scan'
 import { awardEntries } from '@/lib/rankings/awards'
-import { addToAwardBook, awardBookExists, previousEdition, rebuildAwardBook, readPlaceRanksRaw, readRanking, readRankingIndex, writePlaceRanks, writeRanking, writeRankingIndex } from '@/lib/rankings/store'
+import { RANKING_METHOD } from '@/lib/rankings/method-version'
+import { recordRankingMethod, addToAwardBook, awardBookExists, previousEdition, rebuildAwardBook, readPlaceRanksRaw, readRanking, readRankingIndex, writePlaceRanks, writeRanking, writeRankingIndex } from '@/lib/rankings/store'
 import type { BuildGroup, CityStat, CollegeStat, CountyStat, PlaceInfo, PlaceRanks, RankingEdition, RankingIndexEntry } from '@/lib/rankings/types'
 import type { Cost } from '@/lib/rankings/living-cost'
 import { buildMetroStats, principalCity, rankWhitePlaces, whitePlacesSpecs, type MetroStat } from '@/lib/rankings/metro-places'
-import { loadCountyFacts, loadWhiteCollarByCounty } from '@/lib/rankings/metro-scan'
+import { loadCountyFacts, loadStatePrograms, loadWhiteCollarByCounty } from '@/lib/rankings/metro-scan'
 import { loadMetros } from '@/lib/workforce/metro-compare-data'
 import type { Metro } from '@/lib/workforce/metro-compare'
 import type { CommunityDoc } from '@/lib/rankings/metro-places'
@@ -148,11 +149,12 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
 
   if (group === 'metro') {
     const [metros, { context, placeCounty }, communityDoc] = await Promise.all([loadMetros(), loadCountyContext(), import('@/lib/rankings/data/county-community.json').then((m) => m.default)])
-    const [postings, { facts }] = await Promise.all([loadWhiteCollarByCounty(placeCounty), loadCountyFacts(placeCounty)])
+    const [postings, { facts }, statePrograms] = await Promise.all([loadWhiteCollarByCounty(placeCounty), loadCountyFacts(placeCounty), loadStatePrograms()])
     const stats = buildMetroStats({
       metros: metros.map((m) => ({ cbsa: m.cbsa, name: m.name, counties: m.counties, rpp: m.rpp.all ?? null, housingRpp: m.rpp.housing })),
       counties: facts, postings, context, community: communityDoc as unknown as CommunityDoc,
       housing: (cbsa) => costsFor({ metroCode: cbsa }),
+      statePrograms,
     })
     // A metro links to its first-named city's place page, else to its most populous county's page.
     const states = [...new Set(stats.map((m) => m.st).filter(Boolean))]
@@ -381,5 +383,6 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
     for (const k of Object.keys(merged)) merged[k].sort((a, b) => a.rank - b.rank)
     await writePlaceRanks(merged)
   }
+  await recordRankingMethod(group, RANKING_METHOD[group])
   return { group, edition, built: entries.length, skipped, cities: cityCount, counties: countyCount }
 }

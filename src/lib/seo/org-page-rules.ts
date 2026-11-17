@@ -2,6 +2,8 @@
 // boards): the address of a page, the one place that decides whether a page is offered to search engines, and the
 // name an organization gets in the CRM. Pure, so the sitemap, the page and the tests read the same rules.
 
+import { STATE_FIPS } from '@/lib/rankings/regions'
+
 export type OrgPageKind = 'JOB_CENTER' | 'ECON_DEV' | 'WORKFORCE_BOARD'
 
 export const slugifyName = (s: string) =>
@@ -132,4 +134,16 @@ export function orgPageTitle(row: { name: string; city: string | null; state: st
   const candidates = [`${base}: Local Jobs and Contacts`, base, name]
   // The descriptor is worth more than the brand suffix: titleMeta drops the brand when the two do not fit together.
   return candidates.find((c) => c.length <= limit) ?? name
+}
+
+/** A metro's counties (5-digit FIPS) that lie in states other than `state`, by state code: the part of a metro across a state line. */
+export function otherStateCounties(metroCounties: string[], state: string): Map<string, Set<string>> {
+  const own = STATE_FIPS[state]
+  const out = new Map<string, Set<string>>()
+  for (const f of metroCounties) {
+    const st = Object.keys(STATE_FIPS).find((k) => STATE_FIPS[k] === f.slice(0, 2))
+    if (!st || f.slice(0, 2) === own) continue
+    ;(out.get(st) ?? out.set(st, new Set()).get(st)!).add(f)
+  }
+  return out
 }

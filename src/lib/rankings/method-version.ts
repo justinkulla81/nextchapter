@@ -1,0 +1,25 @@
+import type { BuildGroup } from '@/lib/rankings/types'
+
+// The version of the method behind each group of lists. Bump a group's version in the change that alters how its lists are
+// built, and the hourly rankings-refresh job rebuilds that group within the hour, without waiting for the monthly run or a
+// click on "Run now". A group with no stored version counts as 'v0'.
+export const RANKING_METHOD: Record<BuildGroup, string> = {
+  // 2026-11-17: pay after cost of living deducts a year of owning the median home (living-cost.ts).
+  places: '2026-11-17',
+  functions: '2026-11-17',
+  industry: '2026-11-17',
+  // 2026-11-17b: complete metros only, no homicide criterion, AI pay premium and local job support added.
+  metro: '2026-11-17b',
+  skills: 'v0',
+  workforce: 'v0',
+  college: 'v0',
+  profile: 'v0',
+  support: 'v0',
+}
+
+/** The order stale groups are rebuilt in: the groups people look at most first. */
+const ORDER: BuildGroup[] = ['metro', 'places', 'functions', 'industry', 'workforce', 'support', 'skills', 'college', 'profile']
+
+export function staleGroups(stored: Partial<Record<BuildGroup, string>>): BuildGroup[] {
+  return ORDER.filter((g) => (stored[g] ?? 'v0') !== RANKING_METHOD[g])
+}
