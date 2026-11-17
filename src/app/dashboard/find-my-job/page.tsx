@@ -1303,27 +1303,14 @@ async function FindMyJobBody({
   // promise can't surface as an unhandled rejection before it is awaited.
   emailActivityPromise.catch(() => undefined)
 
-  const [
-    emailConnection,
-    currentEmployerName,
-    dossierStatus,
-    latestReport,
-    appliedCompanyBands,
-    contacts,
-    jobsWithHelpfulContacts,
-    searchEfficiency,
-    greatSets,
-    searchMatcher,
-    industryKeep,
-    aiIds,
-    signalMap,
-    directEmployers,
-  ] = await Promise.all([
+  // Staged (owner, 2026-11-17: a quick load first, the personal extras after). The job list needs only the cached board
+  // inputs below; the member's own reads (email, report, contacts, size bands) run beside it instead of before it, and
+  // are awaited with the board's own batch further down.
+  const personalPromise = Promise.all([
     emailConnectionPromise,
     // §4.8 — only fetched (and only ever true) for Confidential Search Mode
     // candidates.
     profile.confidentialSearchMode ? getCurrentEmployerName(profile.id) : Promise.resolve(null),
-    isDossierUnlocked(profile.id),
     // Reads the same application-trends breakdown the Market Reality Report
     // shows, computed once at report-generation time — never recomputed
     // live here, since computeApplicationTrends calls resolveCompanyIndustry
@@ -1347,6 +1334,21 @@ async function FindMyJobBody({
       select: { id: true, helpfulContacts: { select: { id: true, name: true, email: true, linkedinUrl: true } } },
     }),
     searchEfficiencyPromise,
+  ])
+  personalPromise.catch(() => undefined)
+
+  // Each read is timed (page_query_slow, route 'find_my_job'), so a slow load names its step.
+  const step = <T,>(label: string, work: Promise<T>) => timed('find_my_job', label, profile.id, work)
+  const [
+    dossierStatus,
+    greatSets,
+    searchMatcher,
+    industryKeep,
+    aiIds,
+    signalMap,
+    directEmployers,
+  ] = await step('boardInputs', Promise.all([
+    isDossierUnlocked(profile.id),
     // Great pay / great benefits (the `great` parameter): read only when a filter is on.
     greatFilters.length > 0 ? loadGreatSets() : Promise.resolve(null),
     // The board search (q / loc / remote / sort): matched on the in-memory board, board tab only.
@@ -1368,7 +1370,7 @@ async function FindMyJobBody({
       console.error('Direct employer names unavailable, board copies stay in Employers and recruiters:', error)
       return null
     }) : Promise.resolve(null),
-  ])
+  ]))
   // With no signals the filter can't be applied: show every job rather than none.
   const appliedOpenFilter = openFilter && !!signalMap
   const keepOpen = appliedOpenFilter ? (p: { id: string }) => isOpenToChangers(signalMap!.get(p.id)) : null
@@ -1378,25 +1380,6 @@ async function FindMyJobBody({
   const appliedAiView: AiView = aiIds ? aiView : 'all'
   // Without the employer names the gate still works in From employers; Employers and recruiters then hides no board copies.
   const appliedSourceView = sourceView
-  if (searchEfficiency.state !== 'NOT_ENOUGH_DATA') {
-    captureServerEvent(profile.id, 'search_efficiency_viewed', {
-      state: searchEfficiency.state,
-      applications: searchEfficiency.applications,
-      conversations: searchEfficiency.conversations,
-      applicationsPerConversation: searchEfficiency.applicationsPerConversation,
-    })
-  }
-  if (emailConnection) {
-    after(() =>
-      syncGmailConnection(emailConnection.id).catch((error) => console.error('Email auto-sync failed:', error))
-    )
-  }
-  const preSyncLastSyncAt = emailConnection?.lastSyncAt?.toISOString() ?? null
-
-  const applicationTrends =
-    (latestReport?.jobSearchPattern as unknown as { applicationTrends: ApplicationTrendsResult | null } | null)
-      ?.applicationTrends ?? null
-
   const isCandidatePlus = dossierStatus.unlocked
   // Every member sees every job; isCandidatePlus only turns on the extras on each job.
   // Employer-posted roles for the selected kinds of work (board and consulting
@@ -1419,9 +1402,7 @@ async function FindMyJobBody({
           urlParams,
         }
       : null
-  // Each read is timed (page_query_slow, route 'find_my_job'), so a slow load names its step.
-  const step = <T,>(label: string, work: Promise<T>) => timed('find_my_job', label, profile.id, work)
-  const [board, matchedRoles, myJobs, expertNetworks, passedOnJobs] = await Promise.all([
+  const [[board, matchedRoles, myJobs, expertNetworks, passedOnJobs], [emailConnection, currentEmployerName, latestReport, appliedCompanyBands, contacts, jobsWithHelpfulContacts, searchEfficiency]] = await Promise.all([Promise.all([
     step('board', loadBoardShortlist({
       candidate: boardProfile,
       isCandidatePlus,
@@ -1477,7 +1458,25 @@ async function FindMyJobBody({
           select: { sourceId: true, title: true, companyName: true, dismissReasons: true, dismissedAt: true },
         })
       : Promise.resolve([]),
-  ])
+  ]), step('personal', personalPromise)])
+  if (searchEfficiency.state !== 'NOT_ENOUGH_DATA') {
+    captureServerEvent(profile.id, 'search_efficiency_viewed', {
+      state: searchEfficiency.state,
+      applications: searchEfficiency.applications,
+      conversations: searchEfficiency.conversations,
+      applicationsPerConversation: searchEfficiency.applicationsPerConversation,
+    })
+  }
+  if (emailConnection) {
+    after(() =>
+      syncGmailConnection(emailConnection.id).catch((error) => console.error('Email auto-sync failed:', error))
+    )
+  }
+  const preSyncLastSyncAt = emailConnection?.lastSyncAt?.toISOString() ?? null
+
+  const applicationTrends =
+    (latestReport?.jobSearchPattern as unknown as { applicationTrends: ApplicationTrendsResult | null } | null)
+      ?.applicationTrends ?? null
   // The board is in: load this instance's search index in the background (a no-op
   // while it is fresh), so the member's first search finds it ready instead of
   // taking the light-fields fast path. Started now, after the board's own read so
