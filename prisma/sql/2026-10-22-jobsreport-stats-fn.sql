@@ -1,7 +1,7 @@
 -- One RPC that returns every number a geo report needs, so no edge function or pasted SQL is required.
 create or replace function jobsreport_stats(p_geo text)
 returns jsonb language sql stable security definer set search_path = public as $fn$
-with a as (select * from jobsreport_posting where geo = p_geo and county_fips is not null),
+with a as (select * from jobsreport_posting where geo = p_geo and county_fips is not null and closed_at is null and coalesce(missed_runs,0) = 0),
 w as (select *, lower(coalesce(description,'')) d from a where white_collar),
 t as (select *, (d ~ '\m(artificial intelligence|machine learning|generative ai|genai|llm|large language model|copilot|chatgpt|ai[- ]powered|ai tools?)\M' or d ~ '(^|[^a-z])ai([^a-z]|$)') ai from w)
 select jsonb_build_object(

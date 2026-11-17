@@ -5,7 +5,7 @@ import postgres from 'npm:postgres@3'
 const TOKEN = Deno.env.get('STATS_TOKEN') ?? '__SET_BEFORE_DEPLOY__'
 const sql = postgres(Deno.env.get('SUPABASE_DB_URL')!, { max: 1 })
 
-const WC = (g: string) => sql`geo = ${g} and white_collar and (county_fips is not null)`
+const WC = (g: string) => sql`geo = ${g} and white_collar and (county_fips is not null) and closed_at is null and coalesce(missed_runs,0) = 0`
 
 async function stats(g: string) {
   const [overview] = await sql`
@@ -14,7 +14,7 @@ async function stats(g: string) {
       count(distinct employer)::int employers,
       count(*) filter (where county_fips is not null)::int in_county,
       count(*) filter (where white_collar and county_fips is not null)::int wc_in_county
-    from jobsreport_posting where geo = ${g} and county_fips is not null`
+    from jobsreport_posting where geo = ${g} and county_fips is not null and closed_at is null and coalesce(missed_runs,0) = 0`
   const levels = await sql`
     select level, count(*)::int n from jobsreport_posting where ${WC(g)} group by 1 order by 2 desc`
   const functions = await sql`
@@ -25,7 +25,7 @@ async function stats(g: string) {
   const employers = await sql`
     select employer, source_type, count(*)::int n, count(*) filter (where white_collar)::int wc,
       count(*) filter (where white_collar and level='ENTRY')::int wc_entry
-    from jobsreport_posting where geo = ${g} and county_fips is not null group by 1,2 order by 3 desc limit 40`
+    from jobsreport_posting where geo = ${g} and county_fips is not null and closed_at is null and coalesce(missed_runs,0) = 0 group by 1,2 order by 3 desc limit 40`
   const [signals] = await sql`
     with b as (select *, lower(coalesce(description,'')) d from jobsreport_posting where ${WC(g)})
     select count(*)::int n,
