@@ -9,7 +9,7 @@ import LeadLifecycleEmail from '@/emails/lead-lifecycle'
 import type { LeadStep, LeadVariant } from './config'
 import { journeyButtons } from './journey'
 import { leadEmailContent, leadEmailText, type LeadEmailContext, type LeadEmailJob } from './content'
-import { placeOf, similarJobsForLead } from './similar-jobs'
+import { jobsForSearch, similarLeadJobs, type LeadJob } from './similar-jobs'
 
 const appUrl = () => process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com'
 const FROM = 'NextChapter <support@launchyournextchapter.com>'
@@ -31,6 +31,8 @@ export interface LifecycleSend {
   context: LeadEmailContext
   /** The job they saved or went to apply for, when there is one: the application welcome shows three open jobs like it. */
   jobId?: string | null
+  /** The saved search behind a job alert: its welcome shows three jobs the search finds now. */
+  search?: { q: string; loc: string; remote: boolean } | null
   /** A CRM person to log the send on. Absent for a test send, which is not logged or tracked. */
   personId?: string | null
   test?: boolean
@@ -48,14 +50,18 @@ export async function sendLifecycleEmail(input: LifecycleSend): Promise<boolean>
   const email = input.email.trim().toLowerCase()
   if (isUndeliverableAddress(email)) return false
 
-  // The application and saved-job welcomes lead with three open jobs like that job (job links are made tracked below).
+  // The application and saved-job welcomes lead with three open jobs like that job, the job-alert welcome with three its search finds
+  // now (job links are made tracked below).
   const token = makeUnsubscribeToken(email, null)
-  const jobWelcome = (input.variant === 'applied_job' || input.variant === 'saved_job') && input.step === 'welcome'
-  const similar = jobWelcome ? await similarJobsForLead(input.jobId) : []
-  const jobs: LeadEmailJob[] = similar.map((j, i) => ({
+  const welcome = input.step === 'welcome'
+  const found: LeadJob[] =
+    welcome && (input.variant === 'applied_job' || input.variant === 'saved_job') ? await similarLeadJobs(input.jobId)
+    : welcome && input.variant === 'job_alert' ? await jobsForSearch(input.search)
+    : []
+  const jobs: LeadEmailJob[] = found.map((j, i) => ({
     title: j.title,
-    company: j.companyName,
-    place: placeOf(j),
+    company: j.company,
+    place: j.place,
     url: `${appUrl()}/api/lead-job/${token}?job=${j.id}&step=${input.step}&v=${input.variant}&pos=${i + 1}`,
   }))
   const choices = input.context.journey || input.variant === 'waitlist_b2b' || jobs.length >= 3 ? [] : journeyButtons(email, input.step, input.context.detail)

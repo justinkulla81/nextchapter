@@ -38,7 +38,9 @@ export async function sendLifecycleTests() {
     for (const t of TESTS) {
       const applied = (t.variant === 'applied_job' || t.variant === 'saved_job') && t.step === 'welcome' && jobId
       const detail = applied && label ? label : t.detail
-      if (await sendLifecycleEmail({ email: to, variant: t.variant, step: t.step, context: { firstName: 'Justin', detail }, jobId: applied ? jobId : null, test: true })) sent++
+      // The job-alert welcome's test runs the sample search for real, so it shows the jobs it would find today.
+      const search = t.variant === 'job_alert' && t.step === 'welcome' ? { q: 'product manager', loc: 'Denver', remote: false } : null
+      if (await sendLifecycleEmail({ email: to, variant: t.variant, step: t.step, context: { firstName: 'Justin', detail }, jobId: applied ? jobId : null, search, test: true })) sent++
     }
   }
   captureServerEvent(admin.email ?? 'admin', 'lead_lifecycle_tests_sent', { sent })
