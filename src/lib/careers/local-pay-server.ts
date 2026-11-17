@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { sharedLoad } from '@/lib/db/heavy'
 import type { AreaCatalog, AreaRef } from '@/lib/careers/area'
 import type { PayByLevel, PayInfo, PayLevel } from '@/lib/careers/local-pay'
 
@@ -12,11 +13,12 @@ const lookupMemo = new Map<string, { at: number; value: Promise<(socCode: string
 
 // Throws on a database error so the caller can avoid remembering the failure for an hour.
 async function loadCatalog(): Promise<AreaCatalog> {
-  const rows = await prisma.occupationWage.findMany({
-    where: { areaType: { in: ['STATE', 'METRO'] } },
-    distinct: ['areaType', 'areaCode'],
-    select: { areaType: true, areaCode: true, areaName: true },
-  })
+  // DISTINCT in SQL, kept a day in the shared data cache: Prisma's `distinct` read all ~33k wage rows to keep ~450 areas, on every cold
+  // instance (2026-11-17 egress). The area that comes first for a code wins, as before.
+  const rows = await sharedLoad('wage-areas-v1', 24 * 3600, () => prisma.$queryRaw<{ areaType: string; areaCode: string; areaName: string }[]>`
+    SELECT DISTINCT ON ("areaType", "areaCode") "areaType", "areaCode", "areaName"
+    FROM "OccupationWage" WHERE "areaType" IN ('STATE', 'METRO')
+    ORDER BY "areaType", "areaCode"`, { reviveDates: false })
   return {
     states: rows.filter((r) => r.areaType === 'STATE').map((r) => ({ code: r.areaCode, name: r.areaName })),
     metros: rows.filter((r) => r.areaType === 'METRO').map((r) => ({ code: r.areaCode, name: r.areaName })),

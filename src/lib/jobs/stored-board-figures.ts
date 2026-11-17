@@ -38,15 +38,27 @@ export type BoardFigureKey =
   | `pay-data-snapshot:${string}`
 
 /**
- * A figure is read from the shared data cache (30 minutes) through a five-minute copy on the instance: pages read these on every
- * render (~1.9M reads of ~4.5 KB payloads in five days, owner decision 2026-11-17, Supabase egress). The crons that write them run
- * hourly or daily, so a page shows a new figure within half an hour.
+ * A figure is read from the shared data cache through a five-minute copy on the instance: pages read these on every render (~1.9M
+ * reads of ~4.5 KB payloads in five days, owner decision 2026-11-17, Supabase egress). Writing a figure clears its group's cache entry
+ * (figureTag), so a page still shows a new figure within the instance's five minutes. Six hours is only the backstop for a write made
+ * outside a request (a script), which cannot clear it. It was 30 minutes, and ~7,100 keys refilled that often were ~3,000 reads an hour.
  */
+const figureTag = (key: string) => `board-figure:${key.split(':')[0]}`
 const readFigurePayload = memoTtl(5 * 60_000, (key: string) => key, (key: string) =>
-  sharedLoad(`board-figure-v1:${key}`, 30 * 60, async () => {
+  sharedLoad(`board-figure-v1:${key}`, 6 * 3600, async () => {
     const row = await prisma.boardFigure.findUnique({ where: { key }, select: { payload: true } })
     return row ? row.payload : null
-  }, { reviveDates: false }))
+  }, { reviveDates: false, tags: [figureTag(key)] }))
+
+/** Clears the shared cache for the figures under a key's group. Outside a request (a script) this cannot run; the six-hour backstop applies. */
+async function forgetFigures(key: string): Promise<void> {
+  try {
+    const { revalidateTag } = await import('next/cache')
+    revalidateTag(figureTag(key), { expire: 0 })
+  } catch {
+    // Not in a request: the entries expire on their own.
+  }
+}
 
 export async function readBoardFigure<T>(key: BoardFigureKey): Promise<T | null> {
   const payload = await readFigurePayload(key)
@@ -60,6 +72,7 @@ export async function writeBoardFigure(key: BoardFigureKey, payload: unknown): P
     create: { key, payload: data, computedAt: new Date() },
     update: { payload: data, computedAt: new Date() },
   })
+  await forgetFigures(key)
 }
 
 /** Writes many rows (one statement per chunk) and removes rows under `prefix` that are no longer in the set. */
@@ -72,4 +85,5 @@ export async function replaceBoardFigures(prefix: string, rows: [key: BoardFigur
       ON CONFLICT ("key") DO UPDATE SET "payload" = EXCLUDED."payload", "computedAt" = EXCLUDED."computedAt"`)
   }
   await prisma.boardFigure.deleteMany({ where: { key: { startsWith: prefix, notIn: rows.map(([k]) => k) } } })
+  await forgetFigures(prefix)
 }

@@ -1,4 +1,5 @@
 import 'server-only'
+import { sharedLoad } from '@/lib/db/heavy'
 import { prisma } from '@/lib/prisma'
 import { buildAliasIndex, resolveSkillIds, type AliasIndex } from '@/lib/careers/skill-aliases'
 
@@ -7,7 +8,8 @@ let memo: { at: number; value: Promise<AliasIndex> } | null = null
 
 async function load(): Promise<AliasIndex> {
   try {
-    return buildAliasIndex(await prisma.skillAlias.findMany({ select: { alias: true, skillId: true } }))
+    // Shared across instances for a day: the aliases change only when the importer runs (2026-11-17 egress).
+    return buildAliasIndex(await sharedLoad('skill-aliases-v1', 24 * 3600, () => prisma.skillAlias.findMany({ select: { alias: true, skillId: true } }), { reviveDates: false }))
   } catch (error) {
     // No table or no rows yet: matching falls back to plain name matching.
     console.error('Skill aliases unavailable:', error)

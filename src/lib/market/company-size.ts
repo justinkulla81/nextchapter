@@ -1,4 +1,5 @@
 import 'server-only'
+import { sharedLoad } from '@/lib/db/heavy'
 import { after } from 'next/server'
 import { z } from 'zod'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
@@ -152,9 +153,10 @@ export function loadBoardCompanySizes(now = Date.now()): Promise<Map<string, Com
   if (held && now - held.at < SIZE_MAP_TTL_MS) return held.map
   const map = (async () => {
     const out = new Map<string, CompanySizeBand>()
+    // Both lists from the shared data cache for six hours (2026-11-17 egress: every cold instance read ~17k rows).
     const [companies, cached] = await Promise.all([
-      prisma.company.findMany({ where: { sizeBand: { not: null } }, select: { canonicalNameNormalized: true, sizeBand: true } }),
-      prisma.companySizeLookup.findMany({ select: { companyNameNormalized: true, sizeBand: true } }),
+      sharedLoad('company-size-bands-v1', 6 * 3600, () => prisma.company.findMany({ where: { sizeBand: { not: null } }, select: { canonicalNameNormalized: true, sizeBand: true } }), { reviveDates: false }),
+      sharedLoad('company-size-lookup-v1', 6 * 3600, () => prisma.companySizeLookup.findMany({ select: { companyNameNormalized: true, sizeBand: true } }), { reviveDates: false }),
     ])
     for (const c of companies) if (c.sizeBand) out.set(c.canonicalNameNormalized, c.sizeBand)
     for (const c of cached) out.set(c.companyNameNormalized, c.sizeBand)
