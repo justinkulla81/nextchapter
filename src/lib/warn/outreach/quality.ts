@@ -58,7 +58,9 @@ export interface AddressFacts {
   /** The domain has a mail server; null when the lookup was inconclusive. */
   mx: boolean | null
   /** A saved Hunter check of this address itself (AddressVerification), whoever it belongs to; null when never checked. */
-  directory: { status: string; score: number | null; at: Date } | null
+  directory: { status: string; hunterStatus?: string | null; score: number | null; at: Date } | null
+  /** The address is a workforce board's director in the official CareerOneStop listing. */
+  boardDirector?: boolean
 }
 
 export interface Quality { ok: boolean; score: number; reason: string | null }
@@ -98,6 +100,9 @@ export function addressQuality(f: AddressFacts, now: Date = new Date()): Quality
   if (personOk) score = 10 + Math.max(0, Math.min(100, f.hunterScore ?? 0)) / 10
   else if (dirOk) score = 10 + Math.max(0, Math.min(100, f.directory!.score ?? 0)) / 10
   else if (f.replied && !!f.personId && f.domainBounced === 0) score = 8
+  // Owner, 2026-11-17: a board director's listed address may be emailed when Hunter calls it accept-all. Government and nonprofit mail servers
+  // accept every address, so Hunter cannot say more, and the listing itself vouches for it. Invalid, role and bouncing domains stay stopped above.
+  else if (f.boardDirector && !!f.directory && f.directory.hunterStatus === 'accept_all' && isFresh(f.directory.at, now)) score = 9
   else return no(f.personId || f.directory ? 'not verified deliverable' : 'no verified contact')
   if (f.warmth === 'HOT') score += 3
   else if (f.warmth === 'WARM') score += 2
