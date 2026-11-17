@@ -1,4 +1,6 @@
 import 'server-only'
+import { memoTtl, sharedLoad } from '@/lib/db/heavy'
+import { LAYOFF_TRACKER_TAG } from '@/lib/warn/layoff-cache-tags'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { employerSlug } from './layoff-pages'
@@ -261,7 +263,19 @@ export const TRACKER_KEPT_CTES = Prisma.sql`
  * Returns null rather than throwing, so the News page loses the tracker
  * instead of failing with it.
  */
-export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | null> {
+/**
+ * The tracker, kept six hours in the shared data cache per `limit` and five minutes on the instance (2026-11-17 egress: it ran its two
+ * aggregate queries and a ~3,300-row press-mentions read on every render, ~140 times in six hours, including every organization page's
+ * rapid-response numbers). publishLayoffsNow clears it whenever a layoff is filed. A failed load is not kept.
+ */
+export const getLayoffTracker = memoTtl(5 * 60_000, (limit: number = 40) => String(limit), (limit: number = 40): Promise<LayoffTrackerData | null> =>
+  sharedLoad(`layoff-tracker-v1:${limit}`, 6 * 3600, async () => {
+    const data = await loadLayoffTracker(limit)
+    if (!data) throw new Error('Layoff tracker unavailable')
+    return data
+  }, { reviveDates: false, tags: [LAYOFF_TRACKER_TAG] }).catch(() => null))
+
+async function loadLayoffTracker(limit = 40): Promise<LayoffTrackerData | null> {
   try {
     const rows = await prisma.$queryRaw<{
       state: string | null; employer: string; company: string | null; county: string | null

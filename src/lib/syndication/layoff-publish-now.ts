@@ -1,7 +1,7 @@
 import 'server-only'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { forgetAnnouncements } from '@/lib/warn/company-announcements'
-import { ANNOUNCEMENTS_TAG, TOPIC_NOTICES_TAG } from '@/lib/warn/layoff-cache-tags'
+import { ANNOUNCEMENTS_TAG, LAYOFF_TRACKER_TAG, TOPIC_NOTICES_TAG } from '@/lib/warn/layoff-cache-tags'
 import { forgetLayoffNotices } from '@/lib/warn/layoff-pages'
 import { runLayoffIndexNow } from './indexnow-layoffs'
 
@@ -18,6 +18,7 @@ export async function publishLayoffsNow(): Promise<string> {
     revalidateTag('shared-load:public-notices', { expire: 0 })
     revalidateTag(ANNOUNCEMENTS_TAG, { expire: 0 })
     revalidateTag(TOPIC_NOTICES_TAG, { expire: 0 })
+    revalidateTag(LAYOFF_TRACKER_TAG, { expire: 0 })
     revalidatePath('/layoffs')
     revalidatePath('/feeds/layoffs')
     const r = await runLayoffIndexNow()

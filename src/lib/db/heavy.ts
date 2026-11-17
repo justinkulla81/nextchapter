@@ -78,19 +78,23 @@ const ISO_DATE = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?Z$/
  * the bulk of its outbound data. Stored as gzipped JSON (an entry is capped at 2 MB), with dates read back as dates. Where the cache is not
  * available (a script, a test) it just runs the loader. Results must be plain data: no Maps, Sets or class instances.
  */
-export async function sharedLoad<T>(key: string, revalidateSec: number, load: () => Promise<T>, opts: { reviveDates?: boolean } = {}): Promise<T> {
+export async function sharedLoad<T>(key: string, revalidateSec: number, load: () => Promise<T>, opts: { reviveDates?: boolean; tags?: string[] } = {}): Promise<T> {
   let loadFailed = false
   const pack = unstable_cache(
     async () => {
       try {
-        return gzipSync(JSON.stringify(await load())).toString('base64')
+        const packed = gzipSync(JSON.stringify(await load())).toString('base64')
+        // Over the cap the data cache refuses the entry and every call reads the database again, with only Next's unnamed warning.
+        if (packed.length > 1_900_000) console.warn('sharedLoad entry too big for the data cache, split it (sharedPartsLoad)', key, packed.length)
+        return packed
       } catch (e) {
         loadFailed = true
         throw e
       }
     },
     ['shared-load', key],
-    { revalidate: revalidateSec, tags: [`shared-load:${key}`] }
+    // Extra tags let a writer clear a whole group of entries at once (revalidateTag), e.g. every stored board figure under a prefix.
+    { revalidate: revalidateSec, tags: [`shared-load:${key}`, ...(opts.tags ?? [])] }
   )
   let packed: string
   try {
