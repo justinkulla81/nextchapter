@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { sharedLoad } from '@/lib/db/heavy'
 import { readBoardFigure } from '@/lib/jobs/stored-board-figures'
 import { resolveCandidateOccupation } from '@/lib/careers/candidate-occupation'
 import { exposureFor, summarizeJobsByExposure, type ExposureMap, type JobsByExposure, type OccupationExposure } from '@/lib/skills/ai-exposure'
@@ -15,8 +16,8 @@ export function loadExposureMap(): Promise<ExposureMap> {
   const now = Date.now()
   if (!mapMemo || now - mapMemo.at > MAP_TTL_MS) {
     const at = now
-    const value = prisma.occupationAiExposure
-      .findMany({ select: { soc6: true, title: true, observedExposure: true } })
+    // One copy in the shared data cache for six hours (2026-11-17 egress: ~1,160 cold instances read the whole table in six hours).
+    const value = sharedLoad('ai-exposure-rows-v1', 6 * 3600, () => prisma.occupationAiExposure.findMany({ select: { soc6: true, title: true, observedExposure: true } }), { reviveDates: false })
       .then((rows) => new Map(rows.map((r) => [r.soc6, { title: r.title, score: r.observedExposure }])) as ExposureMap)
       .catch((error) => {
         console.error('AI exposure unavailable:', error)

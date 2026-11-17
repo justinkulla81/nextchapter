@@ -1,4 +1,5 @@
 import 'server-only'
+import { contactIdsAtCompanies } from '@/lib/network/contacts-at-companies'
 import type { ExclusiveJobPosting } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
@@ -51,8 +52,12 @@ function originOf(url: string): string | null {
 export async function loadJobContacts(postings: ContactPosting[], candidateId: string): Promise<Map<string, JobContacts>> {
   // Only contacts with a title and an employer can be classified or matched, which also
   // keeps a 27,000-row LinkedIn export down to the few that matter.
-  const mine = await prisma.supportNetworkContact.findMany({
+  // Only the contacts at these postings' employers, matched in the database: the whole list was read for every board view (~20k rows
+  // for one member, 2026-11-17 egress alert).
+  const ids = await contactIdsAtCompanies(candidateId, postings.filter((p) => p.disclosure !== 'CONFIDENTIAL').map((p) => p.companyName), { strict: true, activeWithTitle: true })
+  const mine = ids.length === 0 ? [] : await prisma.supportNetworkContact.findMany({
     where: {
+      id: { in: ids },
       candidateId,
       removedAt: null,
       title: { not: null },

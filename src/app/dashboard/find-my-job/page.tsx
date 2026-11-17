@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { contactIdsAtCompanies } from '@/lib/network/contacts-at-companies'
 import { loadStrengths } from '@/lib/profile/strengths-load'
 import { strengthKeys } from '@/lib/profile/strengths'
 import { isLocationInArea, localAreaForCandidate } from '@/lib/workforce/local'
@@ -1321,10 +1322,15 @@ async function FindMyJobBody({
     // "Who can help with this one?" — contacts already manually linked to a
     // specific application, plus company-matched suggestions from the
     // candidate's own network list they haven't linked yet.
-    prisma.supportNetworkContact.findMany({
-      where: { candidateId: profile.id, OR: [{ company: { not: null } }, { inferredCompany: { not: null } }] },
-      select: { id: true, name: true, company: true, inferredCompany: true, email: true, linkedinUrl: true },
-    }),
+    // Only the contacts at these employers, matched in the database (a member's whole list can be ~20k rows).
+    contactIdsAtCompanies(profile.id, appliedCompanyNames, { strict: false }).then((ids) =>
+      ids.length === 0
+        ? []
+        : prisma.supportNetworkContact.findMany({
+            where: { id: { in: ids }, candidateId: profile.id },
+            select: { id: true, name: true, company: true, inferredCompany: true, email: true, linkedinUrl: true },
+          })
+    ),
     prisma.jobPosting.findMany({
       where: { candidateId: profile.id },
       select: { id: true, helpfulContacts: { select: { id: true, name: true, email: true, linkedinUrl: true } } },

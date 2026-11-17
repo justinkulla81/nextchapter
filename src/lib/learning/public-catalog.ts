@@ -1,6 +1,7 @@
 import 'server-only'
 import { cache } from 'react'
 import { prisma } from '@/lib/prisma'
+import { sharedLoad } from '@/lib/db/heavy'
 import { aiSkillLabelsForCourse } from '@/lib/learning/ai-course-tags'
 import { looksAiRelated } from '@/lib/learning/course-scan/classify'
 import { assignSlugs, functionsForCourse, type PublicCourse } from '@/lib/learning/public-catalog-shared'
@@ -11,10 +12,11 @@ import { assignSlugs, functionsForCourse, type PublicCourse } from '@/lib/learni
  * not AI courses and stay on the member Learning page.
  */
 export const getPublicCatalog = cache(async (): Promise<PublicCourse[]> => {
-  const rows = await prisma.course.findMany({
+  // One copy in the shared data cache for six hours (2026-11-17 egress: each cold instance re-read the catalog's course text).
+  const rows = await sharedLoad('public-course-catalog-v1', 6 * 3600, () => prisma.course.findMany({
     where: { isActive: true, category: { in: ['AI_TRAINING', 'FUNCTION_TRAINING', 'CERTIFICATION'] } },
     select: { title: true, sponsor: true, description: true, url: true, provider: true, free: true, skillLevel: true, category: true, keywords: true, targetFunctions: true },
-  })
+  }), { reviveDates: false })
   // The member Learning page keeps function courses and certifications that are not about AI (a contract law course, a CPA
   // prep). The public catalog is AI courses: those must be tagged to an AI skill or say AI in their own words.
   const aiOnly = rows.filter((r) => r.category === 'AI_TRAINING' || aiSkillLabelsForCourse(r.url).length > 0 || looksAiRelated(`${r.title} ${r.description}`))
