@@ -81,6 +81,13 @@ describe('best places for white-collar professionals', () => {
     expect(ed.rows[0].stats.length).toBe(6)
   })
 
+  it('counts a missing criterion as the middle, not as a pass', () => {
+    const full = Object.fromEntries(CRITERIA.map((c) => [c.id, 90]))
+    const missingLayoffs = { ...full, wp_layoff: null }
+    expect(allRoundScore(missingLayoffs) as number).toBeLessThan(allRoundScore(full) as number)
+    expect(allRoundScore(Object.fromEntries(CRITERIA.map((c) => [c.id, c.weight >= 6 ? null : 90])))).toBeNull()
+  })
+
   it('leaves out small metros', () => {
     const small: MetroStat = { ...buildMetroStats(fixture(1))[0], population: 100_000 }
     expect(eligible(small)).toBe(false)

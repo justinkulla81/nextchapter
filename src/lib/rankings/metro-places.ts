@@ -157,7 +157,7 @@ export function buildMetroStats(input: MetroInputs): MetroStat[] {
     const ps = cs.map((x) => input.postings.get(x.fips)).filter((p): p is WcCounts => !!p)
     const openings = sumOf(ps, (p) => p.n)
     const paid = sumOf(ps, (p) => p.paid)
-    const payMed = paid >= 50 ? weightedMedian(ps.flatMap((p) => p.pay)) : null
+    const payMed = paid >= MIN_PAID ? weightedMedian(ps.flatMap((p) => p.pay)) : null
     const socN = sumOf(ps, (p) => p.socN)
     // QCEW sectors: white-collar growth, AI-exposed share, diversity
     let wcThen = 0, wcNow = 0, total = 0, exposed = 0
@@ -250,8 +250,10 @@ export interface Criterion {
 }
 
 /** Metros below this many people, or with fewer white-collar openings than MIN_OPENINGS, are not ranked. */
-export const MIN_POPULATION = 250_000
-export const MIN_OPENINGS = 300
+export const MIN_POPULATION = 200_000
+export const MIN_OPENINGS = 100
+/** Openings that post a salary a metro needs before its median pay (and the pay and housing criteria built on it) is shown. */
+export const MIN_PAID = 25
 
 export const CRITERIA: Criterion[] = [
   {
@@ -358,7 +360,7 @@ export const CRITERIA: Criterion[] = [
     id: 'wp_diverse', label: 'Diverse industries', weight: 5,
     title: 'Metros with the most diverse economies', slug: 'metros-with-the-most-diverse-economies',
     what: 'How evenly private-sector jobs are spread across 19 industry sectors (one minus the sum of squared sector shares). A metro that leans on one industry is more exposed when that industry cuts.',
-    parts: [{ label: 'Industry diversity (0 to 1)', weight: 1, value: (m) => m.diversity, show: two }],
+    parts: [{ label: 'Industry diversity (0 to 1)', weight: 1, value: (m) => m.diversity, show: (v) => v.toFixed(3) }],
     lead: (n, v, s) => `${n} has the most diverse economy in ${s}, scoring ${v} on industry diversity.`,
   },
   {
@@ -431,9 +433,11 @@ export function allRoundScore(scores: Record<string, number | null>): number | n
   let num = 0, w = 0
   for (const c of CRITERIA) {
     const v = scores[c.id]
-    if (v != null) { num += v * c.weight; w += c.weight }
+    if (v != null) w += c.weight
+    // A criterion the metro has no figure for counts as the middle (50), so missing data neither lifts nor sinks it.
+    num += (v ?? 50) * c.weight
   }
-  return w >= 80 ? num / w : null
+  return w >= 80 ? num / totalWeight() : null
 }
 
 export const totalWeight = () => sumOf(CRITERIA, (c) => c.weight)
@@ -494,7 +498,7 @@ export function rankWhitePlaces(spec: Spec, stats: MetroStat[], link: (m: MetroS
       lead: (name, v, scope) => `${name} is the best place for white-collar professionals in ${scope}, scoring ${v} across ${CRITERIA.length} measures of jobs, pay, housing, layoffs, AI exposure, schools, safety and community.`,
       method: [
         `A metro's score is the weighted average of its scores on ${CRITERIA.length} criteria. Each criterion scores a metro by its percentile among the ranked metros nationwide (100 is best), averaging the parts of a criterion that has several. The weights: ${CRITERIA.map((c) => `${c.label.toLowerCase()} ${c.weight}%`).join(', ')}.`,
-        'A metro missing criteria worth more than 20% of the weight is not ranked; one missing less is scored on the criteria it has. Every criterion has its own ranking, linked from this page.',
+        'A metro missing criteria worth more than 20% of the weight is not ranked; a criterion it has no figure for counts as the middle score, 50. Every criterion has its own ranking, linked from this page.',
         ...METHOD_COMMON,
       ],
     })
