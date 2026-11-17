@@ -2,6 +2,7 @@
 // and tests can run it. The request-facing gate is requireWorkspace() in
 // ./access.ts, which calls this on every request.
 
+import { effectivePlan } from '@/lib/plans/entitlements'
 import 'server-only'
 import type { InstitutionOrgType, InstitutionTier, InstitutionUserRole, Prisma, PrismaClient } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
@@ -27,6 +28,11 @@ export type InstitutionBranding = {
   tier: InstitutionTier
   // 'FREE' or 'PAID' (src/lib/plans/entitlements.ts).
   plan: string
+  // The plan as stored, before a running trial is applied.
+  storedPlan?: string
+  // A FREE organization's one trial: while it runs `plan` reads PAID (effectivePlan); these let screens say where it stands.
+  trialStartedAt?: Date | null
+  trialEndsAt?: Date | null
   orgType: InstitutionOrgType
 }
 
@@ -103,12 +109,13 @@ export async function resolveInstitutionAccess(
 ): Promise<InstitutionAccess | null> {
   const row = await db.institution.findUnique({
     where: { slug: args.slug },
-    select: { id: true, slug: true, name: true, programBrandName: true, logoUrl: true, accentColor: true, isDemo: true, tier: true, plan: true, orgType: true, enabledFeatures: true },
+    select: { id: true, slug: true, name: true, programBrandName: true, logoUrl: true, accentColor: true, isDemo: true, tier: true, plan: true, trialStartedAt: true, trialEndsAt: true, orgType: true, enabledFeatures: true },
   })
   if (!row) return null
   // enabledFeatures decides which feature-gated workspaces exist here; it
   // isn't part of the branding handed to pages.
-  const { enabledFeatures, ...institution } = row
+  const { enabledFeatures, ...stored } = row
+  const institution = { ...stored, plan: effectivePlan(stored.plan, stored.trialEndsAt), storedPlan: stored.plan }
   const features = workspaceFeaturesOf(enabledFeatures)
 
   const memberOnly = !!args.memberOnly

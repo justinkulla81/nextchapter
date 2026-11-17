@@ -101,3 +101,40 @@ describe('export and screen gates', () => {
     expect(blockedScreen('admin:services', 'FREE')).toBeNull()
   })
 })
+
+import { LOCK_PITCH, TRIAL_DAYS, effectivePlan, trialEndDate, trialForLock, trialState, LOCKED_TITLES } from './entitlements'
+
+describe('free trial', () => {
+  const now = new Date('2026-11-17T12:00:00Z')
+  const started = new Date('2026-11-10T12:00:00Z')
+  it('is available once, runs 30 days, then ends', () => {
+    expect(trialState('FREE', null, null, now).state).toBe('available')
+    const ends = trialEndDate(started)
+    expect(ends.getTime() - started.getTime()).toBe(TRIAL_DAYS * 86_400_000)
+    expect(trialState('FREE', started, ends, now)).toMatchObject({ state: 'active', daysLeft: 23 })
+    expect(trialState('FREE', started, new Date('2026-11-12T00:00:00Z'), now).state).toBe('ended')
+    expect(trialState('PAID', null, null, now).state).toBe('none')
+  })
+  it('reads as paid only while it runs, and never takes anything from a paid plan', () => {
+    expect(effectivePlan('FREE', new Date('2026-12-01T00:00:00Z'), now)).toBe('PAID')
+    expect(effectivePlan('FREE', new Date('2026-11-01T00:00:00Z'), now)).toBe('FREE')
+    expect(effectivePlan('FREE', null, now)).toBe('FREE')
+    expect(effectivePlan('PAID', null, now)).toBe('PAID')
+  })
+  it('tells a lock screen what to offer', () => {
+    expect(trialForLock({ plan: 'FREE', trialStartedAt: null, trialEndsAt: null })).toBe('available')
+    expect(trialForLock({ plan: 'FREE', trialStartedAt: new Date('2026-01-01'), trialEndsAt: new Date('2026-01-31') })).toBe('ended')
+    expect(trialForLock({ plan: 'PAID', storedPlan: 'FREE', trialStartedAt: new Date(), trialEndsAt: new Date(Date.now() + 86_400_000) })).toBe('none')
+  })
+  it('every gated feature has a pitch with a sample', () => {
+    for (const f of Object.keys(LOCKED_TITLES) as (keyof typeof LOCKED_TITLES)[]) {
+      expect(LOCK_PITCH[f].headline.length).toBeGreaterThan(10)
+      expect(LOCK_PITCH[f].bullets).toHaveLength(3)
+      expect(LOCK_PITCH[f].sample.length).toBeGreaterThan(0)
+    }
+  })
+  it('partner views are a paid feature', () => {
+    expect(institutionEntitlements({ plan: 'FREE' }).partnerViews).toBe(false)
+    expect(institutionEntitlements({ plan: 'PAID' }).partnerViews).toBe(true)
+  })
+})

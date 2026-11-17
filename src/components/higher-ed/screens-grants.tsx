@@ -16,7 +16,7 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { ActionButton } from './CommunityForms'
 import { AddGrantForm, GrantStatesForm } from './GrantForms'
 import { cn } from '@/lib/utils'
-import { institutionEntitlements } from '@/lib/plans/entitlements'
+import { institutionEntitlements, trialForLock } from '@/lib/plans/entitlements'
 import { orgKindOf } from '@/lib/higher-ed/workspaces'
 import { LockedFeature } from '@/components/plans/LockedFeature'
 
@@ -134,7 +134,7 @@ export async function DevelopmentGrants({ ctx, searchParams }: Props) {
                 ))}
               </ul>
               <div className="absolute inset-0 flex items-center justify-center p-4">
-                <LockedFeature feature="grants" slug={slug} plan={ctx.institution.plan} compact />
+                <LockedFeature feature="grants" slug={slug} plan={ctx.institution.plan} trial={trialForLock(ctx.institution)} compact />
               </div>
             </div>
           </section>

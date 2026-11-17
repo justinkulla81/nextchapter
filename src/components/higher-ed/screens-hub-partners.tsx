@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma'
 import { mainOrigin } from '@/lib/org-hosts'
 import { PARTNER_KINDS, VIEW_SCOPES, viewStatus, viewUrl } from '@/lib/workforce/partner-views'
 import { StatTile } from './StatTile'
+import { LockedFeature } from '@/components/plans/LockedFeature'
+import { institutionEntitlements, trialForLock } from '@/lib/plans/entitlements'
 import { CopyLink, PartnerViewForm, RevokeViewButton } from './HubPartnerForms'
 
 type Props = { ctx: WorkspaceContext; searchParams: object; base: string }
@@ -33,7 +35,9 @@ export async function HubPartnerViews({ ctx }: Props) {
         <StatTile label="Switched off or expired" value={withStatus.length - active.length} />
       </div>
 
-      {!ctx.readOnly ? (
+      {!ctx.readOnly && !institutionEntitlements({ plan: ctx.institution.plan }).partnerViews ? (
+        <LockedFeature feature="partnerViews" slug={slug} plan={ctx.institution.plan} trial={trialForLock(ctx.institution)} />
+      ) : !ctx.readOnly ? (
         <details className="rounded-lg border border-border bg-card p-4" open={rows.length === 0}>
           <summary className="cursor-pointer text-sm font-medium text-[color:var(--accent-text,var(--primary))]">Make a partner view</summary>
           <div className="pt-3">

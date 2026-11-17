@@ -3,6 +3,7 @@
 // Program workspace (workforce customers): member companies, layoff seat
 // offers, participants and the stay-local region.
 
+import { institutionEntitlements, lockedReason } from '@/lib/plans/entitlements'
 import { seatPoolLeft } from '@/lib/workforce/seat-pool'
 import { revalidatePath } from 'next/cache'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -503,6 +504,7 @@ export async function removeEcosystemAccess(slug: string, _prev: HubResult, f: F
 // Make a read-only view of the organization's regional data for one partner, opened by an unlisted link.
 export async function createPartnerView(slug: string, _prev: HubResult, f: FormData): Promise<HubResult & { token?: string }> {
   const ctx = await hub(slug)
+  if (!institutionEntitlements({ plan: ctx.institution.plan }).partnerViews) return { error: lockedReason('partnerViews') }
   const partnerName = str(f, 'partnerName').slice(0, 120)
   if (!partnerName) return { error: 'Add the name of the college, employer or group this is for.' }
   const kind = str(f, 'partnerKind') || 'OTHER'
