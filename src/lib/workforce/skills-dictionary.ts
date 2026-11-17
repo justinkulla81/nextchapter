@@ -2,7 +2,7 @@
 // skill (one count per posting, however many times it appears). A dictionary
 // match is a signal of demand, not a ruling on a role.
 
-export type SkillDef = { skill: string; group: 'AI and data' | 'Tools and systems' | 'Finance' | 'Management' | 'Security and cloud'; test: RegExp }
+export type SkillDef = { skill: string; group: 'AI and data' | 'Tools and systems' | 'Finance' | 'Management' | 'Security and cloud' | 'Operations' | 'People and customers' | 'Sales and marketing'; test: RegExp }
 
 export const SKILLS: SkillDef[] = [
   { skill: 'AI or generative AI', group: 'AI and data', test: /\b(generative ai|gen ?ai|artificial intelligence|llms?|chatgpt|copilot|machine learning|\bai\b)/i },
@@ -21,6 +21,15 @@ export const SKILLS: SkillDef[] = [
   { skill: 'Change management', group: 'Management', test: /change manage/i },
   { skill: 'Cloud (AWS, Azure, Google Cloud)', group: 'Security and cloud', test: /\baws\b|azure|google cloud|\bgcp\b/i },
   { skill: 'Cybersecurity', group: 'Security and cloud', test: /cyber ?security|information security|infosec/i },
+  { skill: 'Process improvement (Lean, Six Sigma)', group: 'Operations', test: /\blean\b|six sigma|process improvement|kaizen/i },
+  { skill: 'Supply chain and logistics', group: 'Operations', test: /supply chain|logistics|procurement|inventory/i },
+  { skill: 'Budgeting', group: 'Finance', test: /budget/i },
+  { skill: 'Compliance and risk', group: 'Operations', test: /compliance|regulatory|risk management/i },
+  { skill: 'Recruiting and talent acquisition', group: 'People and customers', test: /recruit|talent acquisition|sourcing/i },
+  { skill: 'People management', group: 'People and customers', test: /people management|team leadership|manag(e|ed|ing) (a )?team|leadership/i },
+  { skill: 'Customer experience', group: 'People and customers', test: /customer experience|customer success|customer service/i },
+  { skill: 'Digital marketing and SEO', group: 'Sales and marketing', test: /\bseo\b|digital marketing|content strategy|social media/i },
+  { skill: 'Sales and negotiation', group: 'Sales and marketing', test: /\bsales\b|business development|negotiat/i },
 ]
 
 export type SkillCount = { skill: string; group: SkillDef['group']; postings: number; share: number }
