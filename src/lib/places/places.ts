@@ -468,7 +468,23 @@ const sharedJobs = memoTtl(10 * 60_000, (a: string, b: string[], c: number) => k
 const sharedHq = memoTtl(10 * 60_000, (a: string, b: string[] | null, c: number) => key(a, b, c), (a: string, b: string[] | null, c: number) =>
   sharedLoad(`places-city-hq:${createHash('sha1').update(key(a, b, c)).digest('hex')}`, 6 * 60 * 60, () => heavy(() => loadLargeEmployersHeadquartered(a, b, c))))
 // A state's own lists are one scan of the board each, so they are shared across instances in the data cache for six hours.
-const cachedStateTop = unstable_cache((state: string, limit: number) => heavy(() => loadTopHiringEmployers(state, null, limit)), ['places-state-top-hiring-v1'], { revalidate: 6 * 60 * 60 })
+const cachedStateTop = unstable_cache((state: string, limit: number) => heavy(() => storedStateTop(state, limit)), ['places-state-top-hiring-v1'], { revalidate: 6 * 60 * 60 })
+
+/**
+ * A state's top hiring employers from the board-figures cron's row (org-job-stats:<state>, buildOrgJobStats in org-pages.ts: the same
+ * public-job rules, order and links, top 12, twice a day), else the live count. The live count scans the whole state's public jobs:
+ * 4.3 s on average and up to 56 s, ~210 a day (50 states every six hours; #14 by database time in the 2026-11-17 statement stats).
+ */
+async function storedStateTop(state: string, limit: number): Promise<PlaceEmployer[]> {
+  type Stored = { name: string; n: number; cn: string | null; cid: string | null; linkable: boolean | null }
+  const stored = await readBoardFigure<{ topEmployers?: Stored[]; topCap?: number }>(`org-job-stats:${state}`).catch(() => null)
+  const top = stored?.topEmployers
+  // Only a list kept to at least `limit` (topCap): a row from before the cap was stored held 10 and would read as a state with ten.
+  if (top && (stored?.topCap ?? 0) >= limit) {
+    return top.slice(0, limit).map((r) => ({ name: r.name, openRoles: r.n, href: r.linkable && r.cn && r.cid ? `/employers/${employerSlug(r.cn, r.cid)}` : null }))
+  }
+  return loadTopHiringEmployers(state, null, limit)
+}
 const cachedStateHq = unstable_cache((state: string, limit: number) => heavy(() => loadLargeEmployersHeadquartered(state, null, limit)), ['places-state-hq-v1'], { revalidate: 6 * 60 * 60 })
 const topHiringEmployers = (state: string, cityNames: string[] | null, limit = 12) => (cityNames ? sharedTop(state, cityNames, limit) : cachedStateTop(state, limit))
 const recentJobs = (state: string, cityNames: string[], limit = 10) => sharedJobs(state, cityNames, limit)
