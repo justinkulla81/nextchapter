@@ -11,7 +11,7 @@ import { WorkspaceRail, type RailItem } from '@/components/higher-ed/WorkspaceRa
 import { DemoBar } from '@/components/higher-ed/DemoBar'
 import { InstitutionMark } from '@/components/higher-ed/InstitutionMark'
 import { signOut } from '@/app/dashboard/actions'
-import { readableTextOn } from '@/lib/higher-ed/branding'
+import { readableTextOn, accentTextOnWhite } from '@/lib/higher-ed/branding'
 import { brandStyle } from '@/lib/partners/brand'
 import { prisma } from '@/lib/prisma'
 import { readProfile } from '@/lib/higher-ed/profile'
@@ -66,6 +66,7 @@ export default async function InstitutionPortalLayout({
     '--primary': accent,
     '--primary-foreground': readableTextOn(accent),
     '--ring': accent,
+    '--accent-text': accentTextOnWhite(accent),
   } as CSSProperties
 
   // Admins also see what a higher tier adds (the upgrade path, product

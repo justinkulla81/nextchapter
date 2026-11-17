@@ -22,6 +22,11 @@ function Th({ children }: { children: React.ReactNode }) {
   return <th className="px-3 py-2 text-left font-medium">{children}</th>
 }
 
+const periodLabel = (p: string) => {
+  const m = /^(\d{4})-(\d{2})$/.exec(p)
+  return m ? `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][Number(m[2]) - 1]} ${m[1]}` : p
+}
+
 type Notice = Awaited<ReturnType<typeof regionNotices>>[number]
 type Verb = { verb: string; line: string; tab: string; demoOnly?: boolean; from?: 'execed' | 'workforce' }
 const VERBS: Verb[] = [
@@ -59,7 +64,7 @@ function HomeHero({ name, region, tagline, imageUrl, stats }: { name: string; re
             </g>
           </svg>
         )}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-4 sm:p-6">
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/55 to-transparent p-4 pt-10 sm:p-6 sm:pt-12">
           <p className="text-sm font-medium text-white/90">{region}</p>
           {tagline && <p className="text-lg font-semibold text-white sm:text-xl">{tagline}</p>}
         </div>
@@ -115,7 +120,7 @@ export async function HubHome({ ctx, base }: Props) {
         tagline={profile?.tagline ?? null}
         imageUrl={profile?.heroImageUrl ?? null}
         stats={[
-          { label: un ? `Unemployment, ${un.area}` : 'Unemployment', value: un ? `${un.rate}%` : '—', note: un ? `${un.period}, U.S. Bureau of Labor Statistics` : 'Set your region to show it' },
+          { label: un ? `Unemployment, ${un.area}` : 'Unemployment', value: un ? `${un.rate}%` : '—', note: un ? `${periodLabel(un.period)}, U.S. Bureau of Labor Statistics` : 'Set your region to show it' },
           { label: 'Labor force', value: un?.laborForce ? un.laborForce.toLocaleString() : '—', note: un?.laborForce ? un.area : undefined },
           { label: 'People helped', value: d.participants.toLocaleString(), note: activation === null ? undefined : `${activation}% have joined` },
           { label: 'Member companies', value: String(d.companies), note: `${d.layoffs} layoff${d.layoffs === 1 ? '' : 's'} with seats` },
@@ -136,7 +141,7 @@ export async function HubHome({ ctx, base }: Props) {
                   <p className="text-sm font-medium">{n.label}</p>
                   <p className="text-xs text-muted-foreground">{n.detail}</p>
                 </div>
-                <Link href={n.href} className={i === 0 ? 'inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90' : 'text-sm font-medium text-primary hover:underline'}>
+                <Link href={n.href} className={i === 0 ? 'inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90' : 'text-sm font-medium text-[color:var(--accent-text,var(--primary))] hover:underline'}>
                   {n.cta}
                 </Link>
               </li>
@@ -153,7 +158,7 @@ export async function HubHome({ ctx, base }: Props) {
           {verbs.map((v) => (
             <li key={v.verb}>
               <Link href={`${base}/${v.tab}`} className="block h-full rounded-lg border border-border p-4 transition-colors hover:border-primary">
-                <p className="font-semibold text-primary">{v.verb}</p>
+                <p className="font-semibold text-[color:var(--accent-text,var(--primary))]">{v.verb}</p>
                 <p className="mt-1 text-sm text-muted-foreground">{v.line}</p>
               </Link>
             </li>
