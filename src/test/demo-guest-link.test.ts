@@ -15,6 +15,8 @@ describe('demo guest links', () => {
     expect(guestLinkValid('demo-one-louisville-5c9ab', t.replace(/.$/, (c) => (c === 'a' ? 'b' : 'a')), now)).toBe(false)
     expect(guestLinkValid('demo-one-louisville-5c9ab', t, now + (GUEST_LINK_DAYS + 1) * 86_400_000)).toBe(false)
     expect(guestLinkValid('demo-one-louisville-5c9ab', 'nonsense', now)).toBe(false)
+    // No dot: the site reads "x.abc123" as a file name and answers 404 before the route runs.
+    expect(t).not.toContain('.')
     // The same all day, so the link shown in the demo bar doesn't change on every page view.
     expect(guestLinkToken('demo-one-louisville-5c9ab', now + 3_600_000)).toBe(t)
   })

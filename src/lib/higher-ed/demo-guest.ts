@@ -40,8 +40,9 @@ export function guestSlugs(value: string | undefined | null): string[] {
 }
 
 // A guest link a NextChapter admin (or the prospect) sends: /<slug>/guest/<token> hands out the same read-only pass the
-// demo's generator got, then opens the demo. The token is "<expiry>.<signature of slug and expiry>", so a link opens only
-// its own demo and stops working after GUEST_LINK_DAYS.
+// demo's generator got, then opens the demo. The token is "<expiry>-<signature of slug and expiry>", so a link opens only
+// its own demo and stops working after GUEST_LINK_DAYS. No dot in it: a last path segment like "x.abc123" reads as a file
+// name and the site answers 404 before the route runs. The expiry is base36, so the first "-" ends it.
 export const GUEST_LINK_DAYS = 90
 const DAY_MS = 86_400_000
 const linkSig = (slug: string, exp: string) => createHmac('sha256', key()).update(`link:${slug}:${exp}`).digest('base64url').slice(0, 32)
@@ -49,13 +50,14 @@ const linkSig = (slug: string, exp: string) => createHmac('sha256', key()).updat
 export function guestLinkToken(slug: string, now = Date.now()): string {
   // Expiry on a day boundary, so the link shown stays the same all day.
   const exp = (Math.floor(now / DAY_MS) + GUEST_LINK_DAYS).toString(36)
-  return `${exp}.${linkSig(slug, exp)}`
+  return `${exp}-${linkSig(slug, exp)}`
 }
 
 export function guestLinkValid(slug: string, token: string, now = Date.now()): boolean {
-  const i = token.indexOf('.')
+  const i = token.indexOf('-')
   if (i < 1) return false
   const exp = token.slice(0, i)
+  if (!/^[0-9a-z]+$/.test(exp)) return false
   const days = parseInt(exp, 36)
   if (!Number.isFinite(days) || days * DAY_MS < now) return false
   try {
