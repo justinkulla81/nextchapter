@@ -13039,6 +13039,7 @@ model Institution {
   collegeEvents        CollegeEvent[]
   segments             Segment[]
   rapidResponses       RapidResponse[]
+  fundingApplications FundingApplication[]
   memberCompanies      MemberCompany[]
   alumniOpportunities  AlumniOpportunity[]
   alumniGroups         AlumniGroup[]
@@ -15788,10 +15789,53 @@ model RapidResponse {
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
 
+  // The funding application paying for this response (FundingApplication.id), so the outcomes report can show results by funder.
+  fundingApplicationId String?
+  steps                RapidResponseStep[]
+
   enrollments Enrollment[]
 
   @@index([institutionId, isActive])
   @@index([memberCompanyId])
+}
+
+// One step of a layoff response marked done (the six steps in src/lib/workforce/program-content.ts RESPONSE_STEPS).
+// A row exists only for a step that is done.
+model RapidResponseStep {
+  id              String        @id @default(cuid())
+  rapidResponseId String
+  rapidResponse   RapidResponse @relation(fields: [rapidResponseId], references: [id], onDelete: Cascade)
+  key             String
+  doneAt          DateTime      @default(now())
+  doneBy          String
+  note            String?
+  isSampleData    Boolean       @default(false)
+
+  @@unique([rapidResponseId, key])
+}
+
+// A grant, solicitation or other funding a workforce org is pursuing: considering, drafting, submitted, awarded.
+// status: CONSIDERING | DRAFTING | SUBMITTED | AWARDED | DECLINED | CLOSED
+model FundingApplication {
+  id              String      @id @default(cuid())
+  institutionId   String
+  institution     Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  name            String
+  funder          String?
+  status          String      @default("CONSIDERING")
+  amountRequested Int?
+  amountAwarded   Int?
+  matchRequired   Int?
+  matchCommitted  Int?
+  dueDate         DateTime?
+  partners        String[]    @default([])
+  notes           String?     @db.Text
+  createdBy       String
+  isSampleData    Boolean     @default(false)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([institutionId, status])
 }
 
 // A company a workforce org (chamber, EDO, board) serves: when it has a

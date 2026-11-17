@@ -250,6 +250,26 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
     ),
   )
 
+  // Funding being pursued, and how far each layoff response has got, so the Funding and Reports areas have something to read.
+  const ky = localTowns[0]?.state === 'KY'
+  const apps = await Promise.all(
+    [
+      { name: ky ? 'Governor’s Reserve Fund' : 'State workforce innovation grant', funder: ky ? 'Kentucky Education and Labor Cabinet' : 'State workforce agency', status: 'DRAFTING', due: 10, req: 250000, aw: null, mreq: 50000, mcom: 30000, partners: ['Workforce board', 'Partner college', 'Member employers'] },
+      { name: ky ? 'Talent Recruitment Grant' : 'Talent attraction grant', funder: ky ? 'Kentucky Cabinet for Economic Development' : 'State economic development agency', status: 'CONSIDERING', due: null, req: 500000, aw: null, mreq: 125000, mcom: 0, partners: ['Neighboring counties'] },
+      { name: 'National Dislocated Worker Grant', funder: 'U.S. Department of Labor, through the state', status: 'SUBMITTED', due: null, req: 800000, aw: null, mreq: null, mcom: null, partners: ['State workforce agency'] },
+    ].map((a) =>
+      prisma.fundingApplication.create({
+        data: { institutionId, name: a.name, funder: a.funder, status: a.status, amountRequested: a.req, amountAwarded: a.aw, matchRequired: a.mreq, matchCommitted: a.mcom, dueDate: a.due ? new Date(now.getTime() + a.due * DAY) : null, partners: a.partners, createdBy: 'demo', isSampleData: true },
+        select: { id: true },
+      }),
+    ),
+  )
+  await prisma.rapidResponse.update({ where: { id: layoffs[0].id }, data: { fundingApplicationId: apps[0].id } })
+  const stepKeys = ['notice', 'employer', 'session', 'seats', 'hiring', 'training']
+  await prisma.rapidResponseStep.createMany({
+    data: [6, 4, 2].flatMap((n, i) => stepKeys.slice(0, n).map((key) => ({ rapidResponseId: layoffs[i].id, key, doneBy: 'demo', isSampleData: true, doneAt: new Date(now.getTime() - (layoffSpecs[i].daysAgo - stepKeys.indexOf(key)) * DAY) }))),
+  })
+
   // Participants: 150 from the layoffs or signed up directly, then 60 more on other tracks (moving here, new graduates,
   // employed and growing, career pivot).
   const N = 150
@@ -468,6 +488,7 @@ export async function reseedWorkforceDemo(slug: string, now = new Date()) {
   await prisma.institutionEmployer.deleteMany({ where: { institutionId: id } })
   await prisma.institutionMember.deleteMany({ where: { institutionId: id } })
   await prisma.rapidResponse.deleteMany({ where: { institutionId: id } })
+  await prisma.fundingApplication.deleteMany({ where: { institutionId: id } })
   await prisma.memberCompany.deleteMany({ where: { institutionId: id } })
   await prisma.program.deleteMany({ where: { institutionId: id } })
   await prisma.candidateProfile.deleteMany({ where: { userId: { startsWith: demoUserPrefix(slug) }, isSampleData: true } })

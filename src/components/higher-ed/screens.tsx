@@ -10,6 +10,7 @@ import Link from 'next/link'
 import { listOrgKeys } from '@/lib/census/api-keys'
 import { HubCompanies, HubHome, HubLayoffs, HubLocal, WorkforceOverview } from './screens-hub'
 import { HubAttract, HubBenefits, HubGrants, HubJobs, HubLearning, HubPipeline, HubRapid, HubSkills, HubFunding, HubPublic, HubSystem, HubUpskill } from './screens-hub-program'
+import { HubApplications, HubReport } from './screens-hub-flow'
 import { CompanyOverview, CompanySupport } from './screens-company'
 import { readComms } from '@/lib/census/comms-settings'
 import { CommsToggles, OrgKeysPanel } from '@/components/census/OrgKeysPanel'
@@ -1655,6 +1656,8 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'hub:system': HubSystem,
   'hub:funding': HubFunding,
   'hub:public': HubPublic,
+  'hub:applications': HubApplications,
+  'hub:report': HubReport,
   'hub:region': Region,
   'employer:overview': CompanyOverview,
   'employer:support': CompanySupport,

@@ -12,6 +12,8 @@ import { STATE_NAMES } from '@/lib/workforce/places'
 import { mainOrigin } from '@/lib/org-hosts'
 import { inviteMemberCompany, syncMemberAccess } from '@/lib/workforce/member-access'
 import { answerSeatRequest } from '@/lib/workforce/company-portal'
+import { RESPONSE_STEPS } from '@/lib/workforce/program-content'
+import { FUNDING_STATUS_KEYS } from '@/lib/workforce/hub-flow'
 
 type Result = { error?: string; ok?: boolean; message?: string }
 export type HubResult = Result | undefined
@@ -156,6 +158,89 @@ export async function answerSeatRequestAction(slug: string, id: string, approve:
   const r = await answerSeatRequest({ institutionId: ctx.institution.id, id, approve, seats, orgBrand: ctx.institution.programBrandName ?? ctx.institution.name })
   if ('error' in r) return { error: r.error }
   captureServerEvent(ctx.userId, approve ? 'hub_seat_request_approved' : 'hub_seat_request_declined', { institutionId: ctx.institution.id, rapidResponseId: id, seats })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true }
+}
+
+// ── Phase 2: layoff response steps and funding applications ─────────────────
+
+const STEP_KEYS: string[] = RESPONSE_STEPS.map((s) => s.key)
+const whole = (f: FormData, k: string): number | null | 'bad' => {
+  const v = str(f, k).replace(/[$,\s]/g, '')
+  if (!v) return null
+  const n = Number(v)
+  return Number.isInteger(n) && n >= 0 && n <= 1_000_000_000 ? n : 'bad'
+}
+
+// Mark one step of a layoff response done, or take it back.
+export async function setResponseStep(slug: string, _prev: HubResult, f: FormData): Promise<HubResult> {
+  const ctx = await hub(slug)
+  const responseId = str(f, 'responseId')
+  const key = str(f, 'key')
+  const done = str(f, 'done') === '1'
+  if (!STEP_KEYS.includes(key)) return { error: 'That step does not exist.' }
+  const r = await prisma.rapidResponse.findFirst({ where: { id: responseId, institutionId: ctx.institution.id }, select: { id: true } })
+  if (!r) return { error: 'That layoff response was not found.' }
+  if (done) {
+    await prisma.rapidResponseStep.upsert({ where: { rapidResponseId_key: { rapidResponseId: r.id, key } }, create: { rapidResponseId: r.id, key, doneBy: ctx.userId }, update: {} })
+  } else {
+    await prisma.rapidResponseStep.deleteMany({ where: { rapidResponseId: r.id, key } })
+  }
+  captureServerEvent(ctx.userId, done ? 'layoff_response_step_done' : 'layoff_response_step_undone', { institutionId: ctx.institution.id, rapidResponseId: r.id, step: key })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true }
+}
+
+// Create or update a funding application.
+export async function saveFundingApplication(slug: string, _prev: HubResult, f: FormData): Promise<HubResult> {
+  const ctx = await hub(slug)
+  const id = str(f, 'id')
+  const name = str(f, 'name').slice(0, 160)
+  if (!name) return { error: 'Add the name of the grant or funding.' }
+  const status = str(f, 'status') || 'CONSIDERING'
+  if (!FUNDING_STATUS_KEYS.includes(status)) return { error: 'Pick a status from the list.' }
+  const nums = { amountRequested: whole(f, 'amountRequested'), amountAwarded: whole(f, 'amountAwarded'), matchRequired: whole(f, 'matchRequired'), matchCommitted: whole(f, 'matchCommitted') }
+  if (Object.values(nums).includes('bad')) return { error: 'Amounts are whole dollars, such as 250000.' }
+  const dueRaw = str(f, 'dueDate')
+  const dueDate = dueRaw ? new Date(`${dueRaw}T12:00:00Z`) : null
+  if (dueDate && Number.isNaN(dueDate.getTime())) return { error: 'Use a date like 2026-12-02.' }
+  const data = {
+    name,
+    funder: str(f, 'funder').slice(0, 160) || null,
+    status,
+    amountRequested: nums.amountRequested as number | null,
+    amountAwarded: nums.amountAwarded as number | null,
+    matchRequired: nums.matchRequired as number | null,
+    matchCommitted: nums.matchCommitted as number | null,
+    dueDate,
+    partners: str(f, 'partners').split(',').map((p) => p.trim()).filter(Boolean).slice(0, 12),
+    notes: str(f, 'notes').slice(0, 2000) || null,
+  }
+  if (id) {
+    const own = await prisma.fundingApplication.findFirst({ where: { id, institutionId: ctx.institution.id }, select: { id: true } })
+    if (!own) return { error: 'That application was not found.' }
+    await prisma.fundingApplication.update({ where: { id }, data })
+  } else {
+    await prisma.fundingApplication.create({ data: { ...data, institutionId: ctx.institution.id, createdBy: ctx.userId } })
+  }
+  captureServerEvent(ctx.userId, id ? 'funding_application_updated' : 'funding_application_added', { institutionId: ctx.institution.id, applicationId: id || null, status, funder: data.funder, amountRequested: data.amountRequested })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true, message: 'Saved.' }
+}
+
+// Say which funding application pays for a layoff response ("" clears it).
+export async function linkResponseFunding(slug: string, _prev: HubResult, f: FormData): Promise<HubResult> {
+  const ctx = await hub(slug)
+  const responseId = str(f, 'responseId')
+  const fundingId = str(f, 'fundingId')
+  const r = await prisma.rapidResponse.findFirst({ where: { id: responseId, institutionId: ctx.institution.id }, select: { id: true } })
+  if (!r) return { error: 'That layoff response was not found.' }
+  if (fundingId) {
+    const own = await prisma.fundingApplication.findFirst({ where: { id: fundingId, institutionId: ctx.institution.id }, select: { id: true } })
+    if (!own) return { error: 'That application was not found.' }
+  }
+  await prisma.rapidResponse.update({ where: { id: r.id }, data: { fundingApplicationId: fundingId || null } })
+  captureServerEvent(ctx.userId, 'layoff_response_funding_linked', { institutionId: ctx.institution.id, rapidResponseId: r.id, applicationId: fundingId || null })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true }
 }
