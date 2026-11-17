@@ -8,6 +8,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { requireWorkspace } from '@/lib/higher-ed/access'
 import { inviteMentors } from '@/lib/higher-ed/mentor-network'
 import { sendStudentInvites } from '@/lib/higher-ed/students'
+import { ORG_PENDING } from '@/lib/workforce/employer-jobs'
 import { employerProfileFor, postEmployerRole, requestIntro, respondToIntro, setEmployerPackage, setEmployerStatus } from '@/lib/higher-ed/employers'
 
 type Result = { error?: string; message?: string; ok?: boolean }
@@ -86,6 +87,7 @@ export async function postRoleForCollege(slug: string, _prev: Result | undefined
   const p = await postEmployerRole({ institutionId: ctx.institution.id, employerProfileId, title, url, location: get('location') || null, description: get('description') || null })
   captureServerEvent(ctx.userId, 'he_employer_role_posted', { institutionId: ctx.institution.id, employerProfileId, postingId: p.id })
   revalidatePath(`/i/${slug}/employer/page`)
+  if (p.status === ORG_PENDING) return { ok: true, message: `Posted. ${ctx.institution.name} reviews it first, then NextChapter. After that, people in their group see it.` }
   return { ok: true, message: `Posted. Once NextChapter reviews it, only ${ctx.institution.name} alumni will see it.` }
 }
 

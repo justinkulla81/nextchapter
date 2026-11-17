@@ -9,6 +9,8 @@ import type { InstitutionEmployerPackageTier, InstitutionEmployerStatus } from '
 import { prisma } from '@/lib/prisma'
 import { linkPostingToCompany } from '@/lib/companies/posting-company'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
+import { ORG_PENDING } from '@/lib/workforce/employer-jobs'
+import { orgKindOf } from './workspaces'
 import type { InstitutionAccess } from './resolve'
 import { sendCampaign } from './outreach'
 
@@ -84,7 +86,12 @@ export async function postEmployerRole(args: {
   url: string
   description: string | null
 }) {
-  const p = await prisma.employerProfile.findUniqueOrThrow({ where: { id: args.employerProfileId }, select: { companyName: true } })
+  const [p, inst] = await Promise.all([
+    prisma.employerProfile.findUniqueOrThrow({ where: { id: args.employerProfileId }, select: { companyName: true } }),
+    prisma.institution.findUniqueOrThrow({ where: { id: args.institutionId }, select: { orgType: true } }),
+  ])
+  // A workforce organization reviews each job first (Talent Hub › Jobs › Employer jobs); a college's goes straight to NextChapter.
+  const status = orgKindOf(inst.orgType) === 'workforce' ? ORG_PENDING : 'pending'
   return prisma.exclusiveJobPosting.create({
     data: {
       title: args.title,
@@ -98,14 +105,14 @@ export async function postEmployerRole(args: {
       audienceTier: 'ALL_CANDIDATES',
       distribution: 'OPEN',
       disclosure: 'OPEN',
-      // Reviewed by a NextChapter admin like every employer posting.
-      status: 'pending',
+      // Always reviewed by a NextChapter admin like every employer posting; a workforce organization looks first.
+      status,
       source: 'institution_employer',
       addedBy: `${EMPLOYER_TAG}${args.employerProfileId}`,
       institutionScopeId: args.institutionId,
       expiresAt: new Date(Date.now() + 60 * 86_400_000),
     },
-    select: { id: true },
+    select: { id: true, status: true },
   })
 }
 
@@ -113,7 +120,7 @@ export async function employerRoles(institutionId: string, employerProfileId: st
   return prisma.exclusiveJobPosting.findMany({
     where: { institutionScopeId: institutionId, addedBy: `${EMPLOYER_TAG}${employerProfileId}`, archivedAt: null },
     orderBy: { createdAt: 'desc' },
-    select: { id: true, title: true, location: true, status: true, createdAt: true },
+    select: { id: true, title: true, location: true, status: true, createdAt: true, rejectionReason: true },
   })
 }
 

@@ -17,6 +17,7 @@ import { FUNDING_STATUS_KEYS } from '@/lib/workforce/hub-flow'
 import { fixAllCapsCompanyName } from '@/lib/text/org-name-match'
 import { linkPostingToCompany } from '@/lib/companies/posting-company'
 import { groupPostingData, parseJobRows } from '@/lib/workforce/group-jobs'
+import { ORG_PENDING, cleanReason, declineBlocked, hoursWaiting } from '@/lib/workforce/employer-jobs'
 import { MAX_FEEDS, feedTag, parseBoardLink } from '@/lib/workforce/job-feeds'
 import { fetchBoard, syncFeed } from '@/lib/workforce/job-feeds-sync'
 import { cleanNote, featureBlocked } from '@/lib/workforce/featured-jobs'
@@ -405,6 +406,40 @@ export async function disconnectFeed(slug: string, _prev: HubResult, f: FormData
   captureServerEvent(ctx.userId, 'job_feed_disconnected', { institutionId: ctx.institution.id, feedId: feed.id, provider: feed.provider, takenDown: down.count })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true }
+}
+
+// ── Phase 9: employers' jobs ────────────────────────────────────────────────
+
+// The organization looks at a job an approved employer posted. Approve passes it to NextChapter's review; decline sends it back with a reason.
+async function decideEmployerJob(slug: string, f: FormData, decision: 'approve' | 'decline'): Promise<HubResult> {
+  const ctx = await hub(slug)
+  const reason = cleanReason(str(f, 'reason'))
+  if (decision === 'decline') {
+    const blocked = declineBlocked(reason)
+    if (blocked) return { error: blocked }
+  }
+  const job = await prisma.exclusiveJobPosting.findFirst({
+    where: { id: str(f, 'id'), institutionScopeId: ctx.institution.id, status: ORG_PENDING, archivedAt: null, addedBy: { startsWith: 'employer:' } },
+    select: { id: true, addedBy: true, createdAt: true },
+  })
+  if (!job) return { error: 'That job is no longer waiting for your review.' }
+  // The status is part of the condition, so two people deciding at once cannot both win.
+  const r = await prisma.exclusiveJobPosting.updateMany({
+    where: { id: job.id, status: ORG_PENDING },
+    data: decision === 'approve' ? { status: 'pending' } : { status: 'rejected', rejectionReason: reason },
+  })
+  if (r.count === 0) return { error: 'Someone else already decided that job.' }
+  captureServerEvent(ctx.userId, decision === 'approve' ? 'employer_job_approved' : 'employer_job_declined', { institutionId: ctx.institution.id, postingId: job.id, employerProfileId: job.addedBy.slice('employer:'.length), hoursWaited: hoursWaiting(job.createdAt), ...(decision === 'decline' ? { hasReason: true } : {}) })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true, message: decision === 'approve' ? 'Approved. NextChapter reviews it next.' : 'Declined. The employer sees your reason.' }
+}
+
+export async function approveEmployerJob(slug: string, _prev: HubResult, f: FormData): Promise<HubResult> {
+  return decideEmployerJob(slug, f, 'approve')
+}
+
+export async function declineEmployerJob(slug: string, _prev: HubResult, f: FormData): Promise<HubResult> {
+  return decideEmployerJob(slug, f, 'decline')
 }
 
 // ── Phase 5: partner views ──────────────────────────────────────────────────

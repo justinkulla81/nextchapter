@@ -8,9 +8,10 @@ import { memoTtl } from '@/lib/db/heavy'
 import { readLocal } from '@/lib/workforce/local'
 import { jobStatusLabel } from '@/lib/workforce/group-jobs'
 import { StatTile } from './StatTile'
-import { ArchiveJobButton, ConnectFeedForm, DisconnectFeedButton, FeatureJobButton, RefreshFeedButton, GroupJobForm, ImportJobsForm } from './HubFlowForms'
+import { ArchiveJobButton, ConnectFeedForm, EmployerJobDecision, DisconnectFeedButton, FeatureJobButton, RefreshFeedButton, GroupJobForm, ImportJobsForm } from './HubFlowForms'
 import { MAX_FEATURED } from '@/lib/workforce/featured-jobs'
 import { providerLabel } from '@/lib/workforce/job-feeds'
+import { ORG_PENDING, hoursWaiting, waitedLabel } from '@/lib/workforce/employer-jobs'
 
 type Props = { ctx: WorkspaceContext; searchParams: { q?: string; page?: string }; base: string }
 
@@ -311,6 +312,96 @@ export async function HubGroupJobs({ ctx }: Props) {
           </div>
         )}
       </section>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+
+// Employers' jobs: approved employers post from their own view; the organization looks first, then NextChapter.
+export async function HubEmployerJobs({ ctx }: Props) {
+  const slug = ctx.institution.slug
+  const rows = await prisma.exclusiveJobPosting.findMany({
+    where: { institutionScopeId: ctx.institution.id, addedBy: { startsWith: 'employer:' }, archivedAt: null },
+    orderBy: { createdAt: 'desc' },
+    take: 100,
+    select: { id: true, title: true, companyName: true, location: true, url: true, status: true, createdAt: true, rejectionReason: true },
+  })
+  const waiting = rows.filter((r) => r.status === ORG_PENDING)
+  const decided = rows.filter((r) => r.status !== ORG_PENDING).slice(0, 20)
+  const statusWord = (s: string) => (s === 'approved' ? 'Live for your group' : s === 'rejected' ? 'Not approved' : 'Waiting for NextChapter review')
+  return (
+    <div className="space-y-8">
+      <p className="max-w-3xl text-sm text-muted-foreground">
+        Employers you have approved post jobs from their own view. You look at each one first. Approve it and NextChapter checks it next; then the people in your group see it. Decline it and the employer sees your reason.
+      </p>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatTile label="Waiting for you" value={waiting.length} />
+        <StatTile label="With NextChapter" value={rows.filter((r) => r.status === 'pending').length} note="You approved; being checked" />
+        <StatTile label="Live for your group" value={rows.filter((r) => r.status === 'approved').length} />
+      </div>
+
+      <section className="space-y-3" aria-labelledby="ej-wait">
+        <h2 id="ej-wait" className="text-base font-semibold">
+          Waiting for you
+        </h2>
+        {waiting.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">Nothing to review. When an approved employer posts a job, it shows up here.</p>
+        ) : (
+          <ul className="space-y-3">
+            {waiting.map((j) => (
+              <li key={j.id} className="rounded-lg border border-border bg-card p-4 text-sm">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <a href={j.url} target="_blank" rel="noreferrer" className="font-medium text-[color:var(--accent-text,var(--primary))] hover:underline">
+                    {j.title}
+                  </a>
+                  <p className="text-xs text-muted-foreground">Posted {waitedLabel(hoursWaiting(j.createdAt))}</p>
+                </div>
+                <p className="text-muted-foreground">{[j.companyName, j.location].filter(Boolean).join(' · ')}</p>
+                <p className="mt-1 text-xs text-muted-foreground">Open the link to check it goes to the employer’s own posting, with the pay and location it states.</p>
+                {!ctx.readOnly && (
+                  <div className="mt-3">
+                    <EmployerJobDecision slug={slug} id={j.id} title={j.title} />
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {decided.length > 0 && (
+        <section className="space-y-3" aria-labelledby="ej-done">
+          <h2 id="ej-done" className="text-base font-semibold">
+            Already decided
+          </h2>
+          <div className="overflow-x-auto rounded-lg border border-border">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50">
+                <tr>
+                  {['Job', 'Employer', 'Where it stands'].map((h) => (
+                    <th key={h} className="px-3 py-2 text-left font-medium">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {decided.map((j) => (
+                  <tr key={j.id} className="border-t border-border">
+                    <td className="min-w-48 px-3 py-2">{j.title}</td>
+                    <td className="px-3 py-2">{j.companyName}</td>
+                    <td className="px-3 py-2">
+                      {statusWord(j.status)}
+                      {j.status === 'rejected' && j.rejectionReason && <span className="block text-xs text-muted-foreground">{j.rejectionReason}</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
     </div>
   )
 }
