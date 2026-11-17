@@ -13091,6 +13091,7 @@ model Institution {
   partnerViews        PartnerView[]
   ecosystemPartners   EcosystemPartner[]
   featuredJobs        FeaturedJob[]
+  groupJobFeeds       GroupJobFeed[]
   memberCompanies      MemberCompany[]
   alumniOpportunities  AlumniOpportunity[]
   alumniGroups         AlumniGroup[]
@@ -15940,6 +15941,30 @@ model FeaturedJob {
   createdAt     DateTime    @default(now())
 
   @@unique([institutionId, postingId])
+  @@index([institutionId, createdAt])
+}
+
+// An employer's public job board (Greenhouse, Lever or Ashby) that an organization connected: the jobs near it are pulled in as the
+// organization's group listings (addedBy "feed:<id>"), reviewed by NextChapter like every group job, and refreshed daily.
+// provider: GREENHOUSE | LEVER | ASHBY. Read-only: we only read the board's public listing.
+model GroupJobFeed {
+  id             String      @id @default(cuid())
+  institutionId  String
+  institution    Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  provider       String
+  token          String
+  companyName    String
+  locationFilter String? // keep jobs whose location contains this text; empty keeps every job on the board (up to the cap)
+  includeRemote  Boolean     @default(true)
+  lastSyncedAt   DateTime?
+  lastSeen       Int         @default(0) // jobs on the board that matched the filter at the last refresh
+  lastAdded      Int         @default(0)
+  lastError      String?
+  createdBy      String
+  isSampleData   Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+
+  @@unique([institutionId, provider, token])
   @@index([institutionId, createdAt])
 }
 

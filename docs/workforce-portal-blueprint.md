@@ -131,7 +131,15 @@ site. The organization can feature jobs so the program's people see them first. 
 Built (phase 4): **Jobs in your region** (the newest 200 open jobs for the city, searchable, each linking to the employer's own posting) and **Jobs for your
 group** (add a job, paste a list of title, company, location and link, see each listing's status, take one down). Jobs for the group are exclusive to the
 group's members and **reviewed by NextChapter before anyone sees them**, the same rule as every posting that is not from our own team. Not built yet:
-connecting an employer's job feed, and approving employers' jobs inside the Talent Hub.
+approving employers' jobs inside the Talent Hub.
+
+Built (phase 8): **connected job boards.** On Jobs for your group, "Connect an employer's job board": paste the employer's Greenhouse, Lever or Ashby
+link, name the employer, and choose the place to keep (default: the region's anchor city) and whether remote jobs count. We read the board's public
+listing once to check the link, pull in the jobs near the region as the organization's group listings, and refresh every day (a cron in `bundle-daily-1300`).
+New jobs wait for NextChapter review like every group job; a job that leaves the board is taken down; a job still on it stays live; a link already on
+NextChapter from another source is not added twice. Up to 25 boards an organization and 50 jobs a board. Disconnecting takes the board's jobs down.
+Other systems (Workday, iCIMS, Taleo, a company's own site) are not readable yet: the person pastes those jobs under "Add listings from elsewhere".
+Read-only against the employer; nothing is sent to anyone.
 
 Built (phase 7): **featuring a job.** On Jobs in your region and Jobs for your group the organization can feature up to 10 jobs at a time, each with an
 optional one-line reason. The group's people see featured jobs first on their "From my groups" page, marked "Featured by <organization>" with the reason.

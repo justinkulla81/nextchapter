@@ -16,7 +16,9 @@ import { RESPONSE_STEPS } from '@/lib/workforce/program-content'
 import { FUNDING_STATUS_KEYS } from '@/lib/workforce/hub-flow'
 import { fixAllCapsCompanyName } from '@/lib/text/org-name-match'
 import { linkPostingToCompany } from '@/lib/companies/posting-company'
-import { parseJobRows } from '@/lib/workforce/group-jobs'
+import { groupPostingData, parseJobRows } from '@/lib/workforce/group-jobs'
+import { MAX_FEEDS, feedTag, parseBoardLink } from '@/lib/workforce/job-feeds'
+import { fetchBoard, syncFeed } from '@/lib/workforce/job-feeds-sync'
 import { cleanNote, featureBlocked } from '@/lib/workforce/featured-jobs'
 import { PARTNER_KIND_KEYS, normalizeScopes } from '@/lib/workforce/partner-views'
 import { randomBytes } from 'crypto'
@@ -255,32 +257,6 @@ export async function linkResponseFunding(slug: string, _prev: HubResult, f: For
 
 // ── Phase 4: jobs for the organization's group ──────────────────────────────
 
-const GROUP_JOB_DAYS = 60
-
-function groupPostingData(institutionId: string, addedBy: string, p: { title: string; companyName: string; companyId: string | null; location: string | null; url: string; description?: string | null; salaryMin?: number | null; salaryMax?: number | null }) {
-  return {
-    title: p.title,
-    companyName: p.companyName,
-    companyId: p.companyId,
-    location: p.location,
-    url: p.url,
-    description: p.description ?? null,
-    postingType: 'direct',
-    salaryMin: p.salaryMin ?? null,
-    salaryMax: p.salaryMax ?? null,
-    salaryCurrency: 'USD',
-    audienceTier: 'ALL_CANDIDATES',
-    distribution: 'OPEN',
-    disclosure: 'OPEN',
-    // Reviewed by a NextChapter admin before the group sees it, like every posting that is not from our own team.
-    status: 'pending',
-    source: 'institution',
-    addedBy,
-    institutionScopeId: institutionId,
-    expiresAt: new Date(Date.now() + GROUP_JOB_DAYS * 86_400_000),
-  }
-}
-
 // Add one job for the group.
 export async function addGroupJob(slug: string, _prev: HubResult, f: FormData): Promise<HubResult> {
   const ctx = await hub(slug)
@@ -378,6 +354,55 @@ export async function unfeatureJob(slug: string, _prev: HubResult, f: FormData):
   const r = await prisma.featuredJob.deleteMany({ where: { institutionId: ctx.institution.id, postingId } })
   if (r.count === 0) return { error: 'That job was not featured.' }
   captureServerEvent(ctx.userId, 'job_unfeatured', { institutionId: ctx.institution.id, postingId })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true }
+}
+
+// ── Phase 8: connected employer job boards ─────────────────────────────────
+
+const feedMessage = (r: Awaited<ReturnType<typeof syncFeed>>) =>
+  r.ok
+    ? `${r.matched} job${r.matched === 1 ? '' : 's'} near you on the board. ${r.added} added for review${r.removed ? `, ${r.removed} taken down because they left the board` : ''}${r.alreadyElsewhere ? `, ${r.alreadyElsewhere} already on NextChapter` : ''}.`
+    : r.error
+
+// Connect an employer's Greenhouse, Lever or Ashby board: read it once now, then it refreshes daily.
+export async function connectFeed(slug: string, _prev: HubResult, f: FormData): Promise<HubResult> {
+  const ctx = await hub(slug)
+  const parsed = parseBoardLink(str(f, 'link'))
+  if ('error' in parsed) return { error: parsed.error }
+  const companyName = fixAllCapsCompanyName(str(f, 'companyName')).slice(0, 160)
+  if (!companyName) return { error: 'Add the employer’s name.' }
+  const locationFilter = str(f, 'locationFilter').slice(0, 80) || null
+  const includeRemote = f.get('includeRemote') === 'on'
+  if ((await prisma.groupJobFeed.count({ where: { institutionId: ctx.institution.id } })) >= MAX_FEEDS) return { error: `You can connect ${MAX_FEEDS} boards. Disconnect one first.` }
+  if (await prisma.groupJobFeed.findUnique({ where: { institutionId_provider_token: { institutionId: ctx.institution.id, provider: parsed.provider, token: parsed.token } }, select: { id: true } })) return { error: 'That board is already connected.' }
+  // Read it before saving anything, so a wrong link never leaves a broken connection behind.
+  if (!(await fetchBoard(parsed.provider, parsed.token))) return { error: 'We could not read that board. Check the link: it should look like boards.greenhouse.io/acme.' }
+  const feed = await prisma.groupJobFeed.create({ data: { institutionId: ctx.institution.id, provider: parsed.provider, token: parsed.token, companyName, locationFilter, includeRemote, createdBy: ctx.userId }, select: { id: true } })
+  const r = await syncFeed(feed.id)
+  captureServerEvent(ctx.userId, 'job_feed_connected', { institutionId: ctx.institution.id, feedId: feed.id, provider: parsed.provider, hasLocationFilter: !!locationFilter, includeRemote, matched: r.ok ? r.matched : 0, added: r.ok ? r.added : 0 })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: r.ok, message: feedMessage(r), error: r.ok ? undefined : r.error }
+}
+
+export async function refreshFeed(slug: string, _prev: HubResult, f: FormData): Promise<HubResult> {
+  const ctx = await hub(slug)
+  const feed = await prisma.groupJobFeed.findFirst({ where: { id: str(f, 'id'), institutionId: ctx.institution.id }, select: { id: true, provider: true } })
+  if (!feed) return { error: 'That board is not connected.' }
+  const r = await syncFeed(feed.id)
+  captureServerEvent(ctx.userId, 'job_feed_refreshed', { institutionId: ctx.institution.id, feedId: feed.id, provider: feed.provider, ok: r.ok, added: r.ok ? r.added : 0, removed: r.ok ? r.removed : 0 })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: r.ok, message: feedMessage(r), error: r.ok ? undefined : r.error }
+}
+
+// Disconnect: stop refreshing and take down the listings that board brought in.
+export async function disconnectFeed(slug: string, _prev: HubResult, f: FormData): Promise<HubResult> {
+  const ctx = await hub(slug)
+  const feed = await prisma.groupJobFeed.findFirst({ where: { id: str(f, 'id'), institutionId: ctx.institution.id }, select: { id: true, provider: true } })
+  if (!feed) return { error: 'That board is not connected.' }
+  const down = await prisma.exclusiveJobPosting.updateMany({ where: { institutionScopeId: ctx.institution.id, addedBy: feedTag(feed.id), archivedAt: null }, data: { archivedAt: new Date() } })
+  await prisma.groupJobFeed.delete({ where: { id: feed.id } })
+  captureServerEvent(ctx.userId, 'job_feed_disconnected', { institutionId: ctx.institution.id, feedId: feed.id, provider: feed.provider, takenDown: down.count })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true }
 }
