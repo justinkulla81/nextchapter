@@ -48,4 +48,21 @@ describe('lifecycle email journey question', () => {
     expect(c.choices).toBeUndefined()
     expect(c.ctaLabel).toBe('Create my free profile')
   })
+
+  it('leads the application welcome with three jobs like it and one profile button, no situation question', () => {
+    const jobs = [1, 2, 3].map((i) => ({ title: `Job ${i}`, company: `Co ${i}`, place: 'Kansas City, MO', url: `https://x.test/api/lead-job/t?job=j${i}` }))
+    const c = leadEmailContent('applied_job', 'welcome', { firstName: null, detail: 'PM at Acme', choices: [], jobs })
+    expect(c.headline).toBe('Three more jobs like this one')
+    expect(c.jobs).toHaveLength(3)
+    expect(c.choices).toBeUndefined()
+    expect(c.ctaLabel).toBe('Create my free profile')
+    expect(leadEmailText(c, 'https://x.test/p')).toContain('- Job 1, Co 1, Kansas City, MO: https://x.test/api/lead-job/t?job=j1')
+  })
+
+  it('falls back to the situation question when fewer than three similar jobs were found', () => {
+    const jobs = [{ title: 'Job 1', company: 'Co', place: null, url: 'https://x.test/j1' }]
+    const c = leadEmailContent('applied_job', 'welcome', { firstName: null, detail: 'PM at Acme', choices, jobs })
+    expect(c.jobs).toBeUndefined()
+    expect(c.choices).toEqual(choices)
+  })
 })

@@ -30,7 +30,7 @@ export const FREE_VISIBLE_GRANTS = 2
 // portal already shows (RegionScreen). There is no self-serve billing.
 export const PLAN_CONTACT_EMAIL = 'support@launchyournextchapter.com'
 
-export type EntitlementFeature = 'reporting' | 'exports' | 'crmExchange' | 'staffRoles' | 'auditLog' | 'sso' | 'nextchapterServices' | 'wioa' | 'members' | 'grants'
+export type EntitlementFeature = 'reporting' | 'exports' | 'crmExchange' | 'staffRoles' | 'auditLog' | 'sso' | 'nextchapterServices' | 'wioa' | 'members' | 'grants' | 'publicPage'
 
 export type Entitlements = {
   // Most members the organization can hold; null = no cap.
@@ -49,6 +49,8 @@ export type Entitlements = {
   sso: boolean
   nextchapterServices: boolean
   wioa: boolean
+  // Writing its own section on its public page (owner decision 2026-11-17).
+  publicPage: boolean
 }
 
 export const isInstitutionPlan = (v: unknown): v is InstitutionPlan => v === 'FREE' || v === 'PAID'
@@ -64,9 +66,9 @@ export function institutionEntitlements(input: { plan: string | null | undefined
   // the wioa switch). Accepted so callers can pass one institution row; unused
   // here on purpose, so the plan can only restrict, never grant.
   if (planOf(input.plan) === 'PAID') {
-    return { memberCap: null, visibleMembers: null, adminLimit: null, visibleGrants: null, reporting: true, exports: true, crmExchange: true, staffRoles: true, auditLog: true, sso: true, nextchapterServices: true, wioa: true }
+    return { memberCap: null, visibleMembers: null, adminLimit: null, visibleGrants: null, reporting: true, exports: true, crmExchange: true, staffRoles: true, auditLog: true, sso: true, nextchapterServices: true, wioa: true, publicPage: true }
   }
-  return { memberCap: FREE_MEMBER_CAP, visibleMembers: FREE_VISIBLE_MEMBERS, adminLimit: FREE_ADMIN_LIMIT, visibleGrants: FREE_VISIBLE_GRANTS, reporting: false, exports: false, crmExchange: false, staffRoles: false, auditLog: false, sso: false, nextchapterServices: false, wioa: false }
+  return { memberCap: FREE_MEMBER_CAP, visibleMembers: FREE_VISIBLE_MEMBERS, adminLimit: FREE_ADMIN_LIMIT, visibleGrants: FREE_VISIBLE_GRANTS, reporting: false, exports: false, crmExchange: false, staffRoles: false, auditLog: false, sso: false, nextchapterServices: false, wioa: false, publicPage: false }
 }
 
 const WHAT: Record<EntitlementFeature, string> = {
@@ -80,6 +82,7 @@ const WHAT: Record<EntitlementFeature, string> = {
   wioa: 'Workforce (WIOA) reporting is',
   members: `Seeing more than ${FREE_VISIBLE_MEMBERS} of your members is`,
   grants: `Every grant that fits you, with a shortlist, is`,
+  publicPage: 'Writing your own section on your public page is',
 }
 
 export const LOCKED_TITLES: Record<EntitlementFeature, string> = {
@@ -93,6 +96,7 @@ export const LOCKED_TITLES: Record<EntitlementFeature, string> = {
   wioa: 'Workforce (WIOA) reporting',
   members: 'See all your members',
   grants: 'Every grant that fits you',
+  publicPage: 'Your public page',
 }
 
 // Plain words: what is locked, and the one thing to do about it.
@@ -138,6 +142,7 @@ export const GATED_SCREENS: Record<string, EntitlementFeature> = {
   'admin:activity': 'auditLog',
   'workforce:home': 'wioa',
   'workforce:etpl': 'wioa',
+  'admin:publicpage': 'publicPage',
 }
 
 // Export kind -> the feature it needs. my-data and member-data are privacy

@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { readUnsubscribeToken } from '@/lib/mailing/unsubscribe-token'
-import { LEAD_COOKIE, LEAD_COOKIE_MAX_AGE, profileDestination } from '@/lib/leads/lifecycle/prefill'
+import { profileDestination, setLeadCookie } from '@/lib/leads/lifecycle/prefill'
 
 /**
  * The "Create my free profile" button in a lifecycle email. A valid signed token sets a short-lived cookie so the onboarding details
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     who = null
   }
   if (who) {
-    response.cookies.set(LEAD_COOKIE, token, { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/', maxAge: LEAD_COOKIE_MAX_AGE })
+    setLeadCookie(response, token)
   }
   return response
 }

@@ -78,7 +78,9 @@ const loadJobPostingCounts = unstable_cache(
     return { newJobBoardListings, liveJobBoardListings }
   },
   ['admin-job-posting-counts-v1'],
-  { revalidate: 300, tags: [ADMIN_JOB_COUNTS_TAG] },
+  // An hour, not five minutes: the two counts still took ~3-5 s each (up to 111 s) and ran ~140 times a day as admins moved between pages,
+  // #30 and #40 by database time in the 2026-11-17 statement stats. They are overview figures; the pending badge is not in here.
+  { revalidate: 3600, tags: [ADMIN_JOB_COUNTS_TAG] },
 )
 
 // Runs ~17 counts, two of them scans of the job table, and the admin layout calls it on every

@@ -8,7 +8,8 @@ import { makeUnsubscribeToken } from '@/lib/mailing/unsubscribe-token'
 import LeadLifecycleEmail from '@/emails/lead-lifecycle'
 import type { LeadStep, LeadVariant } from './config'
 import { journeyButtons } from './journey'
-import { leadEmailContent, leadEmailText, type LeadEmailContext } from './content'
+import { leadEmailContent, leadEmailText, type LeadEmailContext, type LeadEmailJob } from './content'
+import { placeOf, similarJobsForLead } from './similar-jobs'
 
 const appUrl = () => process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com'
 const FROM = 'NextChapter <support@launchyournextchapter.com>'
@@ -28,6 +29,8 @@ export interface LifecycleSend {
   variant: LeadVariant
   step: LeadStep
   context: LeadEmailContext
+  /** The job they saved or went to apply for, when there is one: the application welcome shows three open jobs like it. */
+  jobId?: string | null
   /** A CRM person to log the send on. Absent for a test send, which is not logged or tracked. */
   personId?: string | null
   test?: boolean
@@ -45,8 +48,17 @@ export async function sendLifecycleEmail(input: LifecycleSend): Promise<boolean>
   const email = input.email.trim().toLowerCase()
   if (isUndeliverableAddress(email)) return false
 
-  const choices = input.context.journey || input.variant === 'waitlist_b2b' ? [] : journeyButtons(email, input.step, input.context.detail)
-  const content = leadEmailContent(input.variant, input.step, { ...input.context, choices })
+  // The application welcome leads with three open jobs like the one they went to apply for (job links are made tracked below).
+  const token = makeUnsubscribeToken(email, null)
+  const similar = input.variant === 'applied_job' && input.step === 'welcome' ? await similarJobsForLead(input.jobId) : []
+  const jobs: LeadEmailJob[] = similar.map((j, i) => ({
+    title: j.title,
+    company: j.companyName,
+    place: placeOf(j),
+    url: `${appUrl()}/api/lead-job/${token}?job=${j.id}&step=${input.step}&pos=${i + 1}`,
+  }))
+  const choices = input.context.journey || input.variant === 'waitlist_b2b' || jobs.length >= 3 ? [] : journeyButtons(email, input.step, input.context.detail)
+  const content = leadEmailContent(input.variant, input.step, { ...input.context, choices, jobs })
   const settings = await getMailingSettings()
   const unsubscribeUrl = `${appUrl()}/updates/unsubscribe/${makeUnsubscribeToken(email, null)}`
   const directCta = profileUrl(email, input.variant, input.step, input.context.journey)
@@ -78,6 +90,11 @@ export async function sendLifecycleEmail(input: LifecycleSend): Promise<boolean>
       const link = await prisma.crmOutreachLink.create({ data: { trackingId: tracking.id, originalUrl: directCta } })
       ctaUrl = `${appUrl()}/api/crm/outreach/click/${link.id}`
     }
+    // Each job is a tracked link too, so a click shows on the CRM record (and in the conversion note) like the profile button.
+    if (content.jobs?.length) {
+      const links = await Promise.all(content.jobs.map((j) => prisma.crmOutreachLink.create({ data: { trackingId: tracking.id, originalUrl: j.url } })))
+      content.jobs = content.jobs.map((j, i) => ({ ...j, url: `${appUrl()}/api/crm/outreach/click/${links[i].id}` }))
+    }
     pixelUrl = `${appUrl()}/api/crm/outreach/open/${tracking.id}`
   }
 
@@ -101,6 +118,6 @@ export async function sendLifecycleEmail(input: LifecycleSend): Promise<boolean>
     return false
   }
 
-  if (!input.test) captureServerEvent(email, 'lead_email_sent', { variant: input.variant, step: input.step, journey: input.context.journey ?? null, journey_choices_shown: !!content.choices?.length })
+  if (!input.test) captureServerEvent(email, 'lead_email_sent', { variant: input.variant, step: input.step, journey: input.context.journey ?? null, journey_choices_shown: !!content.choices?.length, similar_jobs_shown: content.jobs?.length ?? 0, jobId: input.jobId ?? null })
   return true
 }
