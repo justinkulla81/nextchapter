@@ -8,7 +8,8 @@ import { memoTtl } from '@/lib/db/heavy'
 import { readLocal } from '@/lib/workforce/local'
 import { jobStatusLabel } from '@/lib/workforce/group-jobs'
 import { StatTile } from './StatTile'
-import { ArchiveJobButton, GroupJobForm, ImportJobsForm } from './HubFlowForms'
+import { ArchiveJobButton, FeatureJobButton, GroupJobForm, ImportJobsForm } from './HubFlowForms'
+import { MAX_FEATURED } from '@/lib/workforce/featured-jobs'
 
 type Props = { ctx: WorkspaceContext; searchParams: { q?: string; page?: string }; base: string }
 
@@ -45,7 +46,11 @@ export async function HubRegionJobs({ ctx, searchParams, base }: Props) {
   const inst = await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } })
   const local = readLocal(inst.enabledFeatures)
   if (!local) return <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">Set your region on Reports › Kept in region to see the jobs near you.</p>
-  const all = await loadRegionJobs(local.anchorCity, local.anchorState).catch(() => [] as RegionJob[])
+  const [all, featuredRows] = await Promise.all([
+    loadRegionJobs(local.anchorCity, local.anchorState).catch(() => [] as RegionJob[]),
+    prisma.featuredJob.findMany({ where: { institutionId: ctx.institution.id }, select: { postingId: true }, take: MAX_FEATURED }).catch(() => []),
+  ])
+  const featuredIds = new Set(featuredRows.map((f) => f.postingId))
   const q = (searchParams.q ?? '').trim().toLowerCase().slice(0, 80)
   const jobs = q ? all.filter((j) => `${j.title} ${j.companyName}`.toLowerCase().includes(q)) : all
   const page = Math.max(1, Math.min(Number(searchParams.page) || 1, Math.ceil(jobs.length / PAGE) || 1))
@@ -56,7 +61,7 @@ export async function HubRegionJobs({ ctx, searchParams, base }: Props) {
   return (
     <div className="space-y-6">
       <p className="max-w-3xl text-sm text-muted-foreground">
-        The newest open jobs in {local.anchorCity}, from employers’ own career sites. Each links to the employer’s posting. Add jobs just for your group under{' '}
+        The newest open jobs in {local.anchorCity}, from employers’ own career sites. Each links to the employer’s posting. Feature a job and your group sees it first. Add jobs just for your group under{' '}
         <Link href={`${base}/groupjobs`} className="text-[color:var(--accent-text,var(--primary))] hover:underline">
           Jobs for your group
         </Link>
@@ -84,8 +89,8 @@ export async function HubRegionJobs({ ctx, searchParams, base }: Props) {
           <table className="w-full text-sm">
             <thead className="bg-muted/50">
               <tr>
-                {['Job', 'Employer', 'Where', 'Level', 'Pay', 'Posted'].map((h) => (
-                  <th key={h} className="px-3 py-2 text-left font-medium">
+                {['Job', 'Employer', 'Where', 'Level', 'Pay', 'Posted', ''].map((h, i) => (
+                  <th key={i} className="px-3 py-2 text-left font-medium">
                     {h}
                   </th>
                 ))}
@@ -104,6 +109,9 @@ export async function HubRegionJobs({ ctx, searchParams, base }: Props) {
                   <td className="px-3 py-2 text-muted-foreground">{level(j.level) ?? '—'}</td>
                   <td className="px-3 py-2 tabular-nums">{j.salaryMin && j.salaryMax ? `${money(j.salaryMin)} to ${money(j.salaryMax)}` : <span className="text-muted-foreground">Not stated</span>}</td>
                   <td className="whitespace-nowrap px-3 py-2 tabular-nums text-muted-foreground">{day(j.createdAt)}</td>
+                  <td className="px-3 py-2">
+                    {!ctx.readOnly && <FeatureJobButton slug={ctx.institution.slug} postingId={j.id} title={j.title} featured={featuredIds.has(j.id)} />}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -142,6 +150,18 @@ export async function HubGroupJobs({ ctx }: Props) {
     take: 200,
     select: { id: true, title: true, companyName: true, location: true, url: true, status: true, expiresAt: true, createdAt: true, source: true, rejectionReason: true },
   })
+  const featuredRows = await prisma.featuredJob.findMany({ where: { institutionId: ctx.institution.id }, orderBy: { createdAt: 'desc' }, take: MAX_FEATURED, select: { postingId: true, note: true } }).catch(() => [])
+  const featuredPostings = featuredRows.length
+    ? await prisma.exclusiveJobPosting.findMany({
+        where: { id: { in: featuredRows.map((f) => f.postingId) }, status: 'approved', archivedAt: null },
+        select: { id: true, title: true, companyName: true, location: true, url: true },
+      })
+    : []
+  const featured = featuredRows.flatMap((f) => {
+    const p = featuredPostings.find((x) => x.id === f.postingId)
+    return p ? [{ ...p, note: f.note }] : []
+  })
+  const featuredIds = new Set(featuredRows.map((f) => f.postingId))
   const label = (r: (typeof rows)[number]) => jobStatusLabel(r.status, false, !!r.expiresAt && r.expiresAt <= now)
   const live = rows.filter((r) => label(r) === 'Live for your group').length
   const waiting = rows.filter((r) => label(r) === 'Waiting for NextChapter review').length
@@ -154,7 +174,34 @@ export async function HubGroupJobs({ ctx }: Props) {
         <StatTile label="Live for your group" value={live} />
         <StatTile label="Waiting for review" value={waiting} />
         <StatTile label="All you have added" value={rows.length} />
+        <StatTile label="Featured" value={`${featured.length} of ${MAX_FEATURED}`} note="Shown first to your group" />
       </div>
+
+      <section className="space-y-3" aria-labelledby="feat">
+        <h2 id="feat" className="text-base font-semibold">
+          Featured for your group
+        </h2>
+        {featured.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
+            Nothing featured yet. Feature a job from the region list or from your own listings below, and your group sees it first, marked as chosen by {ctx.institution.name}.
+          </p>
+        ) : (
+          <ul className="divide-y divide-border rounded-lg border border-border">
+            {featured.map((j) => (
+              <li key={j.id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm">
+                <div className="min-w-0 flex-1 basis-64">
+                  <a href={j.url} target="_blank" rel="noreferrer" className="font-medium text-[color:var(--accent-text,var(--primary))] hover:underline">
+                    {j.title}
+                  </a>
+                  <p className="text-muted-foreground">{[j.companyName, j.location].filter(Boolean).join(' · ')}</p>
+                  {j.note && <p className="text-muted-foreground">“{j.note}”</p>}
+                </div>
+                {!ctx.readOnly && <FeatureJobButton slug={slug} postingId={j.id} title={j.title} featured />}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       {!ctx.readOnly ? (
         <div className="grid gap-6 lg:grid-cols-2">
@@ -208,7 +255,14 @@ export async function HubGroupJobs({ ctx }: Props) {
                       {label(r)}
                       {r.status === 'rejected' && r.rejectionReason && <span className="block text-xs text-muted-foreground">{r.rejectionReason}</span>}
                     </td>
-                    <td className="px-3 py-2">{!ctx.readOnly && <ArchiveJobButton slug={slug} id={r.id} title={r.title} />}</td>
+                    <td className="px-3 py-2">
+                      {!ctx.readOnly && (
+                        <div className="flex flex-wrap items-center gap-2">
+                          {label(r) === 'Live for your group' && !featuredIds.has(r.id) && <FeatureJobButton slug={slug} postingId={r.id} title={r.title} featured={false} />}
+                          <ArchiveJobButton slug={slug} id={r.id} title={r.title} />
+                        </div>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

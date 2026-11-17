@@ -13090,6 +13090,7 @@ model Institution {
   fundingApplications FundingApplication[]
   partnerViews        PartnerView[]
   ecosystemPartners   EcosystemPartner[]
+  featuredJobs        FeaturedJob[]
   memberCompanies      MemberCompany[]
   alumniOpportunities  AlumniOpportunity[]
   alumniGroups         AlumniGroup[]
@@ -15923,6 +15924,21 @@ model PartnerView {
   isSampleData      Boolean     @default(false)
   createdAt         DateTime    @default(now())
 
+  @@index([institutionId, createdAt])
+}
+
+// A job an organization features: its group's people see it first. postingId points at an ExclusiveJobPosting (open board or the
+// organization's own group listing); no foreign key, so a removed posting just drops out. At most 10 per organization.
+model FeaturedJob {
+  id            String      @id @default(cuid())
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  postingId     String
+  note          String?
+  createdBy     String
+  createdAt     DateTime    @default(now())
+
+  @@unique([institutionId, postingId])
   @@index([institutionId, createdAt])
 }
 

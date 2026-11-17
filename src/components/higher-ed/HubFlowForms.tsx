@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
-import { addGroupJob, archiveGroupJob, importGroupJobs, linkResponseFunding, saveFundingApplication, setResponseStep, type HubResult } from '@/app/i/[slug]/(portal)/hub-actions'
+import { addGroupJob, archiveGroupJob, featureJob, unfeatureJob, importGroupJobs, linkResponseFunding, saveFundingApplication, setResponseStep, type HubResult } from '@/app/i/[slug]/(portal)/hub-actions'
 import { FUNDING_STATUSES } from '@/lib/workforce/hub-flow'
 
 const sel = 'h-9 w-full rounded-md border border-input bg-background px-2 text-sm'
@@ -194,6 +194,21 @@ export function ArchiveJobButton({ slug, id, title }: { slug: string; id: string
       <input type="hidden" name="id" value={id} />
       <SubmitButton size="sm" variant="ghost" pendingLabel="Removing…">
         Take down
+      </SubmitButton>
+      <Msg r={state} />
+    </form>
+  )
+}
+
+// Feature a job (with an optional one-line reason the group sees), or take it off the featured list.
+export function FeatureJobButton({ slug, postingId, title, featured }: { slug: string; postingId: string; title: string; featured: boolean }) {
+  const [state, action] = useActionState<HubResult, FormData>((featured ? unfeatureJob : featureJob).bind(null, slug), undefined)
+  return (
+    <form action={action} className="flex flex-wrap items-center gap-2">
+      <input type="hidden" name="postingId" value={postingId} />
+      {!featured && <Input name="note" maxLength={160} placeholder="Why (optional)" aria-label={`Why you feature ${title}`} className="h-8 w-40 text-xs" />}
+      <SubmitButton size="sm" variant={featured ? 'ghost' : 'outline'} pendingLabel={featured ? 'Removing…' : 'Featuring…'}>
+        {featured ? 'Remove from featured' : 'Feature'}
       </SubmitButton>
       <Msg r={state} />
     </form>
