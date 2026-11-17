@@ -141,8 +141,9 @@ import { isExplainGapsEnabled } from '@/lib/jobs/explain-gaps'
 import { memberSkillKeywords } from '@/lib/jobs/skill-gap-data'
 import { memberWorkType, defaultWorkTypes, parseWorkTypesParam, pathWorkTypes, roleProfileWorkType, WORK_TYPE_LABEL, type WorkType } from '@/lib/jobs/work-type'
 import { loadMyJobs, trackKey, type MyJobsView } from '@/lib/jobs/my-jobs-data'
-import { loadExpertNetworks, type ExpertNetworkCard } from '@/lib/jobs/expert-networks'
-import { WorkTypeToggle } from '@/components/dashboard/one-board/WorkTypeToggle'
+import { loadExpertNetworks } from '@/lib/jobs/expert-networks'
+import { LookingForChoice } from '@/components/dashboard/one-board/LookingForChoice'
+import { lookingForOf, showsFractional } from '@/lib/jobs/looking-for'
 import { type BoardTab } from '@/components/dashboard/one-board/BoardTabs'
 import { ExpertNetworkRow } from '@/components/dashboard/one-board/ExpertNetworkRow'
 import { earlyCareerAudience, featureVisible } from '@/lib/early-career/audience'
@@ -314,50 +315,24 @@ const STATUS_LABELS: Record<string, string> = {
   blocked: "This site can't be fetched automatically",
 }
 
-// Per-type empty states: what to do when a kind of work has nothing matching yet.
-function EmptyTypeNote({ type }: { type: WorkType }) {
-  switch (type) {
-    case 'full_time':
-      return (
-        <>
-          No full-time jobs match yet.{' '}
-          <Link href="/dashboard/search-strategy" className="text-primary underline underline-offset-4">
-            Add a target role or widen your search
-          </Link>{' '}
-          to see more.
-        </>
-      )
-    case 'part_time':
-      return (
-        <>
-          No part-time or fractional roles match yet. Most fractional work comes through marketplaces and your network —{' '}
-          <a href="#independent-work" className="text-primary underline underline-offset-4">
-            see the fractional marketplaces below
-          </a>
-          .
-        </>
-      )
-    case 'contract':
-      return (
-        <>
-          No contract roles match yet. Expert networks above pay for your time now, and the{' '}
-          <a href="#independent-work" className="text-primary underline underline-offset-4">
-            consultancy launch plan below
-          </a>{' '}
-          gets you to a first client.
-        </>
-      )
-    case 'advisory':
-      return (
-        <>
-          No advisory roles match yet — here&apos;s how to get on boards:{' '}
-          <a href="#launch-phase-4" className="text-primary underline underline-offset-4">
-            board and advisory directories
-          </a>{' '}
-          below, and the board-matched roles further down.
-        </>
-      )
-  }
+// Empty states when nothing matches: one for full-time, one for fractional and independent work (owner, 2026-11-17: one
+// short line each, not a paragraph per kind of work).
+function EmptyTypeNote({ type, independentHref }: { type: 'full_time' | 'fractional'; independentHref: string }) {
+  return type === 'full_time' ? (
+    <>
+      No full-time jobs match yet.{' '}
+      <Link href="/dashboard/search-strategy" className="text-primary underline underline-offset-4">
+        Add a target role or widen your search
+      </Link>
+    </>
+  ) : (
+    <>
+      No fractional or independent roles match yet.{' '}
+      <Link href={independentHref} className="text-primary underline underline-offset-4">
+        See independent work
+      </Link>
+    </>
+  )
 }
 
 /** The board search as the results section sees it (see board-search.ts). */
@@ -470,7 +445,6 @@ async function JobRecommendationsSection({
   scopeCtx,
   pivotFilter,
   myJobs,
-  expertNetworks,
   search,
   urlParams,
   aiView,
@@ -507,7 +481,6 @@ async function JobRecommendationsSection({
   scopeCtx: ScopeContext
   pivotFilter: PivotBoardFilter | null
   myJobs: MyJobsView
-  expertNetworks: ExpertNetworkCard[]
   contacts: {
     id: string
     name: string
@@ -602,7 +575,9 @@ async function JobRecommendationsSection({
     ...surfacedJobs.map((j) => memberWorkType(j)).filter((t): t is WorkType => t !== null),
     ...(Object.entries(board.countByWorkType) as [WorkType, number][]).filter(([, n]) => n > 0).map(([t]) => t),
   ])
-  const emptyTypes = workTypes.filter((t) => !shownTypes.has(t))
+  // One line when the fractional kinds the member chose have nothing yet (owner, 2026-11-17: one note, not one per kind).
+  const independentHref = boardHref(urlParams, { part: 'independent', job: null, tab: 'board' })
+  const fractionalEmpty = showsFractional(workTypes) && workTypes.filter((t) => t !== 'full_time').every((t) => !shownTypes.has(t))
 
   // Every member sees every job (owner's rule, 2026-10-16).
   const visibleSurfacedJobs = surfacedJobs
@@ -857,15 +832,13 @@ async function JobRecommendationsSection({
 
   return (
     <div className="space-y-4">
-      {workTypes.includes('contract') && <ExpertNetworkRow networks={expertNetworks} />}
-      {emptyTypes.length > 0 && (visibleBoardPostings.length > 0 || surfacedJobs.length > 0) && (
-        <ul className="space-y-1">
-          {emptyTypes.map((t) => (
-            <li key={t} className="text-sm text-muted-foreground">
-              <EmptyTypeNote type={t} />
-            </li>
-          ))}
-        </ul>
+      {fractionalEmpty && (visibleBoardPostings.length > 0 || surfacedJobs.length > 0) && (
+        <p className="text-sm text-muted-foreground">
+          No fractional or independent roles match yet.{' '}
+          <Link href={independentHref} className="text-primary underline underline-offset-4">
+            See independent work
+          </Link>
+        </p>
       )}
       {search && search.active && (
         <BoardSearchTracker
@@ -951,11 +924,13 @@ async function JobRecommendationsSection({
               filters yet. Turn one off to see more.
             </p>
           ) : (
-            workTypes.map((t) => (
-              <p key={t}>
-                <EmptyTypeNote type={t} />
-              </p>
-            ))
+            (['full_time', 'fractional'] as const)
+              .filter((t) => (t === 'full_time' ? workTypes.includes('full_time') : showsFractional(workTypes)))
+              .map((t) => (
+                <p key={t}>
+                  <EmptyTypeNote type={t} independentHref={independentHref} />
+                </p>
+              ))
           )}
         </div>
       ) : (
@@ -1632,6 +1607,7 @@ async function FindMyJobBody({
       {onBoard && show('jobs') && (
         <div id="apply-new-jobs" className="scroll-mt-4 space-y-6">
           <BoardSearchBar />
+          <LookingForChoice selected={lookingForOf(workTypes)} />
           {pivotFilter && (
             <PivotBoardBanner
               target={pivotFilter.target}
@@ -1658,7 +1634,6 @@ async function FindMyJobBody({
                 boardFilters={boardFilters}
                 scopeCtx={scopeCtx}
                 myJobs={myJobs}
-                expertNetworks={expertNetworks}
                 search={searchView}
                 urlParams={urlParams}
                 aiView={appliedAiView}
@@ -1669,6 +1644,7 @@ async function FindMyJobBody({
               />
             </Suspense>
           </div>
+          {showsFractional(workTypes) && <ExpertNetworkRow networks={expertNetworks} />}
           {(scopeCtx.message || scopeCtx.question || scopeCtx.options.length > 0) && (
             <HomeFold title="Where we are looking" event="jobs_scope_fold_toggled">
               {scopeCtx.message && (
@@ -1686,7 +1662,6 @@ async function FindMyJobBody({
             <div className="mt-3 space-y-3">
               <div className="flex flex-wrap items-center gap-3">
                 <PastJobsToggle />
-                <WorkTypeToggle selected={workTypes} counts={board.countByWorkType} />
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <SourceViewToggle

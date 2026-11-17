@@ -9,6 +9,7 @@ import { CommunityShort } from './community-short'
 import { PremiumShort, PersonalShort } from './leftovers-short'
 import { NetworkOverviewMock, CloseCircle } from './network'
 import { FindJobs } from './jobs-find'
+import { FindLookingFor } from './jobs-looking-for'
 import { QualityGateDirect, QualityGateAll, QualityGateNoDirect } from './jobs-quality-gate'
 import { FindFromPublicSearch } from './jobs-from-public'
 import { FindJobsLive, MyJobsLive, MyJobsEmptyLive } from './jobs-find-live'
@@ -313,6 +314,7 @@ export const MOCKUPS: Mockup[] = [
   { path: 'public/industry-network', place: 'Public site', title: 'Industry page: the one ask is joining the Health care network', replaces: 'the Market Reality Assessment box at the bottom of an industry page', Component: IndustryNetworkAsk },
   { path: 'public/nav', place: 'Public site', title: 'Public header (4 menus) and footer columns', replaces: 'the nine-link top bar in PublicSiteChrome.tsx and the Browse NextChapter text wall', Component: PublicNavPreview },
   { path: 'portals/headers', place: 'Portals', title: 'Portal top bars: employer, higher education, workforce, recruiter, coach', replaces: 'the one navy top bar on every non-candidate portal (PartnerTopBar)', Component: PortalHeaders },
+  { path: 'jobs/looking-for', place: 'Jobs', title: 'Find a job: full-time or fractional choice', replaces: '/dashboard/find-my-job (Jobs view)', Component: FindLookingFor },
   { path: 'admin/board-bids-live', place: 'Admin', title: 'CRM funding: workforce board bids (live rows)', replaces: 'new', Component: BoardBidsLive as unknown as ComponentType },
   { path: 'admin/competitor-wins-live', place: 'Admin', title: 'CRM funding: competitor federal wins (live rows)', replaces: 'new', Component: CompetitorWinsLive as unknown as ComponentType },
   { path: 'account/money', place: 'Account', title: 'Money help (off state)', replaces: 'new', Component: AccountMoney },
