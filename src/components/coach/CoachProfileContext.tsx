@@ -2,8 +2,8 @@ import { coachProfileContext } from '@/lib/profile/touchpoints'
 import { AREAS } from '@/lib/strengths-interview/areas'
 
 // For the pre-session brief: where the client stands out (measured, and in their own words from Find your strengths), how they like to
-// work, what they want to leave behind and toward, and market flags. Their
-// private weak spots are never shown here.
+// work, what they want to leave behind and toward, market flags, and the weak spots to plan for. Coaches see the weak spots
+// (owner decision, 2026-11-17); employers never do.
 export async function CoachProfileContextCard({ candidateId }: { candidateId: string }) {
   const c = await coachProfileContext(candidateId).catch(() => null)
   if (!c) return null
@@ -38,6 +38,18 @@ export async function CoachProfileContextCard({ candidateId }: { candidateId: st
           </ul>
         )}
       </div>
+      {c.weakSpots.length > 0 && (
+        <div className="space-y-1">
+          <p className="text-sm text-muted-foreground">Weaker spots to plan for (employers never see these):</p>
+          <ul className="space-y-1 text-sm">
+            {c.weakSpots.map((w) => (
+              <li key={`${w.label}-${w.line}`}>
+                <span className="font-medium text-foreground">{w.label}.</span> <span className="text-muted-foreground">{w.line}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {c.workStyle.length > 0 && (
         <p className="text-sm">
           <span className="text-muted-foreground">How they like to work: </span>
@@ -73,6 +85,7 @@ export async function CoachProfileContextCard({ candidateId }: { candidateId: st
         Good openers: ask which strength they want to lead with this week, and whether the market flags change where they’re looking.
         {c.ownDone < AREAS.length && ' If they are stuck on how to say what they are best at, have them answer the next Find your strengths area before you meet, or do one together.'}
         {c.ownWords.some((w) => w.sayIt) && ' Have them say one of their own lines out loud and tighten it with them.'}
+        {c.weakSpots.length > 0 && ' For a weaker spot, help them prepare one honest example, or steer toward roles that do not start with it.'}
       </p>
     </div>
   )
