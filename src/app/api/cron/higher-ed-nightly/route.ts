@@ -9,6 +9,9 @@ import { withCronRun } from '@/lib/cron/run'
 import { runMonthlyEmails } from '@/lib/higher-ed/monthly'
 import { cleanupExpiredDemos } from '@/lib/workforce/demo'
 import { autoJoinMajorGroups } from '@/lib/higher-ed/major-groups'
+import { DEMO_TENANTS } from '@/lib/higher-ed/demo-tenants'
+import { resetDemoInstitution } from '@/lib/higher-ed/demo-seed'
+import { seedDemoContent } from '@/lib/institution/admin'
 
 export const maxDuration = 300
 
@@ -45,12 +48,33 @@ export const GET = withCronRun('higher-ed-nightly', async () => {
     console.error('[higher-ed-nightly] monthly email', err)
     return []
   })
+  // A demo college created as an empty placeholder (a demo, sample-data row under a fixture's slug, with no members yet) is
+  // filled from its fixture, once: the same reset as Admin > Institutions > Reset to fixture. Never touches a seeded demo.
+  const demosFilled = await fillEmptyDemoPlaceholders().catch((err) => {
+    console.error('[higher-ed-nightly] demo placeholders', err)
+    return [] as string[]
+  })
   // Catches members whose major arrived with a later roster import. A member who left a group is never re-added.
   const majorGroupJoins = await autoJoinMajorGroups().catch((err) => {
     console.error('[higher-ed-nightly] major groups', err)
     return 0
   })
-  const result = { ...grace, ...totals, majorGroupJoins, colleges: colleges.length, monthlySent: monthly.reduce((n, m) => n + m.sent, 0), demosRemoved: demos.removed }
+  const result = { ...grace, ...totals, majorGroupJoins, demosFilled: demosFilled.length, colleges: colleges.length, monthlySent: monthly.reduce((n, m) => n + m.sent, 0), demosRemoved: demos.removed }
   captureServerEvent('cron', 'he_nightly_ran', { ...result, ms: Date.now() - startedAt.getTime() })
   return NextResponse.json({ ok: true, ...result })
 })
+
+async function fillEmptyDemoPlaceholders(): Promise<string[]> {
+  const rows = await prisma.institution.findMany({
+    where: { slug: { in: Object.keys(DEMO_TENANTS) }, isDemo: true, isSampleData: true, members: { none: {} } },
+    select: { slug: true },
+  })
+  const filled: string[] = []
+  for (const { slug } of rows) {
+    const result = await prisma.$transaction((tx) => resetDemoInstitution(tx, new Date(), DEMO_TENANTS[slug]), { timeout: 120_000, maxWait: 20_000 })
+    await seedDemoContent(result.institutionId, 'demo-placeholder')
+    captureServerEvent('cron', 'institution_demo_reset', { institutionId: result.institutionId, slug, members: result.members, source: 'nightly_placeholder' })
+    filled.push(slug)
+  }
+  return filled
+}
