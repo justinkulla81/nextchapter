@@ -58,6 +58,8 @@ export type RequirementFlag =
   | { flag: 'travel'; pct: number; evidence?: string }
   | { flag: 'relocation'; evidence?: string }
   | { flag: 'onsite'; evidence?: string }
+  // The posting is for people outside the US ("Remote from Latin America"; foreign-remote.ts). Set by our import, not the crawler.
+  | { flag: 'outside_us'; evidence?: string }
 export type RequirementFlagName = RequirementFlag['flag']
 
 const isLevel = (v: unknown): v is ClearanceLevel | 'unspecified' =>
@@ -89,6 +91,7 @@ export function parseRequirementFlags(raw: unknown): RequirementFlag[] {
       case 'no_sponsorship':
       case 'relocation':
       case 'onsite':
+      case 'outside_us':
         f = { flag: o.flag, evidence: ev(o.evidence) }
         break
       case 'license':
@@ -147,6 +150,7 @@ export function flagsFromTags(tags: string | null | undefined): RequirementFlag[
   }
   if (set.has('relocation')) out.push({ flag: 'relocation' })
   if (set.has('onsite')) out.push({ flag: 'onsite' })
+  if (set.has('outside_us')) out.push({ flag: 'outside_us' })
   if (tagCache.size > 5000) tagCache.clear()
   tagCache.set(tags, out)
   return out
@@ -173,6 +177,8 @@ export function requirementLabel(f: RequirementFlag): string {
       return 'Relocation required'
     case 'onsite':
       return 'Must work onsite'
+    case 'outside_us':
+      return 'For people outside the US'
   }
 }
 
@@ -347,6 +353,9 @@ export function checkRequirement(f: RequirementFlag, m: RequirementMember, job: 
       if (!m.relocationAsked) return unknown('relocation', 'tell us whether you would relocate')
       return blocker("you told us you're not open to relocating")
     }
+    case 'outside_us':
+      // Our members search from the US: a job for people elsewhere never fits.
+      return blocker('it is for people living outside the US')
     case 'onsite': {
       const pref = (m.remotePreference ?? '').toLowerCase()
       if (!pref) return unknown('remote_preference', 'tell us whether you want remote work')

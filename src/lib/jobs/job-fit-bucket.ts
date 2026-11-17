@@ -6,7 +6,8 @@ import { skillTerms } from '@/lib/profile/skill-matrix'
 import type { CandidateProfile, CompanySizeBand, ExclusiveJobPosting, SurfacedJob } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { priorityMultiplier } from '@/lib/matching/compute-match-score'
-import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
+import { correctedJobFunction, inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
+import { notOpenToUsResidents } from '@/lib/jobs/foreign-remote'
 import { classifyTitleRung, type RungName } from '@/lib/jobs/job-seniority'
 import { flexRungRange, jobLevelFlex, rangeGap, type EmployerScale, type LevelFlex } from '@/lib/jobs/level-flex'
 import { memberPeakWindow, peakForMatching, peakScale } from '@/lib/profile/career-high-point'
@@ -157,6 +158,8 @@ interface FitPostingLike {
   levelFlex?: LevelFlex | null
   companyName?: string | null
   sourceCategory?: string | null
+  // The requirement tags (requirements.ts), when the caller has them: 'outside_us' marks a job for people outside the US.
+  requirementTags?: string | null
 }
 
 // ── Level ────────────────────────────────────────────────────────────────────
@@ -325,7 +328,11 @@ function titleFunctions(title: string): string[] {
 }
 
 export function postingFunctions(posting: Pick<FitPostingLike, 'title' | 'targetFunction'>): string[] {
-  return posting.targetFunction ? [posting.targetFunction] : titleFunctions(posting.title)
+  // A stored Finance label that only names the industry ("Director of Sales, Financial Services") is read from the
+  // title without the industry words instead (correctedJobFunction); nothing left to read means no function.
+  if (!posting.targetFunction) return titleFunctions(posting.title)
+  const corrected = correctedJobFunction(posting.targetFunction, posting.title)
+  return corrected ? [corrected] : []
 }
 
 function hasSpecificTarget(c: Pick<FitCandidate, 'targetRoleType'>): boolean {
@@ -353,6 +360,8 @@ function functionFit(m: FitCandidateContext, j: FitPostingContext): FunctionFit 
 
 const FUNCTION_POINTS: Record<FunctionFit, number> = { own: 30, secondary: 22, other: 0, unknown: 0 }
 const OPEN_TARGET_ROLE_CREDIT = 10
+/** Skills from the member's résumé a posting must name to make a job Strong on skills alone (keywordBonus gives 2 each). */
+const STRONG_MIN_SKILL_HITS = 2
 
 // ── Title vs the role they named ─────────────────────────────────────────────
 
@@ -433,6 +442,8 @@ function postingIsRemote(posting: Pick<FitPostingLike, 'targetRemotePolicy' | 'l
 }
 
 function placeFit(m: FitCandidateContext, j: FitPostingContext): PlaceFit {
+  // "Remote from Latin America": not open to a member in the US, wherever its location field says.
+  if (j.abroad) return 'no'
   if (j.remote) return 'remote'
   const cityHit = m.cityWord !== null && m.cityWord.test(j.placeLocation)
   // A city they added: only that city, not the rest of its state (added-cities.ts).
@@ -514,7 +525,7 @@ export interface FitAssessment {
   titleBonus: number
   industryMatch: boolean
   // Which gate capped the score, if any.
-  cappedBy: 'credential' | 'place' | 'function' | 'level' | 'target_role' | null
+  cappedBy: 'credential' | 'place' | 'function' | 'level' | 'target_role' | 'generic' | null
 }
 
 // ── Prepared inputs ──────────────────────────────────────────────────────────
@@ -598,6 +609,11 @@ interface FitPostingContext {
   // The job's level range (its level widened by its flex) with no fallback level (the board's case).
   levelRange: { lo: number; hi: number; scale: EmployerScale | null } | null
   remote: boolean
+  // The posting says it is for people outside the US (foreign-remote.ts).
+  abroad: boolean
+  // The posting's description was there to read: the skills and industry tests below need it (the board's light rows
+  // have none, so the "Strong needs a specific reason" rule only applies where the card's label is worked out).
+  hasText: boolean
   placeLocation: string
   jobStates: string[]
   // The title, acronyms expanded, and its significant words — only needed for a
@@ -643,6 +659,9 @@ function postingContext(posting: FitPostingInput): FitPostingContext {
     jobFns: postingFunctions(posting).map((f) => f.toLowerCase()),
     levelRange: postingLevelRange(posting),
     remote: postingIsRemote({ ...posting, description: posting.description ?? null }),
+    hasText: !!posting.description?.trim(),
+    // From the text when the row carries it, else from the import's requirement tag (the board's light rows have no text).
+    abroad: notOpenToUsResidents(postingText) || /(?:^|,)outside_us(?:,|$)/.test(posting.requirementTags ?? ''),
     placeLocation,
     jobStates: jobStatesOf(placeLocation),
     credential: detectRequiredCredential(postingText),
@@ -683,13 +702,14 @@ function assessFit(
   // is the role — a job in it gets the credit a named role's title would.
   const roleCredit = m.specificTarget || expansionHit ? titleBonus : fn === 'own' ? OPEN_TARGET_ROLE_CREDIT : 0
 
+  const keywords = keywordBonus(m, j.postingTextLower)
   let score =
     FUNCTION_POINTS[fn] +
     LEVEL_POINTS[level] +
     PLACE_POINTS[place] +
     roleCredit +
     (industryMatch ? Math.round(10 * priorityMultiplier(c.priorityMission)) : 0) +
-    keywordBonus(m, j.postingTextLower) +
+    keywords +
     yearsBonus(c.yearsExperience, j.years) +
     payPoints(c, posting) +
     companySizeMatchBonus(c, posting.companySizeBand)
@@ -719,6 +739,12 @@ function assessFit(
   // applied to a recruiter-targeted posting (targetFunction set) — a human
   // already paired the two.
   if (posting.targetFunction == null && m.specificTarget && titleBonus === 0) cap(STRONG_FIT_THRESHOLD - 1, 'target_role')
+  // Strong needs a reason specific to this member beyond the function, the level and the place, which every job in
+  // their function, level and area shares: the role they named in the title, one of their industries, or at least two
+  // of their skills in the posting. Without one, every finance director job near a finance director read Strong
+  // (2026-11-17), and the label stopped telling jobs apart. Those jobs stay Good fits. Only with the description to read:
+  // ranking from the board's light rows (no text) is unchanged, so the market tiers that keep only Strong jobs still fill.
+  if (j.hasText && titleBonus === 0 && !industryMatch && keywords < 2 * STRONG_MIN_SKILL_HITS) cap(STRONG_FIT_THRESHOLD - 1, 'generic')
 
   return { ...base, score, cappedBy }
 }
