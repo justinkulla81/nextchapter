@@ -7,7 +7,7 @@ const city = (st: string, name: string, n: number, entry: number, extra: Partial
   st, city: name, n, entry, ai: 0, remote: 0, paid: 0, payMed: null, eng: 0, engPaid: 0, engPay: null, employers: [], topShare: 0.1, mid: 0, exec: 0, ...extra,
 })
 const info = (c: CityStat) => ({ name: c.city[0].toUpperCase() + c.city.slice(1), href: `/places/x/city/${c.city}` })
-const ctx = { costOf: () => ({ rpp: 100, basis: 'metro' as const }) }
+const ctx = { costOf: () => ({ rpp: 100, housingRpp: 100, home: 300_000, rent: 1500, basis: 'metro' as const }) }
 
 describe('wave 4: all-round and industry-city lists', () => {
   it('turns values into percentiles, splitting ties', () => {

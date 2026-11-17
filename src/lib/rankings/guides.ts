@@ -16,7 +16,7 @@ export const MEASURE_GUIDE: Record<MeasureId, Guide> = {
     use: 'Compare your own city to the top of the list. A gap is a reason to build one AI skill and show it on your résumé before you apply, not a reason to move.',
   },
   paycost: {
-    why: 'A salary buys different amounts in different places. This list adjusts posted pay by the local price level, so it ranks what the pay is worth rather than the number on the posting.',
+    why: 'A salary buys different amounts in different places, and housing makes most of the difference. This list takes a year of owning the median home out of the median posted pay and prices everything else locally, so it ranks what the pay leaves you rather than the number on the posting.',
     use: 'Use it to compare two offers or two cities. A lower headline salary in a cheaper place can leave you ahead of a higher one in an expensive metro.',
   },
   remote: {
@@ -336,7 +336,7 @@ export const MEASURE_GUIDE: Record<MeasureId, Guide> = {
     use: 'A metro that is growing gives you more room to change employers later. Read it with the layoff list: fast growth can come with fast cuts.',
   },
   wp_pay: {
-    why: 'A salary buys different amounts in different places. This list divides the median posted white-collar salary by the local price level.',
+    why: 'A salary buys different amounts in different places, and housing makes most of the difference. This list takes a year of owning the median home out of the median posted white-collar salary and prices everything else locally.',
     use: 'Use it to compare an offer in one metro with an offer in another. A lower salary in a cheaper metro can leave you ahead.',
   },
   wp_house: {

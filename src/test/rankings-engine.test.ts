@@ -1,3 +1,5 @@
+import { payAfterLiving } from '@/lib/rankings/living-cost'
+import { usdK } from '@/lib/rankings/measures'
 import { describe, expect, it } from 'vitest'
 import { rankCities, rankColleges, rankCounties, rankSkills, wave1Specs, wave2PlaceSpecs, functionSpecs, skillSpecs, workforceSpecs, collegeSpecs, MIN_RANKED, editionLabel } from '@/lib/rankings/build-edition'
 import { CITY_MEASURES } from '@/lib/rankings/measures'
@@ -7,7 +9,7 @@ const city = (st: string, name: string, n: number, entry: number, extra: Partial
   st, city: name, n, entry, ai: 0, remote: 0, paid: 0, payMed: null, eng: 0, engPaid: 0, engPay: null, employers: [], topShare: 0.1, mid: 0, exec: 0, ...extra,
 })
 const info = (c: CityStat) => ({ name: c.city[0].toUpperCase() + c.city.slice(1), href: `/places/x/city/${c.city}` })
-const ctx = { costOf: () => ({ rpp: 100, basis: 'metro' as const }) }
+const ctx = { costOf: () => ({ rpp: 100, housingRpp: 100, home: 300_000, rent: 1500, basis: 'metro' as const }) }
 const many = (k: number) => Array.from({ length: k }, (_, i) => city('TX', `city${i}`, 300 + i, 30 + i * 5))
 const spec = wave1Specs(['TX'])[0]
 
@@ -49,9 +51,10 @@ describe('ranking engine', () => {
     const pay = wave1Specs(['TX']).find((s) => s.measure === 'paycost' && s.scope.kind === 'national')!
     const stats = many(12).map((c) => ({ ...c, paid: 60, payMed: 90_000 }))
     expect(rankCities(pay, stats, info, { costOf: () => null }, '2026-11', 'x', null)).toBeNull()
-    const e = rankCities(pay, stats, info, { costOf: (c) => ({ rpp: c.city === 'city0' ? 120 : 90, basis: 'metro' }) }, '2026-11', 'x', null)!
+    const cost = (dear: boolean) => ({ rpp: dear ? 120 : 90, housingRpp: dear ? 200 : 90, home: dear ? 900_000 : 300_000, rent: null, basis: 'metro' as const })
+    const e = rankCities(pay, stats, info, { costOf: (c) => cost(c.city === 'city0') }, '2026-11', 'x', null)!
     expect(e.rows[e.rows.length - 1].name).toBe('City0')
-    expect(e.rows[0].valueLabel).toBe('$100k')
+    expect(e.rows[0].valueLabel).toBe(usdK(payAfterLiving(90_000, cost(false)) as number))
   })
   it('ranks counties on growth', () => {
     const g = wave1Specs([]).find((s) => s.slug === 'fastest-growing-job-markets')!
