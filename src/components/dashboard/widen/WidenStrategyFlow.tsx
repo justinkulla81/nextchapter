@@ -16,7 +16,9 @@ import { finishWidenStrategy } from '@/app/dashboard/find-my-job/widen/actions'
 
 const n = (x: number) => x.toLocaleString()
 const pctOf = (share: number) => `${Math.round(share)}%`
-const slugOf = (name: string) => name.toLowerCase().replace(/&/g, ' and ').replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+// A skill name inside a sentence: "Financial statements" → "financial statements"; acronyms ("ERP") and product names ("Excel") keep their capitals.
+const PROPER = /^(excel|salesforce|sap|oracle|netsuite|python|sql|power bi|tableau|workday|hubspot|gaap)\b/i
+const inSentence = (name: string) => (/^[A-Z]{2}/.test(name) || PROPER.test(name) ? name : name.charAt(0).toLowerCase() + name.slice(1))
 
 const ROUNDS = [
   { key: 'where', label: 'Where to look' },
@@ -228,7 +230,7 @@ export function WidenStrategyFlow({ view, from = 'direct', preview = false }: { 
                 items={view.roles.slice(0, 6).map((r) => ({
                   key: r.role,
                   title: r.label,
-                  why: r.carry.length > 0 ? `Your ${joinList(r.carry.slice(0, 2))} carry over.` : 'Uses much of what you already do.',
+                  why: r.carry.length > 0 ? `Your ${joinList(r.carry.slice(0, 2).map(inSentence))} carry over.` : 'Uses much of what you already do.',
                   fact: r.openNow ? `${n(r.openNow)} open roles.` : undefined,
                   actions: (
                     <ExpansionToggle quiet preview={preview} surface="widen_strategy" kind="role" value={r.role} on={picks.roles.includes(r.role)} onChange={(on) => setList('roles', r.role, on)} label={r.label} addLabel="Add this role" onLabel="✓ Added" />
@@ -252,20 +254,11 @@ export function WidenStrategyFlow({ view, from = 'direct', preview = false }: { 
                 items={bridgeRoles.map((r) => ({
                   key: `bridge-${r.role}`,
                   title: `Into ${r.label}`,
-                  why: r.carry.length > 0 ? `You bring ${joinList(r.carry.slice(0, 3))}.` : 'Much of what you do carries over.',
+                  why: r.carry.length > 0 ? `You bring ${joinList(r.carry.slice(0, 3).map(inSentence))}.` : 'Much of what you do carries over.',
                   fact:
                     r.toAdd.length > 0 ? (
                       <>
-                        To add:{' '}
-                        {r.toAdd.slice(0, 3).map((s, i) => (
-                          <span key={s}>
-                            {i > 0 && ', '}
-                            <Link href={`/skills/${slugOf(s)}`} className="text-brand underline underline-offset-4" onClick={() => posthog.capture('search_strategy_skill_opened', { skill: slugOf(s), scope: r.role, list: 'bridge' })}>
-                              {s}
-                            </Link>
-                          </span>
-                        ))}
-                        .
+                        To add: {joinList(r.toAdd.slice(0, 3).map(inSentence))}.
                       </>
                     ) : (
                       'Nothing big to add.'
