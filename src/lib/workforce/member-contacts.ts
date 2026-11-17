@@ -1,6 +1,8 @@
 // People at a member company, each with the part of the company's view they work in (owner, 2026-11-17): HIRING sees
 // shared profiles, intros and the jobs it posts; OUTPLACEMENT sees layoff seats and how its people are doing; LEARNING
-// asks for training; GRANTS sees the org's applications that name the company and offers support. The
+// asks for training; GRANTS sees the org's applications that name the company and offers support; WORKFORCE offers
+// apprenticeships, on-the-job training and the like to the workforce system; COLLEGES offers internships, projects and
+// advisory seats to colleges. The
 // company's main connected login (member-access.ts) keeps the whole view. The org invites contacts from Talent Hub >
 // Member companies; each gets a one-time sign-in link to /i/<slug>/member/<token>, the same page as the main invite.
 

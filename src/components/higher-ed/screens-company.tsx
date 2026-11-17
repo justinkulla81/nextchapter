@@ -9,12 +9,14 @@ import { small } from '@/lib/workforce/hub'
 import { employerCan } from '@/lib/higher-ed/workspaces'
 import { EmptyState } from '@/components/ui/empty-state'
 import { StatTile } from './StatTile'
-import { GrantOfferForm, HiringStatus, SeatRequestForm, TrainingRequestForm } from './CompanyForms'
+import { CollaborationForm, GrantOfferForm, HiringStatus, SeatRequestForm, TrainingRequestForm } from './CompanyForms'
+import { nearbyColleges } from '@/lib/workforce/colleges-near'
+import { commitmentLabel, ecoStatusLabel } from '@/lib/workforce/ecosystem'
 import { prisma } from '@/lib/prisma'
 import { readLocal } from '@/lib/workforce/local'
 import { marketJobs } from '@/lib/workforce/market-jobs'
 import { applicationsNaming, companyRequests } from '@/lib/workforce/company-requests'
-import { GRANT_OFFER_LABELS, REQUEST_STATUS_LABELS, type GrantOffer } from '@/lib/workforce/contact-roles'
+import { GRANT_OFFER_LABELS, REQUEST_STATUS_LABELS, offerLabel, type GrantOffer } from '@/lib/workforce/contact-roles'
 
 type Props = { ctx: WorkspaceContext }
 
@@ -34,10 +36,14 @@ export async function CompanyOverview({ ctx }: Props) {
   const hiring = employerCan(ctx.tokens, 'hiring')
   const learning = employerCan(ctx.tokens, 'learning')
   const grants = employerCan(ctx.tokens, 'grants')
-  const [o, training, apps] = await Promise.all([
+  const workforce = employerCan(ctx.tokens, 'workforce')
+  const colleges = employerCan(ctx.tokens, 'colleges')
+  const [o, training, apps, wfOffers, collegeOffers] = await Promise.all([
     outplacement ? companyOverview(ctx.institution.id, c.id) : null,
     learning ? companyRequests(ctx.institution.id, c.id, 'TRAINING') : null,
     grants ? applicationsNaming(ctx.institution.id, c.name) : null,
+    workforce ? companyRequests(ctx.institution.id, c.id, 'WORKFORCE_COLLAB') : null,
+    colleges ? companyRequests(ctx.institution.id, c.id, 'COLLEGE_COLLAB') : null,
   ])
   return (
     <div className="space-y-6">
@@ -71,7 +77,7 @@ export async function CompanyOverview({ ctx }: Props) {
         <HiringStatus slug={slug} hiring={c.hiring} readOnly={ctx.readOnly} />
       </section>
       )}
-      {(training || apps) && (
+      {(training || apps || wfOffers || collegeOffers) && (
         <ul className="divide-y divide-border rounded-lg border border-border text-sm">
           {training && (
             <li className="flex flex-wrap items-center justify-between gap-3 p-3">
@@ -98,6 +104,26 @@ export async function CompanyOverview({ ctx }: Props) {
                 Open grants
               </Link>
             </li>
+          )}
+          {(
+            [
+              [wfOffers, 'Workforce partnerships', 'workforce'],
+              [collegeOffers, 'College partnerships', 'colleges'],
+            ] as const
+          ).map(([rows, label, tab]) =>
+            rows ? (
+              <li key={tab} className="flex flex-wrap items-center justify-between gap-3 p-3">
+                <span>
+                  <span className="font-medium">{label}</span>
+                  <span className="block text-muted-foreground">
+                    {rows.length === 0 ? 'No offers yet.' : `${rows.filter((r) => r.status === 'REQUESTED').length} waiting for an answer, ${rows.filter((r) => r.status === 'ACCEPTED').length} accepted.`}
+                  </span>
+                </span>
+                <Link href={`/i/${slug}/employer/${tab}`} className="text-sm font-medium text-primary hover:underline">
+                  {rows.length === 0 ? 'Make an offer' : 'Open'}
+                </Link>
+              </li>
+            ) : null,
           )}
         </ul>
       )}
@@ -304,6 +330,134 @@ export async function CompanyGrants({ ctx }: Props) {
           </ul>
         )}
       </section>
+    </div>
+  )
+}
+
+function OfferList({ rows, empty }: { rows: Awaited<ReturnType<typeof companyRequests>>; empty: string }) {
+  if (rows.length === 0) return <p className="text-sm text-muted-foreground">{empty}</p>
+  return (
+    <ul className="divide-y divide-border rounded-lg border border-border text-sm">
+      {rows.map((r) => (
+        <li key={r.id} className="space-y-0.5 p-3">
+          <p className="font-medium">
+            {r.offers.map(offerLabel).join(', ')}
+            {r.people ? ` · ${r.people.toLocaleString()} spots` : ''}
+          </p>
+          <p>{r.topic}</p>
+          <Answer r={r} />
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+type WorkforceProfile = { workforce?: { board?: { name?: string; website?: string | null }; careerLinks?: { name: string; address?: string | null; phone?: string | null }[] } }
+
+// Workforce development: what the company offers the public workforce system, and who that system is here.
+export async function CompanyWorkforce({ ctx }: Props) {
+  const c = await memberCompanyFor(ctx)
+  if (!c) return <NotConnected ctx={ctx} />
+  const [offers, inst, eco] = await Promise.all([
+    companyRequests(ctx.institution.id, c.id, 'WORKFORCE_COLLAB'),
+    prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { profile: true } }),
+    prisma.ecosystemPartner.findFirst({ where: { institutionId: ctx.institution.id, source: 'MEMBER_COMPANY', refId: c.id }, select: { status: true, commitments: true } }),
+  ])
+  const wf = (inst.profile as WorkforceProfile | null)?.workforce
+  const centers = wf?.careerLinks?.slice(0, 6) ?? []
+  return (
+    <div className="space-y-6">
+      {!ctx.readOnly && (
+        <section aria-labelledby="offer-workforce" className="space-y-3 rounded-lg border border-border bg-card p-4">
+          <h2 id="offer-workforce" className="text-base font-semibold">
+            Work with the workforce system
+          </h2>
+          <p className="max-w-2xl text-sm text-muted-foreground">
+            Apprenticeships, on-the-job training and work experience bring you trained local people, often with part of the cost covered. Tell {ctx.institution.name} what you would do; it
+            connects you with the board and job centers and answers here.
+          </p>
+          <CollaborationForm slug={ctx.institution.slug} kind="WORKFORCE_COLLAB" />
+        </section>
+      )}
+      <section aria-labelledby="your-workforce" className="space-y-2">
+        <h2 id="your-workforce" className="text-base font-semibold">
+          Your offers
+        </h2>
+        {eco && (
+          <p className="text-sm text-muted-foreground">
+            In {ctx.institution.name}&apos;s talent network: {ecoStatusLabel(eco.status).toLowerCase()}
+            {eco.commitments.length ? ` · ${eco.commitments.map(commitmentLabel).join(', ').toLowerCase()}` : ''}.
+          </p>
+        )}
+        <OfferList rows={offers} empty="None yet." />
+      </section>
+      {(wf?.board?.name || centers.length > 0) && (
+        <section aria-labelledby="system-here" className="space-y-2">
+          <h2 id="system-here" className="text-base font-semibold">
+            The workforce system here
+          </h2>
+          <ul className="grid gap-2 text-sm sm:grid-cols-2">
+            {wf?.board?.name && (
+              <li className="rounded-md border border-border px-3 py-2">
+                <span className="font-medium">{wf.board.name}</span>
+                <span className="block text-muted-foreground">Workforce board{wf.board.website ? ` · ${wf.board.website.replace(/^https?:\/\//, '')}` : ''}</span>
+              </li>
+            )}
+            {centers.map((j) => (
+              <li key={j.name} className="rounded-md border border-border px-3 py-2">
+                <span className="font-medium">{j.name}</span>
+                <span className="block text-muted-foreground">{[j.address, j.phone].filter(Boolean).join(' · ') || 'Job center'}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </div>
+  )
+}
+
+// College partnerships: what the company offers colleges near the region (internships, projects, advisory seats).
+export async function CompanyColleges({ ctx }: Props) {
+  const c = await memberCompanyFor(ctx)
+  if (!c) return <NotConnected ctx={ctx} />
+  const [offers, colleges] = await Promise.all([companyRequests(ctx.institution.id, c.id, 'COLLEGE_COLLAB'), nearbyColleges(ctx.institution.id).catch(() => [])])
+  return (
+    <div className="space-y-6">
+      {!ctx.readOnly && (
+        <section aria-labelledby="offer-colleges" className="space-y-3 rounded-lg border border-border bg-card p-4">
+          <h2 id="offer-colleges" className="text-base font-semibold">
+            Work with colleges near you
+          </h2>
+          <p className="max-w-2xl text-sm text-muted-foreground">
+            Internships, student projects and advisory seats shape what local graduates can do on day one. Tell {ctx.institution.name} what you would offer; it brings in the
+            college and answers here.
+          </p>
+          <CollaborationForm slug={ctx.institution.slug} kind="COLLEGE_COLLAB" places={colleges.map((x) => x.name)} />
+        </section>
+      )}
+      <section aria-labelledby="your-colleges" className="space-y-2">
+        <h2 id="your-colleges" className="text-base font-semibold">
+          Your offers
+        </h2>
+        <OfferList rows={offers} empty="None yet." />
+      </section>
+      {colleges.length > 0 && (
+        <section aria-labelledby="colleges-here" className="space-y-2">
+          <h2 id="colleges-here" className="text-base font-semibold">
+            Colleges near you
+          </h2>
+          <ul className="grid gap-2 text-sm sm:grid-cols-2">
+            {colleges.map((x) => (
+              <li key={x.unitid} className="rounded-md border border-border px-3 py-2">
+                <span className="font-medium">{x.name}</span>
+                <span className="block text-muted-foreground">
+                  {[x.city, x.enrollment ? `${x.enrollment.toLocaleString()} students` : null].filter(Boolean).join(' · ')}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   )
 }

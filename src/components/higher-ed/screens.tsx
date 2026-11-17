@@ -16,7 +16,7 @@ import { HubSkillsGaps, HubTalent } from './screens-hub-skills'
 import { HubEmployerJobs, HubGroupJobs, HubRegionJobs } from './screens-hub-jobs'
 import { HubPartnerViews } from './screens-hub-partners'
 import { HubEcosystem } from './screens-hub-ecosystem'
-import { CompanyOverview, CompanySupport, CompanyGrants, CompanyTraining } from './screens-company'
+import { CompanyOverview, CompanySupport, CompanyGrants, CompanyTraining, CompanyColleges, CompanyWorkforce } from './screens-company'
 import { readComms } from '@/lib/census/comms-settings'
 import { CommsToggles, OrgKeysPanel } from '@/components/census/OrgKeysPanel'
 import { makeCollegeKey, saveCollegeComms, turnOffCollegeKey } from '@/app/i/[slug]/(portal)/census-actions'
@@ -1787,4 +1787,6 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'employer:support': CompanySupport,
   'employer:training': CompanyTraining,
   'employer:grants': CompanyGrants,
+  'employer:workforce': CompanyWorkforce,
+  'employer:colleges': CompanyColleges,
 }

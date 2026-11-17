@@ -6,8 +6,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
-import { offerGrantSupportAction, requestSeatsAction, requestTrainingAction, setOwnHiring } from '@/app/i/[slug]/(portal)/company-actions'
-import { GRANT_OFFERS, GRANT_OFFER_LABELS } from '@/lib/workforce/contact-roles'
+import { offerCollaborationAction, offerGrantSupportAction, requestSeatsAction, requestTrainingAction, setOwnHiring } from '@/app/i/[slug]/(portal)/company-actions'
+import { COLLEGE_OFFERS, COLLEGE_OFFER_LABELS, GRANT_OFFERS, GRANT_OFFER_LABELS, WORKFORCE_OFFERS, WORKFORCE_OFFER_LABELS } from '@/lib/workforce/contact-roles'
 
 type R = { error?: string; ok?: boolean; message?: string } | undefined
 
@@ -165,6 +165,74 @@ export function GrantOfferForm({ slug, applicationId, applicationName }: { slug:
           Offer support
         </SubmitButton>
         {!offers.length && <span className="text-xs text-muted-foreground">Pick at least one thing you can offer.</span>}
+        <Result state={state} />
+      </div>
+    </form>
+  )
+}
+
+// Workforce development or college partnerships: what the company would do (toggle buttons, any number), with whom,
+// how many spots. `places` are the colleges near the region (college partnerships) and pick the topic.
+export function CollaborationForm({ slug, kind, places = [] }: { slug: string; kind: 'WORKFORCE_COLLAB' | 'COLLEGE_COLLAB'; places?: string[] }) {
+  const [state, action] = useActionState<R, FormData>(offerCollaborationAction.bind(null, slug, kind), undefined)
+  const college = kind === 'COLLEGE_COLLAB'
+  const keys: readonly string[] = college ? COLLEGE_OFFERS : WORKFORCE_OFFERS
+  const labels: Record<string, string> = college ? COLLEGE_OFFER_LABELS : WORKFORCE_OFFER_LABELS
+  const [offers, setOffers] = useState<string[]>([keys[0]])
+  const toggle = (o: string) => setOffers((cur) => (cur.includes(o) ? cur.filter((x) => x !== o) : [...cur, o]))
+  const id = college ? 'cc' : 'wc'
+  return (
+    <form action={action} className="grid gap-3 sm:grid-cols-3">
+      <fieldset className="space-y-1.5 sm:col-span-3">
+        <legend className="text-sm font-medium">What your company would do</legend>
+        <div className="flex flex-wrap gap-2">
+          {keys.map((o) => {
+            const on = offers.includes(o)
+            return (
+              <button
+                key={o}
+                type="button"
+                aria-pressed={on}
+                onClick={() => toggle(o)}
+                className={cn('rounded-md border px-3 py-1.5 text-sm transition-colors', on ? 'border-[color:var(--portal,var(--ink))] bg-[var(--portal-tint,var(--muted))] font-medium' : 'border-border hover:bg-muted')}
+              >
+                {labels[o]}
+              </button>
+            )
+          })}
+        </div>
+        {offers.map((o) => (
+          <input key={o} type="hidden" name="offers" value={o} />
+        ))}
+      </fieldset>
+      <div className="space-y-1.5 sm:col-span-2">
+        <Label htmlFor={`${id}-topic`}>{college ? 'Which college' : 'Roles or team (optional)'}</Label>
+        {college ? (
+          <select id={`${id}-topic`} name="topic" className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm" defaultValue="">
+            <option value="">Any college near us</option>
+            {places.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <Input id={`${id}-topic`} name="topic" maxLength={160} placeholder="Machinists, customer service, IT support" />
+        )}
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor={`${id}-people`}>{college ? 'Students or spots (optional)' : 'People or spots (optional)'}</Label>
+        <Input id={`${id}-people`} name="people" type="number" min={1} max={5000} />
+      </div>
+      <div className="space-y-1.5 sm:col-span-3">
+        <Label htmlFor={`${id}-note`}>Anything else (optional)</Label>
+        <Input id={`${id}-note`} name="note" maxLength={1000} placeholder={college ? 'Timing, paid or unpaid, a contact at the college' : 'Timing, pay, shifts, where'} />
+      </div>
+      <div className="flex flex-wrap items-center gap-3 sm:col-span-3">
+        <SubmitButton pendingLabel="Sending…" disabled={!offers.length}>
+          Send to the organization
+        </SubmitButton>
+        {!offers.length && <span className="text-xs text-muted-foreground">Pick at least one thing your company would do.</span>}
         <Result state={state} />
       </div>
     </form>
