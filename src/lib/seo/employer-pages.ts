@@ -1,7 +1,8 @@
 import 'server-only'
 import { cache } from 'react'
 import { prisma } from '@/lib/prisma'
-import { orgSlug } from '@/lib/crm/org-slug'
+import { claimSlug } from '@/lib/org-claims/urls'
+import { uniqueClaimSlugs } from '@/lib/org-claims/org'
 import { summarizePay, type PayGroup } from '@/lib/companies/pay-ranges'
 import { PUBLIC_JOB_LIST_SELECT, getConfirmedGhostIdsForPage, withDescriptionStubs } from '@/lib/seo/employer-jobs'
 import { isPublicJob } from '@/lib/jobs/public-job-page'
@@ -145,6 +146,7 @@ export const getEmployerBySlug = cache(async (slug: string): Promise<EmployerPag
   ])
   const openNow = p?.openNow ?? 0
   const crm = company.crmOrganizations[0]
+  const crmClaimSlug = crm ? claimSlug(crm.canonicalNameNormalized) : null
   return {
     id: company.id,
     slug,
@@ -164,7 +166,9 @@ export const getEmployerBySlug = cache(async (slug: string): Promise<EmployerPag
       : null,
     jobs,
     pay,
-    claimSlug: crm ? orgSlug(crm.canonicalNameNormalized) : null,
+    // The claim link goes only to an address that resolves to exactly one organization (as on college pages), so it never
+    // lands on a 404 or the wrong record.
+    claimSlug: crmClaimSlug && (await uniqueClaimSlugs([crmClaimSlug])).has(crmClaimSlug) ? crmClaimSlug : null,
     indexable: isEmployerIndexable(p, company.industry ?? p?.industry ?? null, { layoffNotice: hasLayoffNotice, secEvent: secEvents > 0, hqConfirmed: hq?.confidence === 'high', higherEd: isHigherEdName(company.name) }),
   }
 })

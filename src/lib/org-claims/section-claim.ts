@@ -14,8 +14,9 @@ import { sendSectionClaimRequestEmail } from '@/lib/email/send-org-claim-email'
 //  - A claim with no known organization domain (needsReview) creates nothing; the team reviews it first.
 //  - Outplacement and Employees are sales-led: the claim creates the workspace record (PENDING) and the team's lead. It
 //    never creates seats, contracts or a login, and a PENDING workspace gives its admin no access until the team activates it.
-//  - Hiring: the workspace stays PENDING with the claimant's email as inviteEmail. When that person signs up at
-//    /talent/signup with that email, claimHiringWorkspace (unchanged) activates it.
+//  - Hiring: the workspace stays PENDING until NextChapter approves the claim (owner decision 2026-11-17). Approval
+//    (approval.ts) sets the claimant's email as inviteEmail and emails them; when that person signs up at /talent/signup
+//    or opens the Hiring portal with that email, claimHiringWorkspace (unchanged) activates it as their free workspace.
 //
 // Nothing here changes any sign-in. It never throws to the caller's claim: onClaimVerified wraps it.
 
@@ -91,7 +92,7 @@ export async function applySectionClaim(input: SectionClaimInput): Promise<Secti
   if (!workspace) {
     try {
       workspace = await prisma.orgWorkspace.create({
-        data: { orgId: org.id, type, status: WORKSPACE_STATUS_FOR_NEW, ...(section === 'hiring' ? { inviteEmail: email } : {}) },
+        data: { orgId: org.id, type, status: WORKSPACE_STATUS_FOR_NEW },
         select: { id: true, refId: true, inviteEmail: true, status: true, admins: { select: { email: true, role: true } } },
       })
     } catch {
@@ -116,9 +117,6 @@ export async function applySectionClaim(input: SectionClaimInput): Promise<Secti
       } catch {
         /* a repeat of the same claim won the race: the row exists */
       }
-    }
-    if (section === 'hiring' && !workspace.inviteEmail && workspace.status === 'PENDING') {
-      await prisma.orgWorkspace.update({ where: { id: workspace.id }, data: { inviteEmail: email } })
     }
     captureServerEvent(distinctId, 'employer_section_claim_verified', { ...props, outcome: 'admin' })
     return result('admin')

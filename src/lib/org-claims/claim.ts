@@ -136,7 +136,9 @@ export async function onClaimVerified(claim: VerifiedClaim): Promise<{ provision
       console.error('applySectionClaim failed for claim', claim.id, e)
     }
   }
-  const awaitingApproval = hasFreeWorkspace(claim.orgTypes)
+  // A whole-page claim for a type with a free workspace, or an employer's section claim the claimant holds (or that waits
+  // for review), waits for the owner (approval.ts).
+  const awaitingApproval = claim.section ? sectionResult?.outcome === 'admin' || sectionResult?.outcome === 'review' : hasFreeWorkspace(claim.orgTypes)
   await sendOrgClaimAdminEmail({
     orgName: claim.orgName, name: claim.name, title: claim.title, email: claim.email, needsReview: claim.needsReview, pageUrl,
     ...(awaitingApproval ? { approveUrl: urlForAppPath('/support/admin/organizations/claims') } : {}),

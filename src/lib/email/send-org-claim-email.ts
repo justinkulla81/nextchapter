@@ -45,6 +45,17 @@ export function sendSectionClaimRequestEmail(p: { to: string; orgName: string; s
   )
 }
 
+/** To an employer's claimant once NextChapter approves the claim: how to open the free Hiring workspace. */
+export function sendHiringClaimApprovedEmail(p: { to: string; name: string; orgName: string; signupUrl: string; loginUrl: string }): Promise<boolean> {
+  return send(
+    'organization', p.to, `Your ${p.orgName} hiring workspace on NextChapter is ready`,
+    shell(
+      `<p>Hi ${esc(p.name)},</p><p>We approved your claim. ${esc(p.orgName)} now has a free hiring workspace on NextChapter, with you as its administrator: post roles, see candidates who match them, and invite your team.</p><p><a href="${esc(p.signupUrl)}" style="display:inline-block;margin-top:8px;padding:12px 20px;background:#2e7d5b;color:#ffffff;border-radius:999px;text-decoration:none;font-weight:600">Set up my account</a></p><p style="color:#485872;font-size:13px">Use this email address (${esc(p.to)}). Already have a NextChapter hiring account with it? <a href="${esc(p.loginUrl)}">Log in</a> and the workspace joins it.</p>`,
+    ),
+    'hiring claim approved',
+  )
+}
+
 /** To the team when a claim is verified. */
 export function sendOrgClaimAdminEmail(p: { orgName: string; name: string; title: string; email: string; needsReview: boolean; pageUrl: string; approveUrl?: string; section?: { label: string; outcome: string } }): Promise<boolean> {
   return send(

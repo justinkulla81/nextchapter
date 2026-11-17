@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { claimHiringWorkspace } from '@/lib/organizations/service'
 import { Suspense } from 'react'
 import { PortalActivityTracker } from '@/components/portal/PortalActivityTracker'
 import { TalentNav } from '@/components/talent/TalentNav'
@@ -18,10 +19,13 @@ export const metadata: Metadata = {
 // boundary: the nav and {children} paint without waiting on it.
 // getTalentDashboardData() has already run in the layout before this renders.
 // Decoration only: any failure leaves the nav exactly as it was.
-async function talentSwitcherLinks(): Promise<SwitcherLink[]> {
+async function talentSwitcherLinks(employerId: string): Promise<SwitcherLink[]> {
   try {
     const supabase = await createClient('talent')
     const { data: { user } } = await supabase.auth.getUser()
+    // An approved company claim for this email joins the account to its free Hiring workspace (approval.ts). One small
+    // indexed read; nothing happens when there is no pending invite.
+    if (user?.email) await claimHiringWorkspace(employerId, user.email).catch(() => false)
     return user ? await employerSwitcherLinks(user.id, user.email ?? null) : []
   } catch {
     return []
@@ -29,7 +33,7 @@ async function talentSwitcherLinks(): Promise<SwitcherLink[]> {
 }
 
 async function TalentNavWithBadges({ employerId, brand }: { employerId: string; brand: PartnerBrand }) {
-  const [messagesUnreadCount, sections] = await Promise.all([getEmployerUnreadCount(employerId), talentSwitcherLinks()])
+  const [messagesUnreadCount, sections] = await Promise.all([getEmployerUnreadCount(employerId), talentSwitcherLinks(employerId)])
   return <TalentNav messagesUnreadCount={messagesUnreadCount} brand={brand} sections={sections} />
 }
 
