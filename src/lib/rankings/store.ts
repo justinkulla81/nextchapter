@@ -29,6 +29,8 @@ export const isEdition = (s: string) => /^\d{4}-(0[1-9]|1[0-2])$/.test(s)
 export const readPlaceRanksRaw = async (): Promise<PlaceRanks> => (await readBoardFigure<PlaceRanks>('ranking-places')) ?? {}
 export const writePlaceRanks = (ranks: PlaceRanks) => writeBoardFigure('ranking-places', ranks)
 const loadPlaceRanks = memoTtl(10 * 60_000, () => 'all', async (): Promise<PlaceRanks> => (await readBoardFigure<PlaceRanks>('ranking-places')) ?? {})
+/** Every place's top-25 placings (the shared ten-minute copy). Empty when the row is missing or a read fails. */
+export const getAllPlaceRanks = (): Promise<PlaceRanks> => loadPlaceRanks().catch(() => ({} as PlaceRanks))
 /** The lists a city (key "ST|placekey") or a county (FIPS) is in the top 25 of, best rank first. */
 export async function getPlaceRanks(key: string): Promise<import('@/lib/rankings/types').PlaceRank[]> {
   return ((await loadPlaceRanks().catch(() => ({} as PlaceRanks)))[key] ?? []).slice(0, 6)
