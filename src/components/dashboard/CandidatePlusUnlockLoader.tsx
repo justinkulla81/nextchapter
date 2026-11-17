@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { computeMatchState } from '@/lib/personalization/match-compute'
 import { recommendFirmsForCandidate } from '@/lib/search-firms/recommend-data'
 import { CandidatePlusUnlockMoment, type UnlockNumbers } from '@/components/dashboard/CandidatePlusUnlockMoment'
+import { RESUME_NOT_REJECTED } from '@/lib/resume/not-rejected'
 
 /** Only unlocks this recent get the screen (members who earned Candidate+ long before it existed don't). */
 const FRESH_UNLOCK_DAYS = 14
@@ -19,7 +20,7 @@ async function unlockNumbers(profileId: string): Promise<UnlockNumbers | null> {
   const [state, firms, resumes] = await Promise.all([
     computeMatchState(profile, { live: true }).catch(() => null),
     recommendFirmsForCandidate(profileId, 500).catch(() => []),
-    prisma.resume.count({ where: { candidateId: profileId, looksLikeResume: { not: false } } }).catch(() => 0),
+    prisma.resume.count({ where: { candidateId: profileId, ...RESUME_NOT_REJECTED } }).catch(() => 0),
   ])
   return {
     matches: state?.counts.matches ?? 0,

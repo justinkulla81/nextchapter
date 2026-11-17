@@ -24,6 +24,7 @@ import { ResumeParseProgress } from '@/components/onboarding/bundles/ResumeParse
 import { ResumeParseProblem } from '@/components/onboarding/bundles/ResumeParseProblem'
 import { readParseState } from '@/lib/resume/parse-state'
 import { parseView } from '@/lib/resume/parse-view'
+import { RESUME_NOT_REJECTED } from '@/lib/resume/not-rejected'
 
 export default async function OnboardingResumePage() {
   const user = await getCurrentUser()
@@ -94,7 +95,7 @@ export default async function OnboardingResumePage() {
     // same as uploadResume's own check.
     if (
       profile.resumeStepComplete ||
-      (await prisma.resume.count({ where: { candidateId: profile.id, looksLikeResume: { not: false } } })) > 0
+      (await prisma.resume.count({ where: { candidateId: profile.id, ...RESUME_NOT_REJECTED } })) > 0
     ) {
       if (profile.email) {
         const existingAccount = await checkAndDeleteDuplicateProfile(profile.id, profile.email)

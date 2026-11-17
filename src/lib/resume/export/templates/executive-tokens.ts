@@ -16,19 +16,19 @@ export const executiveTokens: ResumeTemplateStyleTokens = {
   nameSizePt: 18,
   targetTitleSizePt: 11,
   headingSizePt: 11.5,
-  bodySizePt: 10,
+  bodySizePt: 9.5,
   contactSizePt: 9.5,
 
   headingCase: 'uppercase',
   headingBold: true,
   headingUsesAccent: false,
 
-  marginInches: 0.7,
+  marginInches: 0.6,
 
   layout: 'stacked',
   headerAlign: 'center',
   headingRule: true,
 
   spaceAfterHeadingPt: 4,
-  spaceAfterParagraphPt: 6,
+  spaceAfterParagraphPt: 5,
 }

@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { candidateFromAuthHeader } from '@/lib/apply-helper/token'
+import { RESUME_NOT_REJECTED } from '@/lib/resume/not-rejected'
 
 const TYPES: Record<string, string> = {
   pdf: 'application/pdf',
@@ -13,7 +14,7 @@ export async function GET(req: NextRequest) {
   const candidateId = candidateFromAuthHeader(req.headers.get('authorization'))
   if (!candidateId) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
   const resume = await prisma.resume.findFirst({
-    where: { candidateId, looksLikeResume: { not: false } },
+    where: { candidateId, ...RESUME_NOT_REJECTED },
     orderBy: { uploadedAt: 'desc' },
     select: { filePath: true, fileName: true, fileType: true },
   })

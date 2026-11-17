@@ -9,6 +9,7 @@ import { ExpressInterestButton } from '@/components/search-firms/ExpressInterest
 import { ShareWithFirmButton } from '@/components/dashboard/ShareWithFirmButton'
 import { recommendedFirms } from '@/lib/recruiter-interest/server'
 import { getFirmBriefs } from '@/lib/seo/search-firm-pages'
+import { RESUME_NOT_REJECTED } from '@/lib/resume/not-rejected'
 
 export const metadata: Metadata = { title: 'Your recruiter package' }
 
@@ -23,7 +24,7 @@ export default async function RecruiterPackagePage() {
       orderBy: { createdAt: 'desc' },
       select: { id: true, status: true, firmOrgId: true },
     }),
-    prisma.resume.count({ where: { candidateId: profile.id, looksLikeResume: { not: false } } }),
+    prisma.resume.count({ where: { candidateId: profile.id, ...RESUME_NOT_REJECTED } }),
   ])
   const briefs = await getFirmBriefs(interests.map((i) => i.firmOrgId))
   const recs = resumeCount > 0 ? await recommendedFirms(profile.id, 5).catch(() => []) : []

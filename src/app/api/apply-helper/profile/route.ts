@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { candidateFromAuthHeader } from '@/lib/apply-helper/token'
+import { RESUME_NOT_REJECTED } from '@/lib/resume/not-rejected'
 
 export async function GET(req: NextRequest) {
   const candidateId = candidateFromAuthHeader(req.headers.get('authorization'))
@@ -13,7 +14,7 @@ export async function GET(req: NextRequest) {
   if (!p) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
   const [work, resume] = await Promise.all([
     prisma.workHistoryEntry.findFirst({ where: { candidateId }, orderBy: [{ isCurrent: 'desc' }, { startDate: 'desc' }], select: { companyName: true, roleTitle: true } }),
-    prisma.resume.findFirst({ where: { candidateId, looksLikeResume: { not: false } }, orderBy: { uploadedAt: 'desc' }, select: { id: true } }),
+    prisma.resume.findFirst({ where: { candidateId, ...RESUME_NOT_REJECTED }, orderBy: { uploadedAt: 'desc' }, select: { id: true } }),
   ])
   let email = p.email
   if (!email) {
