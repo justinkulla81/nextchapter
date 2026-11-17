@@ -77,6 +77,22 @@ export function leadEmailContent(variant: LeadVariant, step: LeadStep, c: LeadEm
     }
   }
 
+  // A job alert's welcome shows three jobs the search finds now, then the one ask: alerts that match on them, not their words.
+  if (variant === 'job_alert' && step === 'welcome' && (c.jobs?.length ?? 0) >= 3) {
+    return {
+      ...base,
+      headline: 'Three jobs open now',
+      paragraphs: [
+        hello(c),
+        c.detail ? `Your alert for ${c.detail} is on. These match it today:` : 'Your job alert is on. These match it today:',
+      ],
+      jobs: c.jobs!.slice(0, 3),
+      benefits: [],
+      ctaLabel: 'Create my free profile',
+      afterJobs: 'Right now your alert matches the words you searched. Make a free profile and it matches you: your experience and level, ranked by how well you fit. No résumé needed to start.',
+    }
+  }
+
   if (persona && step === 'nudge1' && !followUp) {
     const plan = planFor(persona.slug)
     return {

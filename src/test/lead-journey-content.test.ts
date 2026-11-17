@@ -73,4 +73,13 @@ describe('lifecycle email journey question', () => {
     expect(c.paragraphs[1]).toBe('You saved PM at Acme. These are open now and look like it:')
     expect(c.choices).toBeUndefined()
   })
+
+  it('leads the job-alert welcome with three jobs the search finds now', () => {
+    const jobs = [1, 2, 3].map((i) => ({ title: `Job ${i}`, company: `Co ${i}`, place: 'Denver, CO', url: `https://x.test/j${i}` }))
+    const c = leadEmailContent('job_alert', 'welcome', { firstName: null, detail: 'product manager in Denver', choices: [], jobs })
+    expect(c.headline).toBe('Three jobs open now')
+    expect(c.paragraphs[1]).toBe('Your alert for product manager in Denver is on. These match it today:')
+    expect(c.choices).toBeUndefined()
+    expect(c.ctaLabel).toBe('Create my free profile')
+  })
 })

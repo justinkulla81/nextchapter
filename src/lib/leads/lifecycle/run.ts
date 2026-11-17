@@ -27,6 +27,8 @@ interface Lead {
   journey?: string | null
   /** The job saved or applied for (a saved or applied job). */
   jobId?: string | null
+  /** The saved search (a job alert). */
+  search?: { q: string; loc: string; remote: boolean } | null
 }
 
 const clean = (email: string) => email.trim().toLowerCase()
@@ -41,7 +43,7 @@ async function gatherLeads(now: Date): Promise<{ leads: Lead[]; unsubscribed: Se
     // An alert counts from the click that confirmed it: before that they have not said yes.
     prisma.homepageLead.findMany({
       where: { kind: 'job_alert', confirmedAt: { gte: since }, unsubscribedAt: null },
-      select: { email: true, searchQ: true, searchLoc: true, confirmedAt: true, journeySlug: true },
+      select: { email: true, searchQ: true, searchLoc: true, searchRemote: true, confirmedAt: true, journeySlug: true },
     }),
     prisma.newsletterSubscriber.findMany({ where: { createdAt: { gte: since }, unsubscribedAt: null }, select: { email: true, createdAt: true } }),
     prisma.waitlistSignup.findMany({ where: { createdAt: { gte: since } }, select: { audience: true, payload: true, createdAt: true } }),
@@ -61,7 +63,8 @@ async function gatherLeads(now: Date): Promise<{ leads: Lead[]; unsubscribed: Se
   for (const a of alerts) {
     if (!a.confirmedAt) continue
     const detail = [a.searchQ, a.searchLoc && `in ${a.searchLoc}`].filter(Boolean).join(' ') || null
-    leads.push({ email: clean(a.email), name: null, variant: 'job_alert', channel: 'Job alert', detail, capturedAt: a.confirmedAt, welcomeSentAt: null, journey: a.journeySlug || null })
+    const search = { q: a.searchQ ?? '', loc: a.searchLoc ?? '', remote: !!a.searchRemote }
+    leads.push({ email: clean(a.email), name: null, variant: 'job_alert', channel: 'Job alert', detail, capturedAt: a.confirmedAt, welcomeSentAt: null, journey: a.journeySlug || null, search })
   }
   for (const n of newsletter) {
     leads.push({ email: clean(n.email), name: null, variant: 'newsletter', channel: 'Newsletter', detail: null, capturedAt: n.createdAt, welcomeSentAt: null })
@@ -202,6 +205,7 @@ export async function runLeadLifecycle(now = new Date()): Promise<LifecycleSumma
       step,
       context: { firstName: lead.name?.split(' ')[0] ?? null, detail: lead.detail, journey: picked.get(email) ?? lead.journey ?? null },
       jobId: lead.jobId ?? null,
+      search: lead.search ?? null,
       personId,
     })
     if (ok) summary.steps[step]++
