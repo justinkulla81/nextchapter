@@ -33,7 +33,7 @@ export function WidenStrategyFlow({ view, from = 'direct', preview = false }: { 
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const roleLabel = useMemo(() => new Map(view.roles.map((r) => [r.role, r.label])), [view.roles])
-  const summary = strategySummary(picks, { state: stateName, city: cityLabel, role: (r) => roleLabel.get(r) ?? r.replace(/_/g, ' ') })
+  const summary = strategySummary(picks, { state: stateName, city: cityLabel, role: (r) => inSentence(roleLabel.get(r) ?? r.replace(/_/g, ' ')) })
   const fn = view.fnLabel ?? 'your kind of work'
 
   const setList = (k: 'states' | 'cities' | 'industries' | 'roles', v: string, on: boolean) =>

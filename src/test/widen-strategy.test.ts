@@ -58,3 +58,14 @@ describe('inSentence', () => {
     expect(['Financial statements', 'ERP', 'FP&A', 'Excel', 'Close process'].map(inSentence)).toEqual(['financial statements', 'ERP', 'FP&A', 'Excel', 'close process'])
   })
 })
+
+describe('summary line reads as a sentence', () => {
+  it('a role label is lower-cased mid-sentence, acronyms kept', async () => {
+    const { inSentence, strategySummary } = await import('@/lib/jobs/widen-strategy')
+    const names = { state: (s: string) => s, city: (c: string) => c.replace(/,\s*[A-Z]{2}$/, '').replace(/\s+Metro$/, ''), role: (r: string) => inSentence(r) }
+    expect(strategySummary({ remote: false, states: [], cities: ['Chicago Metro'], industries: [], roles: ['Financial planning and analysis'] }, names)).toBe(
+      'Your search adds jobs in Chicago and financial planning and analysis roles.'
+    )
+    expect(inSentence('FP&A manager')).toBe('FP&A manager')
+  })
+})
