@@ -13,6 +13,7 @@ import { StatTile } from './StatTile'
 import { HiringToggle, LayoffOpenToggle, LayoffSeatsForm, LocalAreaForm, MemberAccess, MemberCompanyForm, SeatRequestAnswer } from './HubForms'
 import { BriefCard } from './BriefCard'
 import { nextReserveDeadline } from './screens-hub-program'
+import { ResponseFlow, loadFlowData } from './screens-hub-flow'
 
 type Props = { ctx: WorkspaceContext; searchParams: { q?: string; company?: string }; base: string }
 
@@ -22,6 +23,7 @@ function Th({ children }: { children: React.ReactNode }) {
   return <th className="px-3 py-2 text-left font-medium">{children}</th>
 }
 
+const periodDay = (d: Date | null) => (d ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(d)) : '')
 const periodLabel = (p: string) => {
   const m = /^(\d{4})-(\d{2})$/.exec(p)
   return m ? `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][Number(m[2]) - 1]} ${m[1]}` : p
@@ -87,13 +89,15 @@ export async function HubHome({ ctx, base }: Props) {
   const id = ctx.institution.id
   const now = new Date()
   const redZoneCutoff = new Date(now.getTime() - 26 * 7 * 86_400_000)
-  const [d, inst, notices, requests, redZone] = await Promise.all([
+  const [d, inst, notices, requests, redZone, dueFunding] = await Promise.all([
     hubDashboard(id),
     prisma.institution.findUniqueOrThrow({ where: { id }, select: { profile: true, enabledFeatures: true } }),
     regionNotices(id).catch(() => [] as Notice[]),
     seatRequests(id),
     // In the group for 26 weeks or more without landing. Counts only.
     prisma.institutionMember.count({ where: { institutionId: id, candidate: { journey: 'LAID_OFF', journeyStage: { not: 'LANDED' }, journeyChangedAt: { lte: redZoneCutoff } } } }),
+    // Funding still being considered or drafted with a deadline in the next three weeks.
+    prisma.fundingApplication.findMany({ where: { institutionId: id, status: { in: ['CONSIDERING', 'DRAFTING'] }, dueDate: { lte: new Date(now.getTime() + 21 * 86_400_000) } }, orderBy: { dueDate: 'asc' }, take: 3, select: { name: true, funder: true, status: true, dueDate: true } }).catch(() => []),
   ])
   const profile = inst.profile as { heroImageUrl?: string; tagline?: string; region?: { name?: string; unemployment?: { area: string; rate: number; period: string; laborForce?: number | null }[] } } | null
   const demo = (inst.enabledFeatures as { demo?: { preparedFor?: string | null } } | null)?.demo
@@ -105,7 +109,8 @@ export async function HubHome({ ctx, base }: Props) {
   if (unanswered > 0) needs.push({ label: `${unanswered} layoff${unanswered === 1 ? '' : 's'} filed in your region with no response yet`, detail: 'Real filings from the last 120 days.', href: `${base}/${isDemo ? 'rapid' : 'layoffs'}`, cta: 'Plan the response' })
   if (requests.length > 0) needs.push({ label: `${requests.length} seat request${requests.length === 1 ? '' : 's'} from member companies waiting`, detail: 'A company asked for free access for its people.', href: `${base}/layoffs`, cta: 'Answer the request' })
   if (redZone > 0) needs.push({ label: `${small(redZone)} people out of work 26 weeks or more`, detail: 'The longest searches, where outreach matters most.', href: `${base}/participants`, cta: 'See who' })
-  if (isDemo) needs.push({ label: `Governor’s Reserve Fund: next deadline ${nextReserveDeadline(now)}`, detail: 'Monthly, first Wednesday. Check fit and partners.', href: `${base}/funding`, cta: 'See funding' })
+  for (const f of dueFunding) needs.push({ label: `${f.name}: due ${periodDay(f.dueDate)}`, detail: `${f.status === 'DRAFTING' ? 'Drafting' : 'Considering'}${f.funder ? ` · ${f.funder}` : ''}`, href: `${base}/applications`, cta: 'Open application' })
+  if (isDemo && dueFunding.length === 0) needs.push({ label: `Governor’s Reserve Fund: next deadline ${nextReserveDeadline(now)}`, detail: 'Monthly, first Wednesday. Check fit and partners.', href: `${base}/funding`, cta: 'See funding' })
   const verbs = VERBS.filter((v) => (!v.demoOnly || isDemo) && (!v.from || ctx.workspaces.includes(v.from)))
   return (
     <div className="space-y-8">
@@ -270,6 +275,7 @@ export async function HubLayoffs({ ctx, searchParams }: Props) {
     seatRequests(ctx.institution.id),
   ])
   const seatsLeft = inst.includedSeats - (given._sum.seats ?? 0)
+  const flow = await loadFlowData(ctx.institution.id, rows.map((r) => r.id))
   return (
     <div className="space-y-6">
       {requests.length > 0 && (
@@ -312,7 +318,8 @@ export async function HubLayoffs({ ctx, searchParams }: Props) {
       ) : (
         <ul className="divide-y divide-border rounded-lg border border-border">
           {rows.map((r) => (
-            <li key={r.id} className="flex flex-wrap items-start justify-between gap-3 p-3 text-sm">
+            <li key={r.id} className="p-3 text-sm">
+              <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="space-y-0.5">
                 <p className="font-medium">{r.memberCompany?.name ?? r.employerName}</p>
                 <p className="text-muted-foreground">
@@ -324,6 +331,8 @@ export async function HubLayoffs({ ctx, searchParams }: Props) {
                 </Link>
               </div>
               {!ctx.readOnly && <LayoffOpenToggle slug={slug} id={r.id} isActive={r.isActive} />}
+              </div>
+              <ResponseFlow ctx={ctx} responseId={r.id} done={flow.done.get(r.id) ?? new Set()} funding={flow.funding} fundingId={r.fundingApplicationId} />
             </li>
           ))}
         </ul>

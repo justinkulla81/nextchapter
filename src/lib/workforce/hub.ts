@@ -128,6 +128,7 @@ export async function hubLayoffs(institutionId: string) {
       seats: true,
       isActive: true,
       createdAt: true,
+      fundingApplicationId: true,
       warnNotice: { select: { employer: true, employees: true, noticeDate: true } },
       memberCompany: { select: { id: true, name: true } },
       _count: { select: { participants: true } },

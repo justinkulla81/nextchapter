@@ -17,6 +17,7 @@ import { BENEFITS, DEMAND_SKILLS, FUNNEL, LANES, ORIGINS, RESPONSE_STEPS, rand01
 import { StatTile } from './StatTile'
 import { NEED_CATEGORIES, peopleCrm } from '@/lib/workforce/people-crm'
 import { PrintButton } from './PrintButton'
+import { ResponseFlow, loadFlowData } from './screens-hub-flow'
 import { stateSlug } from '@/lib/seo/states'
 import { FutureSkillsTool } from './FutureSkillsTool'
 
@@ -354,8 +355,7 @@ export async function HubRapid({ ctx }: Props) {
   const [notices, layoffs, companies] = await Promise.all([regionNotices(ctx.institution.id), hubLayoffs(ctx.institution.id), memberCompanies(ctx.institution.id)])
   const hiring = companies.filter((c) => c.hiring)
   const seed = ctx.institution.slug
-  const slug = ctx.institution.slug
-  const stepsDone = (started: boolean, active: boolean, k: number) => (started ? (active ? Math.min(4, 2 + (k % 3)) : 6) : 1)
+  const flow = await loadFlowData(ctx.institution.id, layoffs.map((l) => l.id))
   return (
     <div className="space-y-8">
       <p className="max-w-2xl text-sm text-muted-foreground">
@@ -429,35 +429,22 @@ export async function HubRapid({ ctx }: Props) {
         )}
       </Section>
 
-      <Section title="Responses with seats" intro="Where a member company’s people have free access." sample>
+      <Section title="Responses with seats" intro="Where a member company’s people have free access, and how far each response has got.">
         {layoffs.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">No layoffs with seats yet.</p>
         ) : (
           <ul className="space-y-2">
-            {layoffs.map((l, k) => {
-              const done = stepsDone(true, l.isActive, k + randInt(seed, `r${l.id}`, 0, 2))
-              return (
-                <li key={l.id} className="rounded-lg border border-border bg-card p-4">
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <p className="font-medium">{l.memberCompany?.name ?? l.employerName}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {l.seats?.toLocaleString() ?? 0} seats · {small(l._count.participants)} signed up · {day(l.createdAt)}
-                    </p>
-                  </div>
-                  <div className="mt-2 flex gap-1" role="img" aria-label={`${done} of 6 steps done`}>
-                    {RESPONSE_STEPS.map((s, i) => (
-                      <span key={s.key} title={s.label} className={`h-2 flex-1 rounded-full ${i < done ? 'bg-primary' : 'bg-muted'}`} />
-                    ))}
-                  </div>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {done >= 6 ? 'All six steps done.' : `Next: ${RESPONSE_STEPS[done].label.toLowerCase()}.`}{' '}
-                    <Link href={`/i/${slug}/hub/layoffs`} className="font-medium text-primary hover:underline">
-                      Open seats
-                    </Link>
+            {layoffs.map((l) => (
+              <li key={l.id} className="rounded-lg border border-border bg-card p-4">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <p className="font-medium">{l.memberCompany?.name ?? l.employerName}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {l.seats?.toLocaleString() ?? 0} seats · {small(l._count.participants)} signed up · {day(l.createdAt)}
                   </p>
-                </li>
-              )
-            })}
+                </div>
+                <ResponseFlow ctx={ctx} responseId={l.id} done={flow.done.get(l.id) ?? new Set()} funding={flow.funding} fundingId={l.fundingApplicationId} />
+              </li>
+            ))}
           </ul>
         )}
       </Section>
