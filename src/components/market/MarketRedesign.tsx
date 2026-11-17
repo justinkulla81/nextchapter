@@ -3,6 +3,8 @@ import { AiAtWorkBlock, AI_AT_WORK_TITLE } from '@/components/candidate/AiAtWork
 import type { AiAtWork } from '@/lib/skills/ai-at-work'
 import type { AddressableMarket } from '@/lib/profile/addressable-market'
 import { ExpansionToggle } from '@/components/dashboard/ExpansionToggle'
+import { cityLabel } from '@/lib/jobs/added-cities'
+import type { WidenCity } from '@/lib/jobs/widen-strategy'
 import { marketHeadline } from '@/lib/redesign/jobs-pages'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { ShowMore } from '@/components/candidate/ShowMore'
@@ -15,13 +17,30 @@ const n = (x: number) => x.toLocaleString()
 
 // Your market in the redesign: one verdict that sizes the market and says what it rests on, three ways to widen it,
 // one thing worth knowing, and everything else behind "Show more". Used by the page and by the dev-preview.
-export function MarketRedesign({ m, aiAtWork = null }: { m: AddressableMarket; aiAtWork?: AiAtWork | null }) {
+export function MarketRedesign({ m, aiAtWork = null, nearbyCities = [] }: { m: AddressableMarket; aiAtWork?: AiAtWork | null; nearbyCities?: WidenCity[] }) {
   const places = m.expansions.filter((e) => e.kind === 'remote' || e.kind === 'state' || e.kind === 'relocate')
   const roles = m.expansions.filter((e) => e.kind === 'role')
   const industries = m.expansions.filter((e) => e.kind === 'industry')
   const { headline, because } = marketHeadline(m)
-  // Three ways to widen, best first: each is one switch that adds jobs to the search. Nothing is added unless chosen.
-  const widen = [...places.slice(0, 1), ...roles.slice(0, 1), ...industries.slice(0, 1)]
+  // Cities just across the state line, each added on its own (added-cities.ts), never the whole state.
+  const addedCities = (m.optedIn.cities ?? []).map((c) => c.name)
+  const cityRow = (c: WidenCity): RowItem => ({
+    key: `city-${c.city}`,
+    title: c.city,
+    why: `${n(c.openNow)} open roles like yours at your level.`,
+    fact: `In ${c.stateName}, next to your state. Adds the jobs within about 40 miles of ${cityLabel(c.city)}.`,
+    actions: (
+      <ExpansionToggle
+        quiet
+        kind="city"
+        value={`${c.city}|${c.state}`}
+        on={addedCities.includes(c.city)}
+        label={`Jobs in and around ${cityLabel(c.city)}`}
+        addLabel={`Add ${cityLabel(c.city)}`}
+        onLabel={`✓ ${cityLabel(c.city)} added`}
+      />
+    ),
+  })
   // The old "AI is reshaping this work" flag is replaced by the measured AI block, so the page never says both.
   const flags = m.flags.filter((f) => f.key !== 'ai')
   // With the AI block on the first view, the first flag moves behind "Show more" so the page stays at three sections.
@@ -43,6 +62,12 @@ export function MarketRedesign({ m, aiAtWork = null }: { m: AddressableMarket; a
     fact: e.kind === 'role' && e.carry.length > 0 ? `Your ${e.carry.slice(0, 2).join(' and ')} carry over.` : undefined,
     actions: toggleFor(e),
   })
+  // Three ways to widen, best first: each is one switch that adds jobs to the search. Nothing is added unless chosen.
+  // Remote first, then the nearest big city across the state line, then a move (the order the state rows had).
+  const remoteRow = places.find((e) => e.kind === 'remote')
+  const moveRow = places.find((e) => e.kind === 'relocate')
+  const firstPlace = remoteRow ? expansionRow(remoteRow) : nearbyCities[0] ? cityRow(nearbyCities[0]) : moveRow ? expansionRow(moveRow) : null
+  const widen: RowItem[] = [...(firstPlace ? [firstPlace] : []), ...roles.slice(0, 1).map(expansionRow), ...industries.slice(0, 1).map(expansionRow)]
   // Everything else, in plain rows: no card chrome, one reason and one switch per row.
   const everyOption = (
     <>
@@ -59,12 +84,21 @@ export function MarketRedesign({ m, aiAtWork = null }: { m: AddressableMarket; a
           </ul>
         </SectionBlock>
       )}
-      {(places.length > 0 || m.optedIn.states.length > 0) && (
+      {(places.length > 0 || nearbyCities.length > 0 || addedCities.length > 0 || m.optedIn.states.length > 0) && (
         <SectionBlock id="places-h" title="More places" why="Add a place and its jobs show up in Find a job and your daily email.">
           <RowList
             label="More places"
             items={[
               ...places.map(expansionRow),
+              ...nearbyCities.map(cityRow),
+              ...(m.optedIn.cities ?? [])
+                .filter((c) => !nearbyCities.some((x) => x.city === c.name))
+                .map((c): RowItem => ({
+                  key: `added-${c.name}`,
+                  title: c.name,
+                  fact: `Jobs within about 40 miles of ${cityLabel(c.name)}.`,
+                  actions: <ExpansionToggle quiet kind="city" value={`${c.name}|${c.state}`} on label={`Jobs in and around ${cityLabel(c.name)}`} onLabel={`✓ ${cityLabel(c.name)} added`} />,
+                })),
               ...m.optedIn.states
                 .filter((s) => !places.some((p) => p.kind === 'state' && p.state === s))
                 .map((s): RowItem => ({ key: `opted-${s}`, title: `Jobs in ${stateName(s)}`, actions: <ExpansionToggle quiet kind="state" value={s} on label={`Jobs in ${stateName(s)}`} /> })),
@@ -131,7 +165,7 @@ export function MarketRedesign({ m, aiAtWork = null }: { m: AddressableMarket; a
 
           {widen.length > 0 && (
             <SectionBlock id="widen-h" title="Where you could widen" why="Each switch adds that group of jobs to your search. Turn it off any time.">
-              <RowList label="Ways to widen" items={widen.map(expansionRow)} />
+              <RowList label="Ways to widen" items={widen} />
             </SectionBlock>
           )}
 

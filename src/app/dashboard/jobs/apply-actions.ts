@@ -12,6 +12,7 @@ import { buildApplyKit, pickResume, profileSummary, resumeName, workAuthAnswer, 
 import { applicationMessage, candidatePlusMarkFor, cleanShortAnswers, nativePosterOf, type ApplicationSnapshot } from '@/lib/jobs/native-apply'
 import { deliverApplicationToPoster } from '@/lib/messaging/threads'
 import { setJobStatus } from '@/app/dashboard/find-my-job/my-jobs-actions'
+import { RESUME_NOT_REJECTED } from '@/lib/resume/not-rejected'
 
 // Apply kit (every board job) and native one-click apply (jobs posted directly on
 // NextChapter). Both read only the member's own profile; nothing here calls an
@@ -67,7 +68,7 @@ function kitProfile(p: CandidateProfile) {
 
 async function loadResumes(candidateId: string) {
   return prisma.resume.findMany({
-    where: { candidateId, looksLikeResume: { not: false } },
+    where: { candidateId, ...RESUME_NOT_REJECTED },
     select: { id: true, label: true, fileName: true, description: true, uploadedAt: true },
     orderBy: { uploadedAt: 'desc' },
     take: 20,

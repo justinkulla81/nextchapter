@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { NewDraftForm, DuplicateDraftForm, DeleteDraftForm, ImportUploadForm, MakeVersionForm } from '@/components/dashboard/resume-studio/DraftActions'
 import { Squiggle } from '@/components/ui/squiggle'
 import { KIND_BADGE, isDraftKind } from '@/lib/resume/studio/versions'
+import { RESUME_NOT_REJECTED } from '@/lib/resume/not-rejected'
 
 export const metadata: Metadata = { title: 'Resume studio' }
 
@@ -26,7 +27,7 @@ export default async function ResumeStudioPage() {
     prisma.workHistoryEntry.count({ where: { candidateId: profile.id } }),
     // The resume they uploaded most recently, if it was read as a resume.
     prisma.resume.findFirst({
-      where: { candidateId: profile.id, looksLikeResume: { not: false }, extractedText: { not: null } },
+      where: { candidateId: profile.id, ...RESUME_NOT_REJECTED, extractedText: { not: null } },
       orderBy: { uploadedAt: 'desc' },
       select: { id: true, fileName: true, label: true, uploadedAt: true },
     }),
@@ -55,10 +56,9 @@ export default async function ResumeStudioPage() {
       </div>
 
       {upload && !uploadHasOriginal ? (
-        <div className="space-y-3">
-          <ImportUploadForm resumeId={upload.id} fileName={upload.label || upload.fileName} />
-          <NewDraftForm hasProfileData={workHistoryCount > 0} hasUpload />
-        </div>
+        // With an upload on file, importing it is the only way in: a draft built from profile fields loses the
+        // bullets, the sections and the dates as written, so it is not offered next to a real resume.
+        <ImportUploadForm resumeId={upload.id} fileName={upload.label || upload.fileName} />
       ) : original ? (
         <div className="flex flex-wrap items-start gap-3">
           <MakeVersionForm fromDraftId={original.id} fromName={original.name} primary />
