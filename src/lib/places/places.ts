@@ -461,7 +461,35 @@ const key = (...parts: (string | number | string[] | null)[]) => parts.map((p) =
 // A city's top employers are a scan of the board per place, and an instance only remembers them for ten minutes, so every cold instance
 // re-ran the same query (about 90,000 calls). The data cache shares one result across instances for six hours, the same as a state's list.
 const sharedTop = memoTtl(10 * 60_000, (a: string, b: string[] | null, c: number) => key(a, b, c), (a: string, b: string[] | null, c: number) =>
-  sharedLoad(`places-top-hiring:${createHash('sha1').update(key(a, b, c)).digest('hex')}`, 6 * 60 * 60, () => heavy(() => loadTopHiringEmployers(a, b, c))))
+  sharedLoad(`places-top-hiring:${createHash('sha1').update(key(a, b, c)).digest('hex')}`, 6 * 60 * 60, () => heavy(() => storedCityTop(a, b ?? [], c))))
+
+/**
+ * A city's top hiring employers from the board-figures cron's row (org-city-top:<state>, buildOrgJobStats: same public-job rules, order and
+ * links), when every spelling of the city that has open jobs is a big city stored there; the spellings' lists are added up. Else the live
+ * count, which is cheap for a small city: the stored ones are the cities whose live count was a scan of thousands of jobs, up to 26 s.
+ */
+async function storedCityTop(state: string, cityNames: string[], limit: number): Promise<PlaceEmployer[]> {
+  type Stored = { name: string; n: number; cn: string | null; cid: string | null; linkable: boolean | null }
+  const fig = cityNames.length ? await readBoardFigure<{ keep?: number; tops?: Record<string, Stored[]>; counts?: Record<string, number> }>(`org-city-top:${state}`).catch(() => null) : null
+  const withJobs = cityNames.filter((c) => (fig?.counts?.[c] ?? 0) > 0)
+  if (fig?.tops && fig.counts && (fig.keep ?? 0) >= limit && withJobs.length > 0 && withJobs.every((c) => fig.tops![c])) {
+    return mergeCityTops(withJobs.map((c) => fig.tops![c]), limit).map((r) => ({ name: r.name, openRoles: r.n, href: r.linkable && r.cn && r.cid ? `/employers/${employerSlug(r.cn, r.cid)}` : null }))
+  }
+  return loadTopHiringEmployers(state, cityNames, limit)
+}
+
+/** Adds up one city's stored lists (one per spelling) by employer, most open roles first, then by name, as the live count orders them. */
+export function mergeCityTops<T extends { name: string; cid: string | null; n: number }>(lists: T[][], limit: number): T[] {
+  const sum = new Map<string, T>()
+  for (const list of lists) {
+    for (const r of list) {
+      const k = `${r.name}\u0000${r.cid ?? ''}`
+      const had = sum.get(k)
+      sum.set(k, had ? { ...had, n: had.n + r.n } : { ...r })
+    }
+  }
+  return [...sum.values()].sort((a, b) => b.n - a.n || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)).slice(0, limit)
+}
 // A city's recent jobs ran the same way (87,000 calls in a week, one longest at 119 s) and its large employers likewise: the same six-hour shared cache.
 const sharedJobs = memoTtl(10 * 60_000, (a: string, b: string[], c: number) => key(a, b, c), (a: string, b: string[], c: number) =>
   sharedLoad(`places-recent-jobs:${createHash('sha1').update(key(a, b, c)).digest('hex')}`, 6 * 60 * 60, () => heavy(() => loadRecentJobs(a, b, c))))

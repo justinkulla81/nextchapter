@@ -32,6 +32,7 @@ export type BoardFigureKey =
   | `entry-role-place:${string}`
   | 'role-index'
   | `org-job-stats:${string}`
+  | `org-city-top:${string}`
   | 'fresh-job-counts'
   | `role:${string}`
   | `pay-data-snapshot:${string}`
