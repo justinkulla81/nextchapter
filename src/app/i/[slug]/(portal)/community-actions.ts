@@ -20,6 +20,7 @@ import {
   requestAudit,
   setOpportunityStatus,
   signUpForCohort,
+  setFacultyInGroup,
 } from '@/lib/higher-ed/community'
 import { setConsent } from '@/lib/higher-ed/join'
 import { completeRequest, deleteMemberRecord, openRequest } from '@/lib/higher-ed/data-requests'
@@ -469,4 +470,53 @@ export async function deleteMemberAction(slug: string, memberId: string, request
   if ('error' in r) return { error: r.error }
   revalidatePath(`/i/${slug}`, 'layout')
   return { message: 'Deleted. The request is logged as done.' }
+}
+
+// ── Faculty: industry groups and research requests ──────────────────────────
+
+const TEACH_ROLES: AccessToken[] = ['FACULTY', 'EXEC_ED', 'INSTITUTION_ADMIN']
+
+// A professor joins or leaves an alumni group (their own staff seat; FACULTY first).
+export async function facultyGroupAction(slug: string, groupId: string, join: boolean): Promise<Result> {
+  const ctx = await staff(slug, 'teaching', TEACH_ROLES)
+  if (!ctx) return { error: 'Only faculty, Exec Ed or an admin can join groups as faculty.' }
+  const seat = ctx.staffUsers.find((s) => s.role === 'FACULTY') ?? ctx.staffUsers[0]
+  if (!seat) return { error: 'You need a staff seat at this college to join as faculty.' }
+  const g = await prisma.alumniGroup.findFirst({ where: { id: groupId, institutionId: ctx.institution.id, isActive: true }, select: { id: true } })
+  if (!g) return { error: 'That group is gone.' }
+  await setFacultyInGroup(groupId, seat.id, join)
+  captureServerEvent(ctx.userId, 'he_faculty_group_joined', { institutionId: ctx.institution.id, groupId, join })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true, message: join ? 'Joined. Alumni in the group see your name.' : 'Left the group.' }
+}
+
+// A professor asks alumni in industry for help with research: interviews, a
+// survey, data, a site for a study, or a sponsor. Alumni raise a hand; the
+// professor sees who and chooses whom to contact.
+export async function postResearchRequestForm(slug: string, _prev: FormResult, f: FormData): Promise<FormResult> {
+  const ctx = await staff(slug, 'teaching', TEACH_ROLES)
+  if (!ctx) return { error: 'Only faculty, Exec Ed or an admin can post research requests.' }
+  const title = str(f, 'title')
+  const lab = str(f, 'lab')
+  const description = str(f, 'description')
+  if (!title || !lab) return { error: 'Add what you’re studying and your name or lab.' }
+  if (description.length < 30) return { error: 'Say what you need from alumni in a few sentences: who, how much of their time, what they get back.' }
+  const r = await postOpportunity({
+    institutionId: ctx.institution.id,
+    memberId: null,
+    staffEmail: ctx.email ?? ctx.userId,
+    kind: 'research',
+    title,
+    organization: lab,
+    description,
+    skills: str(f, 'fields').split(',').map((s) => s.trim()).filter(Boolean).slice(0, 8),
+    hoursPerWeek: null,
+    durationWeeks: int(str(f, 'durationWeeks')),
+    compensation: str(f, 'compensation') || 'volunteer',
+    location: str(f, 'location') || 'Remote',
+  })
+  if ('error' in r) return { error: r.error }
+  captureServerEvent(ctx.userId, 'he_research_request_posted', { institutionId: ctx.institution.id, opportunityId: r.id })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true, message: 'Posted. Alumni see it under Jobs & projects and can raise a hand; you see who below.' }
 }

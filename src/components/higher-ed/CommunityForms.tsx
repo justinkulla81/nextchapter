@@ -631,3 +631,41 @@ export function ModuleToggle({ slug, moduleKey, on: initial, label, disabled }: 
     </span>
   )
 }
+
+// Teaching › Industry groups: a professor asks alumni in industry for research help.
+export function ResearchRequestForm({ slug }: { slug: string }) {
+  const [state, action] = useActionState<A.FormResult, FormData>(A.postResearchRequestForm.bind(null, slug) as FormAction, undefined)
+  const { v, setV, bind } = useFields({ title: '', lab: '', description: '', fields: '', durationWeeks: '', compensation: 'volunteer', location: 'Remote' })
+  return (
+    <form action={action} className="grid gap-3 sm:grid-cols-2">
+      <div className="space-y-1.5">
+        <Label htmlFor="rr-title">What you’re studying</Label>
+        <Input id="rr-title" {...bind('title')} placeholder="How plants are adopting AI in quality control" />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="rr-lab">Your name or lab</Label>
+        <Input id="rr-lab" {...bind('lab')} placeholder="Prof. Adeyemi, Process Systems Lab" />
+      </div>
+      <div className="space-y-1.5 sm:col-span-2">
+        <Label htmlFor="rr-desc">What you need from alumni</Label>
+        <textarea id="rr-desc" {...bind('description')} className={area} placeholder="30-minute interviews with plant managers; a short survey; anonymized data; a site for a pilot; a sponsor. Say what they get back." />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="rr-fields">Industries or functions (comma-separated)</Label>
+        <Input id="rr-fields" {...bind('fields')} placeholder="Manufacturing, operations" />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="rr-weeks">How long (weeks, optional)</Label>
+        <Input id="rr-weeks" inputMode="numeric" {...bind('durationWeeks')} />
+      </div>
+      <fieldset className="space-y-1.5 sm:col-span-2">
+        <legend className="text-sm font-medium">For alumni who help</legend>
+        <Choice name="compensation" value={v.compensation} options={[{ key: 'volunteer', label: 'Volunteer' }, { key: 'paid', label: 'Paid' }]} onChange={(k) => setV({ ...v, compensation: k })} />
+      </fieldset>
+      <div className="flex items-center gap-3 sm:col-span-2">
+        <SubmitButton pendingLabel="Posting…">Post research request</SubmitButton>
+        <Msg r={state} />
+      </div>
+    </form>
+  )
+}
