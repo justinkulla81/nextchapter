@@ -138,5 +138,5 @@ BLS figures cover the whole metro. Posting comparisons use the same crawl and ta
 - Source: employers' own career sites, crawled {str(d['crawl']['last_crawl'])[:10]}, tagged by job title with fixed rules; titles that cannot be classified are excluded.
 - AI, remote, hybrid and soft-skill figures are keyword matches in posting text; pay medians use only postings that state pay.
 - Postings are not BLS job openings: one opening can have several postings and some are always open.
-- There is no history yet. Functions gaining or losing, reposts and ghost-job risk need at least two crawls.
+- {('Only postings still listed in the latest crawl are counted; postings that disappeared since the first crawl (' + str(d['crawl']['first_crawl'])[:10] + ') are left out. Functions gaining or losing, reposts and ghost-job risk need more history before they are reported.') if d['crawl']['first_crawl'][:10] != d['crawl']['last_crawl'][:10] else 'There is no history yet. Functions gaining or losing, reposts and ghost-job risk need at least two crawls.'}
 - Labor market data: BLS Local Area Unemployment Statistics and Current Employment Statistics bulk files, not seasonally adjusted.""")
