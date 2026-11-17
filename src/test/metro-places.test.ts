@@ -7,7 +7,7 @@ const sectors = COUNTY_SECTORS.map((s) => s.code)
 const FIELDS = ['homicides', 'childCareCost', 'childCareCenters', 'reading', 'math', 'broadband', 'schoolFunding', 'libraries', 'parks', 'longCommute', 'permitUnits']
 
 function county(i: number): CountyFacts {
-  return { population: 300_000 + i * 50_000, laborForce: 150_000 + i * 20_000, whiteCollarShare: 0.4 + i * 0.01, wcUnemp: 2 + i * 0.1, colleges: 3 + i, enrollment: 10_000 + i * 1000, ajc: 1 + (i % 3), communityColleges: 1 + (i % 2), supportOrgs: 5 + i, layoffWorkers: 100 * i }
+  return { population: 400_000 + i * 50_000, laborForce: 150_000 + i * 20_000, whiteCollarShare: 0.4 + i * 0.01, wcUnemp: 2 + i * 0.1, colleges: 3 + i, enrollment: 10_000 + i * 1000, ajc: 1 + (i % 3), communityColleges: 1 + (i % 2), supportOrgs: 5 + i, layoffWorkers: 100 * i }
 }
 function posting(i: number): WcCounts {
   return { n: 800 + i * 100, paid: 300 + i * 10, pay: [[90_000 + i * 2000, 300 + i * 10]], flex: 100 + i * 5, aiPay: [[100_000 + i * 3000, 40]], plainPay: [[90_000 + i * 2000, 300]], socN: 500, aiSum: 500 * (0.15 + i * 0.005) }
@@ -57,7 +57,7 @@ describe('best places for white-collar professionals', () => {
     expect(m.homeToPay).toBeCloseTo(400_000 / 90_000)
     expect(m.wcGrowth).toBeGreaterThan(0)
     expect(m.diversity).toBeGreaterThan(0.9)
-    expect(m.permitsPer1k).toBeCloseTo((1000 / 300_000) * 1000)
+    expect(m.permitsPer1k).toBeCloseTo((1000 / 400_000) * 1000)
   })
 
   it('scores every eligible metro and ranks lower-is-better lists from the lowest', () => {
