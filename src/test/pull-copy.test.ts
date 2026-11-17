@@ -1,9 +1,17 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_COPY, LAID_OFF_COPY, conferenceSeekerCopy, pullCopyFor } from '@/lib/capture/pull-copy'
+import { DEFAULT_COPY, LAID_OFF_COPY, LAYOFF_TRACKER_COPY, conferenceSeekerCopy, pullCopyFor } from '@/lib/capture/pull-copy'
 
 describe('pull copy', () => {
   it('uses the laid-off pain on layoff, unemployment and start pages', () => {
-    for (const path of ['/layoffs/this-week', '/layoffs/california', '/unemployment-benefits/ohio', '/start/laid-off']) expect(pullCopyFor(path)).toBe(LAID_OFF_COPY)
+    for (const path of ['/unemployment-benefits/ohio', '/start/laid-off']) expect(pullCopyFor(path)).toBe(LAID_OFF_COPY)
+    // The tracker: the same ask for a signed-out reader, its own member box.
+    for (const path of ['/layoffs', '/layoffs/this-week', '/layoffs/california']) expect(pullCopyFor(path)).toBe(LAYOFF_TRACKER_COPY)
+    expect({ ...LAYOFF_TRACKER_COPY, member: null }).toEqual({ ...LAID_OFF_COPY, member: null })
+  })
+  it('points a member on the layoff tracker to the jobs, not to a layoff plan they may not have', () => {
+    const m = pullCopyFor('/layoffs').member
+    expect(m.headline).toBe('See who is still hiring')
+    expect(`${m.headline} ${m.sentence} ${m.button}`).not.toMatch(/plan|deadline/i)
   })
   it('falls back to the default for any other page', () => {
     expect(pullCopyFor('/rankings')).toBe(DEFAULT_COPY)

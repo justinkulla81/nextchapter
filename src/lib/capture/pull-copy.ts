@@ -42,6 +42,17 @@ export const LAID_OFF_COPY: PullCopy = {
   member: { headline: 'Put your deadlines in order', sentence: 'Your state and last day decide which deadlines come first. Add them and your plan starts with the ones that cost money.', button: 'Improve my plan' },
 }
 
+/**
+ * The layoff tracker pages (/layoffs and everything under it). A signed-out reader gets the laid-off ask; a signed-in member is
+ * usually checking who is cutting, not working through their own layoff, so "Put your deadlines in order / Improve my plan" read
+ * as nonsense there (owner, 2026-11-17). The member box points them from the cuts to the jobs. It promises only what the improve
+ * page does: a fuller profile ranks their job list.
+ */
+export const LAYOFF_TRACKER_COPY: PullCopy = {
+  ...LAID_OFF_COPY,
+  member: { headline: 'See who is still hiring', sentence: 'This list shows who is cutting jobs. Complete your profile and your job list ranks the employers hiring people like you.', button: 'Improve my job matches' },
+}
+
 const PAY_COPY: PullCopy = {
   headline: 'Not sure you are paid what you are worth?',
   sentence: 'See how the market reads your background and which open jobs fit you best. Free. No résumé needed.',
@@ -131,7 +142,7 @@ const BY_PREFIX: Record<string, PullCopy> = {
 }
 
 const BY_ROOT: Record<string, PullCopy> = {
-  layoffs: LAID_OFF_COPY,
+  layoffs: LAYOFF_TRACKER_COPY,
   'unemployment-benefits': LAID_OFF_COPY,
   start: LAID_OFF_COPY,
   salaries: PAY_COPY,
