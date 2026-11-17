@@ -25,3 +25,8 @@ hold it. `WD_GAP` (default 0.9 s) is the pause between Workday requests; `T` is 
 
     K=<import key> REFRESH=1 T=4 WD_GAP=0.9 python3 scripts/jobsreport/import/ats3_import.py \
       workday-all-unique.json,workday-sec.json,workday-universities.json,workday-hospitals.json,workday-nonprofits-top8000.json,workday-nonprofits-next8000.json,workday-company-sized.json,workday-jooble-top-employers.json workday
+
+Run it after the crawler's own sync has finished, not beside it. Options:
+- `BACKOFF_FILE=<path to host_backoff.json>`: hosts listed there (a JSON object keyed by host, or a list of hosts) are skipped. A host that answers 429 or 403 is left alone for the rest of the run; it is not retried.
+- `DRY=1`: lists each site and asks the server how many of its job links it holds; nothing is posted, stamped or archived. Needs the server deploy of the `dryRun` option on `confirmUrls`.
+- Source lists are read from `scripts/jobsreport/sources/` next to the script, wherever the repo is cloned.
