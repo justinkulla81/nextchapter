@@ -73,6 +73,60 @@ export async function addRelatedOrg(args: { institutionId: string; institutionCr
   return { ok: true, partnerId: row.id, inviteUrl: relatedInviteUrl(slug, token), alreadyOnNextChapter: !!portal }
 }
 
+// An employer links the same way (owner decision 2026-11-17: colleges and employers get the same loop). Its links live on
+// EmployerRelatedOrg; the claim link carries the same ?via= token, and approval connects both kinds of link.
+export async function addEmployerRelatedOrg(args: { employerProfileId: string; ownCrmOrgIds: string[]; crmOrgId: string }): Promise<AddResult> {
+  if (args.ownCrmOrgIds.includes(args.crmOrgId)) return { ok: false, error: 'That is your own organization.' }
+  const org = await prisma.crmOrganization.findUnique({ where: { id: args.crmOrgId }, select: { id: true, name: true, canonicalNameNormalized: true, orgTypes: true } })
+  const slug = org ? claimSlug(org.canonicalNameNormalized) : null
+  if (!org || !slug || !(await uniqueClaimSlugs([slug])).has(slug)) return { ok: false, error: 'That organization has no public page on NextChapter yet, so it cannot be linked.' }
+  const portal = await prisma.institution.findUnique({ where: { crmOrganizationId: org.id }, select: { id: true } })
+  const existing = await prisma.employerRelatedOrg.findUnique({
+    where: { employerProfileId_crmOrganizationId: { employerProfileId: args.employerProfileId, crmOrganizationId: org.id } },
+    select: { id: true, inviteToken: true },
+  })
+  const token = existing?.inviteToken ?? randomBytes(24).toString('base64url')
+  const data = { name: org.name, kind: partnerKindFor(org.orgTypes.map(String)), ...(portal ? { status: 'CONNECTED', linkedInstitutionId: portal.id } : { status: 'INVITED' }) }
+  const row = existing
+    ? await prisma.employerRelatedOrg.update({ where: { id: existing.id }, data, select: { id: true } })
+    : await prisma.employerRelatedOrg.create({ data: { employerProfileId: args.employerProfileId, crmOrganizationId: org.id, inviteToken: token, ...data }, select: { id: true } })
+  return { ok: true, partnerId: row.id, inviteUrl: relatedInviteUrl(slug, token), alreadyOnNextChapter: !!portal }
+}
+
+/** The CRM records of the employer's own company, so it never links itself. */
+export async function employerOwnOrgIds(companyId: string | null): Promise<string[]> {
+  if (!companyId) return []
+  return (await prisma.crmOrganization.findMany({ where: { companyId }, take: 5, select: { id: true } })).map((o) => o.id)
+}
+
+/** The organizations an employer linked, with where each stands. */
+export async function employerRelated(employerProfileId: string): Promise<RelatedRow[]> {
+  const rows = await prisma.employerRelatedOrg.findMany({
+    where: { employerProfileId },
+    orderBy: { createdAt: 'desc' },
+    take: 200,
+    select: { id: true, name: true, kind: true, inviteToken: true, crmOrganizationId: true, status: true, linkedInstitutionId: true },
+  })
+  const orgIds = rows.map((r) => r.crmOrganizationId)
+  const [orgs, claims] = orgIds.length
+    ? await Promise.all([
+        prisma.crmOrganization.findMany({ where: { id: { in: orgIds } }, select: { id: true, canonicalNameNormalized: true } }),
+        prisma.orgClaim.findMany({ where: { crmOrganizationId: { in: orgIds }, verifiedAt: { not: null }, declinedAt: null }, select: { crmOrganizationId: true } }),
+      ])
+    : [[], []]
+  const slugOf = new Map(orgs.map((o) => [o.id, claimSlug(o.canonicalNameNormalized)]))
+  const claimed = new Set(claims.map((c) => c.crmOrganizationId))
+  return rows.map((r) => {
+    const slug = slugOf.get(r.crmOrganizationId) ?? null
+    return {
+      id: r.id, name: r.name, kind: r.kind, slug,
+      inviteUrl: slug ? relatedInviteUrl(slug, r.inviteToken) : null,
+      state: (r.status === 'CONNECTED' ? 'connected' : claimed.has(r.crmOrganizationId) ? 'claimed' : 'invited') as RelatedRow['state'],
+      linkedSlug: null,
+    }
+  })
+}
+
 export async function removeRelatedOrg(institutionId: string, partnerId: string): Promise<boolean> {
   const r = await prisma.ecosystemPartner.deleteMany({ where: { id: partnerId, institutionId, source: RELATED_SOURCE } })
   return r.count > 0
@@ -124,7 +178,9 @@ export async function relatedOrgs(institutionId: string): Promise<{ linked: Rela
 export async function referralFor(token: string | null | undefined, crmOrgId: string): Promise<{ partnerId: string; inviterName: string } | null> {
   if (!token || !/^[A-Za-z0-9_-]{24,64}$/.test(token)) return null
   const p = await prisma.ecosystemPartner.findUnique({ where: { inviteToken: token }, select: { id: true, crmOrganizationId: true, institution: { select: { name: true } } } })
-  return p && p.crmOrganizationId === crmOrgId ? { partnerId: p.id, inviterName: p.institution.name } : null
+  if (p) return p.crmOrganizationId === crmOrgId ? { partnerId: p.id, inviterName: p.institution.name } : null
+  const e = await prisma.employerRelatedOrg.findUnique({ where: { inviteToken: token }, select: { id: true, crmOrganizationId: true, employerProfile: { select: { companyName: true } } } })
+  return e && e.crmOrganizationId === crmOrgId ? { partnerId: e.id, inviterName: e.employerProfile.companyName } : null
 }
 
 // After NextChapter approves an organization's claim: every organization that linked it is connected to its new portal
@@ -135,7 +191,11 @@ export async function connectRelated(args: { crmOrgId: string; institutionId: st
       where: { OR: [{ crmOrganizationId: args.crmOrgId }, ...(args.referredByPartnerId ? [{ id: args.referredByPartnerId }] : [])], linkedInstitutionId: null },
       data: { status: 'CONFIRMED', decidedAt: new Date(), decidedBy: 'claim approved', ...(args.institutionId ? { linkedInstitutionId: args.institutionId } : {}) },
     })
-    return r.count
+    const fromEmployers = await prisma.employerRelatedOrg.updateMany({
+      where: { OR: [{ crmOrganizationId: args.crmOrgId }, ...(args.referredByPartnerId ? [{ id: args.referredByPartnerId }] : [])], status: 'INVITED' },
+      data: { status: 'CONNECTED', ...(args.institutionId ? { linkedInstitutionId: args.institutionId } : {}) },
+    })
+    return r.count + fromEmployers.count
   } catch (e) {
     console.error('connectRelated failed', e)
     return 0

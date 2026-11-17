@@ -4,13 +4,14 @@ const db = vi.hoisted(() => ({
   crmOrganization: { findUnique: vi.fn(), findMany: vi.fn() },
   institution: { findUnique: vi.fn() },
   ecosystemPartner: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), updateMany: vi.fn() },
+  employerRelatedOrg: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), updateMany: vi.fn() },
 }))
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/prisma', () => ({ prisma: db }))
 const org = vi.hoisted(() => ({ uniqueClaimSlugs: vi.fn(async (s: string[]) => new Set(s)) }))
 vi.mock('@/lib/org-claims/org', () => org)
 
-import { addRelatedOrg, connectRelated, partnerKindFor, referralFor, relatedInviteUrl, searchClaimableOrgs } from '@/lib/org-claims/related-orgs'
+import { addEmployerRelatedOrg, addRelatedOrg, connectRelated, partnerKindFor, referralFor, relatedInviteUrl, searchClaimableOrgs } from '@/lib/org-claims/related-orgs'
 
 const jcc = { id: 'o2', name: 'Jefferson Community College', canonicalNameNormalized: 'jefferson community college', orgTypes: ['UNIVERSITY'] }
 
@@ -21,6 +22,10 @@ describe('related organizations', () => {
     db.institution.findUnique.mockResolvedValue(null)
     db.ecosystemPartner.findUnique.mockResolvedValue(null)
     db.ecosystemPartner.create.mockResolvedValue({ id: 'p1' })
+    db.ecosystemPartner.updateMany.mockResolvedValue({ count: 0 })
+    db.employerRelatedOrg.findUnique.mockResolvedValue(null)
+    db.employerRelatedOrg.create.mockResolvedValue({ id: 'e1' })
+    db.employerRelatedOrg.updateMany.mockResolvedValue({ count: 0 })
   })
   it('maps CRM types to partner kinds and builds the claim invite', () => {
     expect(partnerKindFor(['UNIVERSITY'])).toBe('COLLEGE')
@@ -58,11 +63,28 @@ describe('related organizations', () => {
     db.ecosystemPartner.findUnique.mockResolvedValue({ id: 'p1', crmOrganizationId: 'o2', institution: { name: 'KentuckianaWorks' } })
     expect(await referralFor(token, 'o2')).toEqual({ partnerId: 'p1', inviterName: 'KentuckianaWorks' })
     expect(await referralFor(token, 'o9')).toBeNull()
+    expect(db.employerRelatedOrg.findUnique).not.toHaveBeenCalled()
     expect(await referralFor('bad', 'o2')).toBeNull()
   })
   it('approval connects every organization that linked it', async () => {
     db.ecosystemPartner.updateMany.mockResolvedValue({ count: 2 })
     expect(await connectRelated({ crmOrgId: 'o2', institutionId: 'i2', referredByPartnerId: 'p1' })).toBe(2)
     expect(db.ecosystemPartner.updateMany.mock.calls[0][0]).toMatchObject({ where: { OR: [{ crmOrganizationId: 'o2' }, { id: 'p1' }], linkedInstitutionId: null }, data: { status: 'CONFIRMED', linkedInstitutionId: 'i2' } })
+  })
+  it('an employer links the same way, and its invite is recognised on the claim page', async () => {
+    const r = await addEmployerRelatedOrg({ employerProfileId: 'e0', ownCrmOrgIds: ['o1'], crmOrgId: 'o2' })
+    expect(r).toMatchObject({ ok: true, partnerId: 'e1', alreadyOnNextChapter: false })
+    expect(db.employerRelatedOrg.create.mock.calls[0][0].data).toMatchObject({ employerProfileId: 'e0', crmOrganizationId: 'o2', kind: 'COLLEGE', status: 'INVITED' })
+    expect((await addEmployerRelatedOrg({ employerProfileId: 'e0', ownCrmOrgIds: ['o2'], crmOrgId: 'o2' })).ok).toBe(false)
+    const token = 'y'.repeat(32)
+    db.ecosystemPartner.findUnique.mockResolvedValue(null)
+    db.employerRelatedOrg.findUnique.mockResolvedValue({ id: 'e1', crmOrganizationId: 'o2', employerProfile: { companyName: 'Acme Health' } })
+    expect(await referralFor(token, 'o2')).toEqual({ partnerId: 'e1', inviterName: 'Acme Health' })
+    expect(await referralFor(token, 'o9')).toBeNull()
+  })
+  it('approval also connects the employers that linked it', async () => {
+    db.employerRelatedOrg.updateMany.mockResolvedValue({ count: 1 })
+    expect(await connectRelated({ crmOrgId: 'o2', institutionId: 'i2', referredByPartnerId: 'e1' })).toBe(1)
+    expect(db.employerRelatedOrg.updateMany.mock.calls[0][0]).toMatchObject({ where: { OR: [{ crmOrganizationId: 'o2' }, { id: 'e1' }], status: 'INVITED' }, data: { status: 'CONNECTED', linkedInstitutionId: 'i2' } })
   })
 })

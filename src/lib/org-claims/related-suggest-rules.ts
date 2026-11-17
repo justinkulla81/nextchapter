@@ -38,8 +38,10 @@ export function mergeSuggestions(candidates: Candidate[], hits: Map<string, Hit>
 
 /** A college reads the groups in its own words. */
 const COLLEGE_LABELS: Record<SuggestGroup, string> = { PEERS: 'Workforce and community partners', EMPLOYERS: 'Employers', HIGHER_ED: 'Other colleges and universities' }
-export const byGroup = <T extends Suggestion>(list: T[], kind: 'workforce' | 'college' = 'workforce') =>
-  SUGGEST_GROUPS.map((g) => ({ key: g.key, label: kind === 'college' ? COLLEGE_LABELS[g.key] : g.label, items: list.filter((s) => s.group === g.key) })).filter((g) => g.items.length > 0)
+/** An employer reads them in its own words too. */
+const EMPLOYER_LABELS: Record<SuggestGroup, string> = { PEERS: 'Workforce and community partners', EMPLOYERS: 'Other employers hiring nearby', HIGHER_ED: 'Colleges and universities' }
+export const byGroup = <T extends Suggestion>(list: T[], kind: 'workforce' | 'college' | 'employer' = 'workforce') =>
+  SUGGEST_GROUPS.map((g) => ({ key: g.key, label: kind === 'college' ? COLLEGE_LABELS[g.key] : kind === 'employer' ? EMPLOYER_LABELS[g.key] : g.label, items: list.filter((s) => s.group === g.key) })).filter((g) => g.items.length > 0)
 
 /** How many organizations to link in one go. */
 export const MAX_LINK_BATCH = 40

@@ -57,6 +57,11 @@ export async function pendingClaims(): Promise<PendingClaim[]> {
   const inviters = new Map(
     refIds.length ? (await prisma.ecosystemPartner.findMany({ where: { id: { in: refIds } }, select: { id: true, institution: { select: { name: true } } } })).map((p) => [p.id, p.institution.name]) : [],
   )
+  // An employer's own invite carries its row id the same way.
+  const employerRefs = refIds.filter((id) => !inviters.has(id))
+  if (employerRefs.length) {
+    for (const e of await prisma.employerRelatedOrg.findMany({ where: { id: { in: employerRefs } }, select: { id: true, employerProfile: { select: { companyName: true } } } })) inviters.set(e.id, e.employerProfile.companyName)
+  }
   const withWorkspace = new Set(
     orgIds.length ? (await prisma.institution.findMany({ where: { crmOrganizationId: { in: orgIds } }, select: { crmOrganizationId: true } })).map((i) => i.crmOrganizationId) : [],
   )

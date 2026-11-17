@@ -129,3 +129,51 @@ export async function suggestRelated(institutionId: string): Promise<SuggestedOr
   const onNc = new Set(portals.map((p) => p.crmOrganizationId))
   return ordered.filter((s) => !done.has(s.orgId)).map((s) => ({ ...s, onNextChapter: onNc.has(s.orgId) }))
 }
+
+// An employer: no region profile, so its city comes from where its company is headquartered. The same city's list is shared by every
+// employer there (one memo per city), and each employer then drops itself and what it already linked.
+const loadForCity = memoTtl(30 * 60_000, (key: string) => key, async (key: string): Promise<Suggestion[]> => {
+  const [state, city] = key.split('|')
+  const candidates: Candidate[] = []
+  const direct: Direct = new Map()
+  const centers = await prisma.americanJobCenter.findMany({ where: { state, city: { equals: city, mode: 'insensitive' } }, take: 6, select: { name: true } })
+  for (const c of centers) candidates.push({ group: 'PEERS', keys: keyOf(c.name), reason: `Job center in ${city}` })
+  await peersInCity(state, city, candidates, direct)
+  await hiringEmployers(city, state, candidates)
+  const others = await prisma.collegeProfile.findMany({
+    where: { state, city: { equals: city, mode: 'insensitive' }, enrollment: { gt: 400 } },
+    orderBy: { enrollment: 'desc' },
+    take: 8,
+    select: { name: true, enrollment: true },
+  })
+  for (const c of others) candidates.push({ group: 'HIGHER_ED', keys: keyOf(c.name), reason: `In ${city}${c.enrollment ? `, about ${Math.round(c.enrollment / 100) * 100} students` : ''}` })
+  const wanted = [...new Set(candidates.flatMap((c) => c.keys))].filter((k) => !direct.has(k))
+  const rows = wanted.length ? await prisma.crmOrganization.findMany({ where: { canonicalNameNormalized: { in: wanted } }, select: { id: true, name: true, canonicalNameNormalized: true, orgTypes: true } }) : []
+  const slugs = rows.map((r) => ({ r, slug: claimSlug(r.canonicalNameNormalized) })).filter((x): x is { r: (typeof rows)[number]; slug: string } => !!x.slug)
+  const ok = await uniqueClaimSlugs(slugs.map((x) => x.slug))
+  const hits = new Map<string, Hit>(direct)
+  for (const x of slugs) if (ok.has(x.slug)) hits.set(x.r.canonicalNameNormalized, { orgId: x.r.id, name: x.r.name, slug: x.slug, orgTypes: x.r.orgTypes.map(String) })
+  return mergeSuggestions(candidates, hits, new Set())
+})
+
+/** Who an employer probably knows, from where its company is based; null when we do not know the city. */
+export async function suggestForEmployer(employerId: string): Promise<{ place: string | null; items: SuggestedOrg[] }> {
+  const e = await prisma.employerProfile.findUnique({
+    where: { id: employerId },
+    select: { company: { select: { crmOrganizations: { take: 5, select: { id: true, hqCity: true, usState: true } } } } },
+  })
+  const own = e?.company?.crmOrganizations ?? []
+  const home = own.find((o) => o.hqCity && o.usState && /^[A-Z]{2}$/.test(o.usState))
+  if (!home?.hqCity || !home.usState) return { place: null, items: [] }
+  const ordered = await loadForCity(`${home.usState}|${home.hqCity}`)
+  const ids = ordered.map((s) => s.orgId)
+  const [linked, portals] = ids.length
+    ? await Promise.all([
+        prisma.employerRelatedOrg.findMany({ where: { employerProfileId: employerId, crmOrganizationId: { in: ids } }, select: { crmOrganizationId: true } }),
+        prisma.institution.findMany({ where: { crmOrganizationId: { in: ids } }, select: { crmOrganizationId: true } }),
+      ])
+    : [[], []]
+  const skip = new Set([...own.map((o) => o.id), ...linked.map((l) => l.crmOrganizationId)])
+  const onNc = new Set(portals.map((p) => p.crmOrganizationId))
+  return { place: `${home.hqCity}, ${home.usState}`, items: ordered.filter((s) => !skip.has(s.orgId)).map((s) => ({ ...s, onNextChapter: onNc.has(s.orgId) })) }
+}

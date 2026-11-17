@@ -6,6 +6,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { CandidateCard } from '@/components/talent/CandidateCard'
 import { firstName, PortalHomeHeader, PortalHomeMore, PortalLinks, PortalNeeds, type NeedsItem } from '@/components/partners/PortalHome'
 import { OrgHomeHero } from '@/components/partners/OrgHomeHero'
+import { suggestForEmployer } from '@/lib/org-claims/related-suggest'
 import { brandOwnerKey, readEmployerBrand } from '@/lib/employer/brand'
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
@@ -15,7 +16,7 @@ const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? o
 export default async function TalentHomePage() {
   const employer = await getTalentDashboardData()
 
-  const [activeRoleCount, interactionsByStatus, jobBoardPostings, unreadMessages, candidatesLookingForRoles, brand] = await Promise.all([
+  const [activeRoleCount, interactionsByStatus, jobBoardPostings, unreadMessages, candidatesLookingForRoles, brand, networkCount, linkedCount] = await Promise.all([
     prisma.roleProfile.count({ where: { employerId: employer.id, isActive: true } }),
     prisma.candidateInteraction.groupBy({ by: ['status'], where: { employerId: employer.id }, _count: true }),
     prisma.exclusiveJobPosting.findMany({
@@ -25,6 +26,8 @@ export default async function TalentHomePage() {
     getEmployerUnreadCount(employer.id),
     getCandidatesLookingForYourRoles(employer.id),
     readEmployerBrand(brandOwnerKey({ companyId: employer.companyId, employerProfileId: employer.id })!),
+    suggestForEmployer(employer.id).then((r) => r.items.length).catch(() => 0),
+    prisma.employerRelatedOrg.count({ where: { employerProfileId: employer.id } }),
   ])
 
   if (candidatesLookingForRoles.length > 0) {
@@ -41,6 +44,9 @@ export default async function TalentHomePage() {
   const pendingPostings = jobBoardPostings.filter((p) => p.status === 'pending')
 
   const needs: NeedsItem[] = [
+    ...(linkedCount === 0 && networkCount > 0
+      ? [{ key: 'invite_network', title: 'Invite the people you work with', why: `We found ${networkCount} organization${networkCount === 1 ? '' : 's'} you probably know near your headquarters. Each gets a free page of its own, and you are connected when they claim it.`, href: '/talent/network', action: 'Pick who to invite' }]
+      : []),
     ...(unreadMessages > 0
       ? [{ key: 'unread_messages', title: plural(unreadMessages, 'unread message'), why: 'From candidates you contacted.', href: '/talent/messages', action: 'Open messages' }]
       : []),
