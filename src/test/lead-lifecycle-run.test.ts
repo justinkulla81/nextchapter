@@ -31,7 +31,7 @@ vi.mock('@/lib/prisma', () => ({
     crmActivity: { findMany: async () => db.sent },
   },
 }))
-vi.mock('@/lib/jobs/public-job-page-server', () => ({ getPublicJob: async () => null }))
+vi.mock('@/lib/jobs/public-job-page-server', () => ({ publicJobLabels: async () => new Map() }))
 vi.mock('@/lib/leads/lifecycle/file-lead', () => ({ fileLeadInCrm: async () => 'person_1', isInternalAddress: (e: string) => e.endsWith('@launchyournextchapter.com') }))
 vi.mock('@/lib/leads/lifecycle/send', () => ({ lifecycleRef: (s: string, e: string) => `lifecycle:${s}:${e}`, sendLifecycleEmail: (...a: unknown[]) => sendLifecycleEmail(...a) }))
 

@@ -60,7 +60,7 @@ const VIEW: WidenStrategyView = {
       { slug: 'sox', name: 'SOX', share: 9 },
     ],
   },
-  on: { remote: false, states: [], industries: [], roles: [] },
+  on: { remote: false, states: [], cities: [], industries: [], roles: [] },
   savedAt: null,
 }
 

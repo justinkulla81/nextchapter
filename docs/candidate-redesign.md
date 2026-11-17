@@ -84,4 +84,5 @@ The skills, culture, salary, goals and working-style breakdown opens under
    production), screenshotted and reviewed by the owner.
 2. Then the real data is wired in. The visual stays as approved.
 3. Partner portals (higher education, outplacement, coach, hiring, recruiter,
-   workforce) follow the same system once the candidate site is done.
+   workforce) follow the same system: the portal look, live since 2026-11-17
+   (`docs/design-elements.md`). Each portal is told apart by its own color and tint.

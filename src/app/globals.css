@@ -280,6 +280,81 @@
   color: var(--ink);
 }
 
+/* The portal look (owner decision, 2026-11-17): every partner portal (recruiter, employer, coach, hiring, higher education,
+   workforce) takes the candidate site's look, and each is told apart by its own color (--portal) and tint (--portal-tint),
+   set by the layout from portalStyle() in src/lib/partners/portal-types.ts. White page, serif headline in navy with the
+   squiggle in the portal's color, the one orange action, sentence-case section headings. The customer's brand stays the logo,
+   name and thin rule in the top bar. The staff admin area is not a portal and keeps its own look. */
+.theme-portal {
+  --background: #ffffff;
+  --button-primary: var(--action);
+  --button-primary-foreground: var(--action-foreground);
+  --button-primary-hover: color-mix(in srgb, var(--action) 88%, black);
+  --primary: var(--ink);
+  --primary-foreground: #ffffff;
+  --color-primary: var(--ink);
+  --color-primary-foreground: #ffffff;
+  --ring: var(--portal, var(--ink));
+  --color-success-hover: #1d3d66;
+}
+/* Every page headline in a portal: serif, navy, with the squiggle drawn under it in the portal's color. A squiggle a page
+   placed itself is hidden so there is one. */
+.theme-portal main h1 {
+  font-family: var(--font-display);
+  font-size: 1.875rem;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.theme-portal main h1::after {
+  content: '';
+  display: block;
+  width: 150px;
+  height: 8px;
+  margin-top: 0.5rem;
+  background-color: var(--portal, #1d4e89);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='8' viewBox='0 0 150 8' fill='none'%3E%3Cpath d='M2 5q18-5 36 0t36 0 36 0 36 0' stroke='black' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat left center / 150px 8px;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='8' viewBox='0 0 150 8' fill='none'%3E%3Cpath d='M2 5q18-5 36 0t36 0 36 0 36 0' stroke='black' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat left center / 150px 8px;
+}
+.theme-portal main h1.text-center::after { margin-inline: auto; }
+.theme-portal .nc-squiggle { display: none; }
+/* Section labels were small grey capitals; in a portal they read as headings, like the candidate site. */
+.theme-portal main h2.uppercase {
+  text-transform: none;
+  letter-spacing: normal;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+/* The portal menu: a light rail. The active item takes the portal's tint and color; counts stay orange. */
+.nc-portal-rail {
+  background-color: #ffffff;
+  border-right: 1px solid var(--border);
+}
+.nc-portal-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-radius: 0.5rem;
+  border-left: 3px solid transparent;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--ink) 80%, transparent);
+  transition: background-color 120ms ease, color 120ms ease;
+}
+.nc-portal-link:hover { background-color: var(--muted); color: var(--ink); }
+.nc-portal-link[aria-current='page'] {
+  border-left-color: var(--portal, var(--ink));
+  background-color: var(--portal-tint, var(--muted));
+  color: var(--portal, var(--ink));
+  font-weight: 600;
+}
+.nc-portal-link.nc-portal-link-primary { background-color: var(--action); color: var(--action-foreground); font-weight: 600; }
+.nc-portal-link.nc-portal-link-primary:hover { background-color: color-mix(in srgb, var(--action) 88%, black); }
+
 /* A primary action that is not a <Button> (a link styled as one). Same colors as Button's default variant. */
 @utility nc-action {
   background-color: var(--button-primary, var(--primary));

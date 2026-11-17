@@ -8,8 +8,9 @@ import { getCurrentRecruiter } from '@/lib/recruiter/current-recruiter'
 import { getRecruiterUnreadCount } from '@/lib/messaging/threads'
 import { prisma } from '@/lib/prisma'
 import { RoleContextBanner } from '@/components/auth/RoleContextBanner'
-import { brandStyle, type PartnerBrand } from '@/lib/partners/brand'
+import { type PartnerBrand } from '@/lib/partners/brand'
 import { recruiterBrand } from '@/lib/partners/resolve-brand'
+import { portalStyle } from '@/lib/partners/portal-types'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -57,7 +58,7 @@ export default async function RecruiterAppLayout({ children }: { children: React
   const brand = await recruiterBrand(recruiter)
 
   return (
-    <div className="theme-partner min-h-screen" style={brandStyle(brand)}>
+    <div className="theme-partner theme-portal min-h-screen" style={portalStyle('recruiter')}>
       <PortalActivityTracker portal="RECRUITER" />
       <PortalHelpLauncher portal="RECRUITER" />
       <Suspense fallback={null}>

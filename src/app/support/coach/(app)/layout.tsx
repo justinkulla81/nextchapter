@@ -9,9 +9,10 @@ import { getCoachUnreadCount } from '@/lib/messaging/threads'
 import { getCoachCaseload } from '@/lib/coach/caseload'
 import { RoleContextBanner } from '@/components/auth/RoleContextBanner'
 import { prisma } from '@/lib/prisma'
-import { brandStyle, type PartnerBrand } from '@/lib/partners/brand'
+import { type PartnerBrand } from '@/lib/partners/brand'
 import { coachBrand } from '@/lib/partners/resolve-brand'
 import { CoachGoogleBanner } from '@/components/coach/google/CoachGoogleBanner'
+import { portalStyle } from '@/lib/partners/portal-types'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -44,7 +45,7 @@ export default async function CoachAppLayout({ children }: { children: React.Rea
   ])
 
   return (
-    <div className="theme-partner min-h-screen" style={brandStyle(brand)}>
+    <div className="theme-partner theme-portal min-h-screen" style={portalStyle('coach')}>
       <PortalActivityTracker portal="COACH" />
       <PortalHelpLauncher portal="COACH" />
       <Suspense fallback={null}>
