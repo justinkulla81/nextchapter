@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
 import { posthog } from '@/lib/posthog/client'
-import { addEcosystemPartner, createInvite, decideClaim, removeEcosystemPartner, seedEcosystem, type HubResult } from '@/app/i/[slug]/(portal)/hub-actions'
+import { addEcosystemPartner, createInvite, decideClaim, giveEcosystemAccess, removeEcosystemAccess, removeEcosystemPartner, seedEcosystem, type HubResult } from '@/app/i/[slug]/(portal)/hub-actions'
 import { ECO_KINDS } from '@/lib/workforce/ecosystem'
 
 function Msg({ r }: { r: HubResult }) {
@@ -138,6 +138,40 @@ export function RemovePartnerButton({ slug, id, name }: { slug: string; id: stri
       <input type="hidden" name="id" value={id} />
       <SubmitButton size="sm" variant="ghost" pendingLabel="Removing…">
         Remove
+      </SubmitButton>
+      <Msg r={state} />
+    </form>
+  )
+}
+
+// Give a confirmed partner's contact their own page. The email starts as the one they asked to join with.
+export function GiveAccessForm({ slug, partnerId, name, defaultEmail }: { slug: string; partnerId: string; name: string; defaultEmail: string }) {
+  const [state, action] = useActionState<HubResult, FormData>(giveEcosystemAccess.bind(null, slug), undefined)
+  return (
+    <form action={action} className="flex flex-wrap items-center gap-2">
+      <input type="hidden" name="partnerId" value={partnerId} />
+      <Input name="email" type="email" required defaultValue={defaultEmail} aria-label={`Work email for someone at ${name}`} placeholder="Work email" className="h-8 w-64 text-sm" />
+      <SubmitButton size="sm" variant="outline" pendingLabel="Giving access…">
+        Give access
+      </SubmitButton>
+      <Msg r={state} />
+    </form>
+  )
+}
+
+export function RemoveAccessButton({ slug, id, email }: { slug: string; id: string; email: string }) {
+  const [state, action] = useActionState<HubResult, FormData>(removeEcosystemAccess.bind(null, slug), undefined)
+  return (
+    <form
+      action={action}
+      onSubmit={(e) => {
+        if (!window.confirm(`Remove ${email}’s access? They keep their sign-in but can no longer open this page.`)) e.preventDefault()
+      }}
+      className="flex items-center gap-2"
+    >
+      <input type="hidden" name="id" value={id} />
+      <SubmitButton size="sm" variant="ghost" pendingLabel="Removing…">
+        Remove access
       </SubmitButton>
       <Msg r={state} />
     </form>

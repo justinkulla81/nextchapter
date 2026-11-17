@@ -20,9 +20,11 @@ function Msg({ r }: { r: HubResult }) {
 }
 
 // Make a partner view. Who it is for and how long it lasts are two to three choices, so they are buttons side by side.
-export function PartnerViewForm({ slug }: { slug: string }) {
+export function PartnerViewForm({ slug, partners = [] }: { slug: string; partners?: { id: string; name: string }[] }) {
   const [state, action] = useActionState<HubResult, FormData>(createPartnerView.bind(null, slug), undefined)
   const [kind, setKind] = useState<string>('COLLEGE')
+  const [name, setName] = useState('')
+  const [partnerId, setPartnerId] = useState('')
   const [days, setDays] = useState<number>(30)
   const [scopes, setScopes] = useState<string[]>(DEFAULT_SCOPES.COLLEGE)
   const pickKind = (k: string) => {
@@ -33,8 +35,32 @@ export function PartnerViewForm({ slug }: { slug: string }) {
     <form action={action} className="space-y-4">
       <div className="space-y-1.5">
         <Label htmlFor="pv-name">Who is it for?</Label>
-        <Input id="pv-name" name="partnerName" required maxLength={120} placeholder="For example, Jefferson Community and Technical College" />
+        <Input id="pv-name" name="partnerName" required maxLength={120} value={name} onChange={(e) => setName(e.target.value)} placeholder="For example, Jefferson Community and Technical College" />
       </div>
+      {partners.length > 0 && (
+        <div className="space-y-1.5">
+          <Label htmlFor="pv-partner">Is it for a partner with its own page? (optional)</Label>
+          <select
+            id="pv-partner"
+            name="ecosystemPartnerId"
+            value={partnerId}
+            onChange={(e) => {
+              setPartnerId(e.target.value)
+              const p = partners.find((x) => x.id === e.target.value)
+              if (p) setName(p.name)
+            }}
+            className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+          >
+            <option value="">No, just a link</option>
+            {partners.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-muted-foreground">The view also appears on that partner’s own page, under Shared with you.</p>
+        </div>
+      )}
       <fieldset className="space-y-1.5">
         <legend className="text-sm font-medium">Kind of partner</legend>
         <input type="hidden" name="partnerKind" value={kind} />

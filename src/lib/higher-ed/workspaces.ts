@@ -15,6 +15,8 @@ export type WorkspaceKey =
   | 'teaching'
   | 'execed'
   | 'employer'
+  // A person at a confirmed ecosystem partner (college, provider, employer, group): only their own partner's page.
+  | 'partnerview'
   | 'admin'
   | 'workforce'
   // Workforce customers (boards, economic development orgs, chambers):
@@ -27,7 +29,7 @@ export type WorkspaceKey =
 // InstitutionUser; a VIEWER seat is scoped to one workspace ("VIEWER:alumni");
 // MEMBER is an InstitutionMember; EMPLOYER is a seat on an APPROVED
 // InstitutionEmployer.
-export type AccessToken = InstitutionUserRole | `VIEWER:${string}` | 'MEMBER' | 'EMPLOYER' | `EMPLOYER:${EmployerRole}`
+export type AccessToken = InstitutionUserRole | `VIEWER:${string}` | 'MEMBER' | 'EMPLOYER' | `EMPLOYER:${EmployerRole}` | 'PARTNER'
 
 // The part of a member company's view one of its people works in (MemberCompanyContact.roles, owner 2026-11-17).
 // EMPLOYER alone is the company's main login and sees all of it.
@@ -268,6 +270,22 @@ export const WORKSPACES: WorkspaceConfig[] = [
     ],
   },
   {
+    // A person at a confirmed ecosystem partner (a college, training provider, employer or community group the organization
+    // confirmed in Partners > Ecosystem). Its own key, not 'partner': /i/<slug>/partner/<token> is the public claim page. They see their own partner's page and what the organization shared with it, nothing else.
+    key: 'partnerview',
+    label: 'Partner',
+    workforceLabel: 'Partner view',
+    icon: 'Landmark',
+    release: 'V1',
+    requiredRoles: ['PARTNER'],
+    homePath: 'partnerview',
+    orgKind: 'workforce',
+    tabs: [
+      { key: 'overview', label: 'Your partnership', comingIn: null },
+      { key: 'shared', label: 'Shared with you', comingIn: null },
+    ],
+  },
+  {
     // A workforce customer's own work: the companies it serves, the people
     // it's helping, layoffs in its region, and how many it kept local.
     key: 'hub',
@@ -446,6 +464,7 @@ export const ALL_TOKENS: ReadonlySet<AccessToken> = new Set<AccessToken>([
   'WORKFORCE_PARTNER',
   'MEMBER',
   'EMPLOYER',
+  'PARTNER',
 ])
 
 // Demo-only "Preview as" personas: an nc_admin on a demo tenant can narrow
@@ -471,6 +490,8 @@ export const DEMO_PERSONAS = [
   { key: 'EMPLOYER:grants', label: 'Employer: grants and RFPs', tokens: ['EMPLOYER:grants'] },
   { key: 'EMPLOYER:workforce', label: 'Employer: workforce development partnerships', tokens: ['EMPLOYER:workforce'] },
   { key: 'EMPLOYER:colleges', label: 'Employer: college partnerships', tokens: ['EMPLOYER:colleges'] },
+  // Workforce only: a person at a confirmed ecosystem partner (a college, provider or group).
+  { key: 'PARTNER', label: 'Partner', tokens: ['PARTNER'] },
 ] as const satisfies readonly { key: string; label: string; tokens: readonly AccessToken[] }[]
 
 export type DemoPersonaKey = (typeof DEMO_PERSONAS)[number]['key']

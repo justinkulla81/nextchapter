@@ -218,6 +218,14 @@ it gives no access. The steward sees it under "Waiting for you" (and on Home) wi
 confirms or declines. Rate limited by network and by email; a hidden field catches bots. Not built yet: a partner signing in to keep its own profile, tying a
 confirmed partner to its public page claim, and platform-sent invitations.
 
+Built (phase 11): **partner accounts.** On Partners > Ecosystem, a confirmed partner gets a "Partner pages" row: the steward gives access to an email (it starts
+as the one the partner joined with). A real organization emails that person a one-time sign-in link; a demo never emails, so the link comes back to copy. The
+person signs in and holds a `PARTNER` access token for that one partner, which opens a **Partner view** with two pages: *Your partnership* (what you offer, editable;
+who has access on your side) and *Shared with you* (the read-only partner views the organization linked to the partner). It shows nothing about individual job
+seekers and no other partner. Access ends when the contact is removed or the partner is no longer confirmed. **Free versus paid (owner defaults, 2026-11-17):** free
+means see, paid means act on people; a free workspace gives access to 3 partner contacts in all, a paid one has no limit. Nothing else in the Talent Hub is
+plan-gated yet. The workspace key is `partnerview`, because `/i/<slug>/partner/<token>` is the public claim page.
+
 ## Public presence
 
 One screen lists **every public page the organization controls**: its claimed page, layoff pages for employers in its region, the relocation page,

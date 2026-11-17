@@ -360,6 +360,14 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
     ],
   })
 
+  // A view shared with the confirmed partner, so the partner preview (Shared with you) has something to open.
+  const confirmedPartner = await prisma.ecosystemPartner.findFirst({ where: { institutionId, status: 'CONFIRMED' }, orderBy: { createdAt: 'asc' }, select: { id: true, name: true } })
+  if (confirmedPartner) {
+    await prisma.partnerView.create({
+      data: { institutionId, token: randomBytes(24).toString('base64url'), partnerName: confirmedPartner.name, partnerKind: 'EMPLOYER', scopes: ['SKILLS', 'JOBS'], note: 'What employers ask for across the region, and the open jobs near you.', expiresAt: new Date(now.getTime() + 90 * DAY), createdBy: 'demo', isSampleData: true, ecosystemPartnerId: confirmedPartner.id },
+    })
+  }
+
   // Three open jobs near the anchor city, featured, so the Jobs area and the member's list show what featuring does.
   const openJobs = !localTowns[0] ? [] : await prisma.exclusiveJobPosting
     .findMany({
