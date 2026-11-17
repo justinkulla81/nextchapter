@@ -27,6 +27,8 @@ type Props = { ctx: WorkspaceContext; searchParams: { company?: string }; base: 
 
 const day = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
 const money = (n: number) => `$${Math.round(n / 1000).toLocaleString('en-US')}k`
+// "2026-09" (how BLS periods are stored) to "Sep 2026".
+const period = (p: string) => (/^\d{4}-\d{2}$/.test(p) ? new Intl.DateTimeFormat('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${p}-01T00:00:00Z`)) : p)
 
 function Section({ title, intro, children }: { title: string; intro?: string; children: React.ReactNode }) {
   return (
@@ -215,14 +217,14 @@ export async function BusinessPitch({ ctx, searchParams, base }: Props) {
 
         <Section title="Talent">
           <div className="grid gap-3 sm:grid-cols-3">
-            {un && <Fact label={`Labor force, ${un.area}`} value={un.laborForce ? un.laborForce.toLocaleString('en-US') : '—'} source={`${un.period}, U.S. Bureau of Labor Statistics`} />}
-            {un && <Fact label={`Unemployment, ${un.area}`} value={`${un.rate}%`} source={`${un.period}, U.S. Bureau of Labor Statistics`} />}
+            {un && <Fact label={`Labor force, ${un.area}`} value={un.laborForce ? un.laborForce.toLocaleString('en-US') : '—'} source={`${period(un.period)}, U.S. Bureau of Labor Statistics`} />}
+            {un && <Fact label={`Unemployment, ${un.area}`} value={`${un.rate}%`} source={`${period(un.period)}, U.S. Bureau of Labor Statistics`} />}
             {market && market.medianMid !== null && <Fact label={`Median posted pay, ${city}`} value={money(market.medianMid)} source={`${market.withPay} current postings with pay, NextChapter`} />}
           </div>
           {byFunction.length > 0 && (
             <p className="text-sm">
               <span className="font-medium">Ready to hire through {ctx.institution.name}:</span>{' '}
-              {byFunction.map((c) => `${c.n} in ${c.label.toLowerCase()}`).join(', ')}. <span className="text-xs text-muted-foreground">People in the program, counted without names; groups under {MIN_GROUP} left out.</span>
+              {byFunction.map((c) => `${c.n} in ${c.label.replace(/^[A-Z](?![A-Z])/, (ch) => ch.toLowerCase())}`).join(', ')}. <span className="text-xs text-muted-foreground">People in the program, counted without names; groups under {MIN_GROUP} left out.</span>
             </p>
           )}
           {market && market.skills.length > 0 && (
