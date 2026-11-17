@@ -23,7 +23,10 @@ import { noticesForCollege } from '@/lib/seo/org-notices'
 import { areaName, crmOrgForCollege, getCollegePage, type CollegePageData } from '@/lib/seo/college-pages'
 import { functionByName, functionPath } from '@/lib/seo/topics'
 import { campusImage } from '@/lib/places/place-image'
-import { MAJORS_PATH, collegeFamilyPath } from '@/lib/rankings/majors'
+import { MAJORS_PATH, MAJOR_YEAR, collegeFamilyPath } from '@/lib/rankings/majors'
+import { collegeMajorsView, loadCollegeMajors } from '@/lib/rankings/college-majors'
+import { getDegreeFields } from '@/lib/rankings/store'
+import { CollegeMajorsSection } from '@/components/seo/CollegeMajorsSection'
 
 // One page per college: IPEDS and College Scorecard facts, the job market in its county, the workforce board and
 // American Job Centers that serve it, and peer colleges. Built on first visit, refreshed daily. A college below the
@@ -89,11 +92,15 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
   const where = c.city ? `${c.city}, ${st}` : st
   // The college's own colors, read from its website (src/lib/branding), when we have them.
   const brand = await getOrgBrand('COLLEGE', c.unitid)
+  // Its majors from a static federal file, read against each field's national job market (one stored row, hourly copy).
+  const [rawMajors, degreeFields] = await Promise.all([loadCollegeMajors(c.state, c.unitid), getDegreeFields()])
+  const majors = collegeMajorsView(rawMajors, degreeFields)
   // What the college wrote on its own page (paid plan, src/lib/public-page), read through the shared cache.
   const own = await publishedContentFor((await crmOrgForCollege(c).catch(() => null))?.id)
 
   const faq: { q: string; a: string }[] = []
   if (c.enrollment) faq.push({ q: `How big is ${c.name}?`, a: `${c.name} enrolls about ${n0(c.enrollment)} students and is a ${kind(c)} institution in ${where}${c.annualAwards ? `. It awards about ${n0(c.annualAwards)} degrees and certificates a year` : ''}.` })
+  if (majors.rows.length) faq.push({ q: `What are the most popular majors at ${c.name}?`, a: `By degrees awarded at bachelor's level and above in ${MAJOR_YEAR}: ${majors.rows.slice(0, 5).map((r) => `${r.major.title} (${n0(r.total)})`).join(', ')}, from IPEDS completions.` })
   if (c.completionRate != null) faq.push({ q: `What is the graduation rate at ${c.name}?`, a: `${pct(c.completionRate)} of students complete, from the U.S. Department of Education College Scorecard (${c.dataYear ?? 'latest release'}).` })
   if (c.earnings10 != null || c.earnings6 != null) {
     faq.push({ q: `What do ${c.name} graduates earn?`, a: `Median earnings of students who received federal aid are ${[c.earnings6 != null ? `${usd(c.earnings6)} six years after entry` : '', c.earnings10 != null ? `${usd(c.earnings10)} ten years after entry` : ''].filter(Boolean).join(' and ')}, from the College Scorecard.` })
@@ -170,7 +177,9 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
         )}
       </section>
 
-      {c.topMajors.length > 0 && (
+      {majors.rows.length > 0 && <CollegeMajorsSection name={c.name} unitid={c.unitid} view={majors} />}
+
+      {majors.rows.length === 0 && c.topMajors.length > 0 && (
         <section aria-labelledby="programs" className="mt-12">
           <h2 id="programs" className={H2}>What students study</h2>
           <div className="mt-4 overflow-x-auto rounded-xl border border-border bg-white">

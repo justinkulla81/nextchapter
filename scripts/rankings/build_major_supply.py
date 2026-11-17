@@ -10,6 +10,8 @@ Inputs (free, nces.ed.gov/ipeds/datacenter/data/<name>.zip), unzipped into one f
 
 Counts first majors only (MAJORNUM 1), so a double major is one degree, and only degrees at bachelor's level and above
 (AWLEVEL 5 bachelor's, 7 master's, 17/18/19 doctoral), plus associate degrees (3) kept apart for reference.
+Also writes src/lib/rankings/data/college-majors/<ST>.json: each college's majors (up to 40, most degrees first) as
+[cip series, bachelor's, master's, doctoral], for the majors section of the college pages.
 Run: python3 -I scripts/rankings/build_major_supply.py <folder>
 """
 import csv, collections, json, os, re, sys
@@ -78,6 +80,7 @@ hd = {r['UNITID']: (r['INSTNM'].strip(), r['STABBR'].strip()) for r in rows('HD2
 def load(name):
     deg = collections.defaultdict(collections.Counter)  # series -> level -> n
     by_school = collections.defaultdict(collections.Counter)  # series -> unitid -> bachelor's and above
+    school_levels = collections.defaultdict(lambda: collections.defaultdict(collections.Counter))  # unitid -> series -> level -> n
     for r in rows(name):
         if r['MAJORNUM'] != '1':
             continue
@@ -92,11 +95,12 @@ def load(name):
         deg[s][lvl] += k
         if lvl != 'a':
             by_school[s][r['UNITID']] += k
-    return deg, by_school
+            school_levels[r['UNITID']][s][lvl] += k
+    return deg, by_school, school_levels
 
 
-now, schools = load('C2024_a.csv')
-base, _ = load('c2021_a.csv')
+now, schools, per_college = load('C2024_a.csv')
+base, _, _ = load('c2021_a.csv')
 
 majors = {}
 for s in sorted(now):
@@ -122,6 +126,22 @@ out = {
 }
 with open(OUT, 'w') as f:
     json.dump(out, f, separators=(',', ':'), ensure_ascii=False)
+# Each college's majors, one file per state so a college page loads only its state's.
+cdir = os.path.join(os.path.dirname(OUT), 'college-majors')
+os.makedirs(cdir, exist_ok=True)
+for old in os.listdir(cdir):
+    os.remove(os.path.join(cdir, old))
+by_state = collections.defaultdict(dict)
+for u, ms in per_college.items():
+    if u not in hd:
+        continue
+    rows_ = sorted(((s_, c['b'], c['m'], c['d']) for s_, c in ms.items() if s_ in majors), key=lambda x: (-(x[1] + x[2] + x[3]), x[0]))[:40]
+    if rows_:
+        by_state[hd[u][1]][u] = [list(x) for x in rows_]
+for st, d in by_state.items():
+    with open(os.path.join(cdir, f'{st}.json'), 'w') as f:
+        json.dump(d, f, separators=(',', ':'))
+print('college files', len(by_state), 'colleges', sum(len(d) for d in by_state.values()), 'bytes', sum(os.path.getsize(os.path.join(cdir, x)) for x in os.listdir(cdir)))
 tot = sum(m['b'] for m in majors.values())
 print('majors', len(majors), "bachelor's", tot, 'bytes', os.path.getsize(OUT))
 unmapped = collections.Counter()
