@@ -160,7 +160,23 @@ export default async function LearningPage({ searchParams }: { searchParams: Pro
       payLine: aiPaySentence(payNote),
     })
     const aiTitles = new Set(aiGapItems.map((i) => i.title))
+    // The person's own plan: at most 12 narrow rows.
+    const planEntries = await prisma.learningPlanEntry.findMany({
+      where: { candidateId: profile.id },
+      orderBy: { createdAt: 'desc' },
+      take: 12,
+      select: { id: true, title: true, provider: true, url: true, status: true, createdAt: true },
+    })
+    // Workforce groups the person belongs to: they count plans without names (Talent Hub › Market › Skills gaps), so the plan says so.
+    const groups = planEntries.length
+      ? await prisma.institutionMember.findMany({
+          where: { candidateId: profile.id, status: { in: ['CLAIMED', 'ACTIVE'] }, institution: { orgType: { not: 'COLLEGE' } } },
+          take: 3,
+          select: { institution: { select: { name: true, programBrandName: true } } },
+        })
+      : []
     captureServerEvent(profile.id, 'learn_home_viewed', {
+      planSize: planEntries.length,
       hasFeatured: !!picks.featured,
       featuredHasReason: !!picks.featured?.rationale,
       featuredIsAiGap: !!picks.featured && aiTitles.has(picks.featured.title),
@@ -180,6 +196,8 @@ export default async function LearningPage({ searchParams }: { searchParams: Pro
           more={picks.more}
           enrolledTitles={enrolledTitles}
           completedCount={badges.length}
+          countedBy={groups.map((g) => g.institution.programBrandName ?? g.institution.name)}
+          plan={planEntries.map((p) => ({ ...p, provider: p.provider ?? 'the provider' }))}
           allHref="/dashboard/learning?all=1"
           why={why}
           aiExposureBand={exposure?.band ?? null}

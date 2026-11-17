@@ -7,7 +7,7 @@ const WEEK = 7 * 86_400_000
 
 /**
  * The people in an organization's group, as the coarse fields skills intelligence needs. One bounded read (at most 3,000 members,
- * a narrow row each, about 2 MB), shared for 30 minutes per organization. Résumé keywords are read only to be counted against a skills
+ * a narrow row each, about 2 MB, plus their planned-course skills, about 0.3 MB), shared for 30 minutes per organization. Résumé keywords are read only to be counted against a skills
  * vocabulary; nothing here carries a name or an email.
  */
 export const loadSupply = memoTtl(
@@ -19,15 +19,21 @@ export const loadSupply = memoTtl(
       where: { institutionId, candidateId: { not: null } },
       take: 3000,
       select: {
+        candidateId: true,
         candidate: { select: { primaryFunction: true, industryBucket: true, highestLevelReached: true, yearsExperience: true, journey: true, journeyStage: true, journeyChangedAt: true, resumeKeywords: true } },
         consents: { where: { scope: 'SHARE_DOSSIER_WITH_EMPLOYERS' }, orderBy: { changedAt: 'desc' }, take: 1, select: { granted: true } },
       },
     })
+    // What each person plans to learn: skill names only, from planned or started courses in their own plan. One narrow read.
+    const ids = rows.flatMap((r) => (r.candidateId ? [r.candidateId] : []))
+    const plans = ids.length ? await prisma.learningPlanEntry.findMany({ where: { candidateId: { in: ids }, status: { in: ['PLANNED', 'STARTED'] } }, select: { candidateId: true, skills: true } }).catch(() => []) : []
+    const planning = new Map<string, string[]>()
+    for (const e of plans) planning.set(e.candidateId, [...(planning.get(e.candidateId) ?? []), ...e.skills])
     return rows.flatMap((r) => {
       const c = r.candidate
       if (!c) return []
       const out = c.journey === 'LAID_OFF' && c.journeyStage !== 'LANDED' && c.journeyChangedAt ? Math.floor((now - c.journeyChangedAt.getTime()) / WEEK) : null
-      return [{ function: c.primaryFunction, industry: c.industryBucket, level: c.highestLevelReached, years: c.yearsExperience, weeksOut: out, keywords: c.resumeKeywords, dossier: r.consents[0]?.granted === true }]
+      return [{ function: c.primaryFunction, industry: c.industryBucket, level: c.highestLevelReached, years: c.yearsExperience, weeksOut: out, keywords: c.resumeKeywords, planning: planning.get(r.candidateId ?? '') ?? [], dossier: r.consents[0]?.granted === true }]
     })
   },
 )

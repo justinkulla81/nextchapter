@@ -1572,6 +1572,7 @@ model CandidateProfile {
   peerNominations                PeerNomination[]
   learningBadges                 LearningBadge[]
   courseActivity                 CandidateCourseActivity[]
+  learningPlanEntries            LearningPlanEntry[]
   platformActivity               CandidatePlatformActivity[]
   platformEvents                 CandidatePlatformEvent[]
   aiToolFamiliarity              CandidateAiToolFamiliarity[]
@@ -2620,6 +2621,29 @@ model CandidateCourseActivity {
 
   @@unique([candidateId, courseTitle])
   @@index([candidateId])
+}
+
+// A course the person added to their own learning plan (Learn › Skills and courses). status: PLANNED | STARTED | DONE, set by the
+// person (self-reported: a plan's "Done" is not a verified completion and never goes on the profile or dossier; those still come from
+// the completion email, see CandidateCourseActivity). skills are names from the workforce skills dictionary
+// (src/lib/workforce/skills-dictionary.ts), read from the title when it is added, so an organization can count the skills its
+// group plans to learn without a name. At most 12 a person.
+model LearningPlanEntry {
+  id           String           @id @default(cuid())
+  candidateId  String
+  candidate    CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  title        String
+  provider     String?
+  url          String
+  skills       String[]         @default([])
+  status       String           @default("PLANNED")
+  slot         String? // where it was added from: featured | more
+  isSampleData Boolean          @default(false)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@unique([candidateId, title])
+  @@index([candidateId, status])
 }
 
 // One row per tool a candidate has either marked "already familiar" (a

@@ -12,6 +12,7 @@ export type Person = {
   years: number | null
   weeksOut: number | null // weeks since a layoff, for people still searching
   keywords: string[]
+  planning?: string[] // skills named by the courses they plan or have started (their own learning plan), from the skills dictionary
   dossier: boolean // chose to share their profile with employers and partners (SHARE_DOSSIER_WITH_EMPLOYERS)
 }
 
@@ -52,6 +53,19 @@ export function gapRows(demand: SkillCount[], people: Person[], limit = 14): Gap
     const share = n ? c / n : 0
     return { skill: d.skill, demandPostings: d.postings, demandShare: d.share, supplyPeople: shown ? c : null, supplyShare: n >= MIN_GROUP ? share : null, gap: n >= MIN_GROUP ? d.share - share : null }
   })
+}
+
+/**
+ * How many people in the group plan to learn each skill (a planned or started course in their own learning plan names it).
+ * Counted without names. Zero shows as zero; one to four are hidden (null); nothing is shown for a group under MIN_GROUP.
+ */
+export function planningCounts(people: Person[]): Map<string, number | null> {
+  const m = new Map<string, number | null>()
+  if (people.length < MIN_GROUP) return m
+  const c = new Map<string, number>()
+  for (const p of people) for (const s of new Set(p.planning ?? [])) c.set(s, (c.get(s) ?? 0) + 1)
+  for (const [s, n] of c) m.set(s, n >= MIN_GROUP ? n : null)
+  return m
 }
 
 export type Counted = { label: string; n: number | null }

@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { readLocal } from '@/lib/workforce/local'
 import { marketJobs } from '@/lib/workforce/market-jobs'
 import { loadSupply } from '@/lib/workforce/skills-supply'
-import { MIN_GROUP, anonymizeCandidates, countBy, gapRows, seniorityBand, weeksBand } from '@/lib/workforce/skills-intel'
+import { MIN_GROUP, anonymizeCandidates, countBy, gapRows, planningCounts, seniorityBand, weeksBand } from '@/lib/workforce/skills-intel'
 import { StatTile } from './StatTile'
 
 type Props = { ctx: WorkspaceContext; searchParams: object; base: string }
@@ -32,6 +32,8 @@ export async function HubSkillsGaps({ ctx }: Props) {
   const [market, people] = await Promise.all([local ? marketJobs(local.anchorCity, local.anchorState).catch(() => null) : Promise.resolve(null), loadSupply(ctx.institution.id).catch(() => [])])
   const withSkills = people.filter((p) => p.keywords.length > 0)
   const rows = market ? gapRows(market.skills, withSkills) : []
+  const planning = planningCounts(people)
+  const planningCell = (skill: string) => (planning.size === 0 ? '—' : !planning.has(skill) ? 'None' : planning.get(skill) === null ? `<${MIN_GROUP} people` : `${shown(planning.get(skill) as number)} people`)
   const enough = withSkills.length >= MIN_GROUP
   const biggest = enough ? [...rows].filter((r) => r.gap !== null).sort((a, b) => (b.gap ?? 0) - (a.gap ?? 0))[0] : null
   return (
@@ -46,7 +48,7 @@ export async function HubSkillsGaps({ ctx }: Props) {
         <StatTile label="Largest gap" value={biggest ? biggest.skill : '—'} note={biggest && biggest.gap !== null ? `${Math.round(biggest.gap * 100)} ${Math.round(biggest.gap * 100) === 1 ? 'point' : 'points'} more demand than supply` : undefined} />
       </div>
 
-      <Section title="Demand against supply" intro="Demand is the share of current local postings that name the skill. Supply is the share of people in your group whose résumé names it. A gap is demand minus supply.">
+      <Section title="Demand against supply" intro="Demand is the share of current local postings that name the skill. Supply is the share of people in your group whose résumé names it. A gap is demand minus supply. Planning to learn counts people whose own learning plan has a planned or started course that teaches the skill.">
         {!market || rows.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">No postings with descriptions found for this region yet.</p>
         ) : !enough ? (
@@ -59,7 +61,7 @@ export async function HubSkillsGaps({ ctx }: Props) {
             <table className="w-full text-sm">
               <thead className="bg-muted/50">
                 <tr>
-                  {['Skill', 'Demand', 'Supply', 'Gap'].map((h) => (
+                  {['Skill', 'Demand', 'Supply', 'Gap', 'Planning to learn'].map((h) => (
                     <th key={h} className="px-3 py-2 text-left font-medium">
                       {h}
                     </th>
@@ -75,6 +77,7 @@ export async function HubSkillsGaps({ ctx }: Props) {
                     </td>
                     <td className="px-3 py-2 tabular-nums">{r.supplyShare === null ? '—' : r.supplyPeople === null ? `<${MIN_GROUP} people` : `${pct(r.supplyShare)} (${shown(r.supplyPeople)} people)`}</td>
                     <td className="px-3 py-2 tabular-nums">{r.gap === null ? '—' : r.gap > 0.005 ? `${Math.max(1, Math.round(r.gap * 100))} ${Math.round(r.gap * 100) <= 1 ? 'point' : 'points'} short` : 'Covered'}</td>
+                    <td className="px-3 py-2 tabular-nums">{planningCell(r.skill)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -83,7 +86,7 @@ export async function HubSkillsGaps({ ctx }: Props) {
         )}
       </Section>
       <p className="max-w-3xl text-xs text-muted-foreground">
-        How this is made: skills are matched against a fixed vocabulary in posting text and in résumé keywords, one count per posting or person. It is a signal, not a ruling on a role. People are counted without names, and any group under {MIN_GROUP} is hidden.
+        How this is made: skills are matched against a fixed vocabulary in posting text and in résumé keywords, one count per posting or person. It is a signal, not a ruling on a role. Learning plans are counted the same way, from the skills a planned or started course names. People are counted without names, and any group under {MIN_GROUP} is hidden.
       </p>
     </div>
   )
