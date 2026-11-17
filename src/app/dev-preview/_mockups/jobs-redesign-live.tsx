@@ -169,7 +169,7 @@ const score = (key: string, label: string, evidence: string[]) => ({ key, label,
 const STRENGTHS = {
   shape: 'peaked',
   peaks: [
-    score('execution', 'Gets things done', ['Higher than 86% of people in operations on How I Perform execution', '2 references rated your follow-through 4.8 of 5', 'You picked it as a top strength']),
+    score('execution', 'Gets things done', ['Higher than 86% of people in operations on How I Perform execution', '2 references rated your follow-through 4.8 of 5', 'You named it as one of your top strengths']),
     score('leadership', 'Leads people', ['Led a team of 51–200, larger than 78% of people in your field']),
     score('scale', 'Operates at scale', ['You owned a budget of $10M–$100M, carried a P&L, more than 81% of people in your field']),
   ],

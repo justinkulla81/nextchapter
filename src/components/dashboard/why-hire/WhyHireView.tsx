@@ -26,15 +26,21 @@ const partHref = (p: WhyHirePart) => (p === 'edge' ? BASE : `${BASE}?part=${p}`)
 export function WhyHireView({ part, st, extras, statement, skills }: { part: WhyHirePart; st: Strengths; extras: WhyHireExtras; statement: ReactNode; skills: ReactNode }) {
   const next = extras.marks.find((m) => !m.done)
   const open = extras.marks.filter((m) => !m.done).length + st.weakSpots.length
+  const have = extras.marks.length - extras.marks.filter((m) => !m.done).length
+  // The one primary action, with the reason next to it: a button alone says what, not why this one or why now.
   const action =
     part === 'pitch' && !extras.pitch ? null : next ? (
-      <ActionLink href={next.href} kind="primary" event="why_hire_step_clicked" props={{ mark: next.key, part, place: 'header' }}>
-        {next.step}
-      </ActionLink>
+      <NextStep why={`${next.why} It takes you to ${have + 1} of ${extras.marks.length} proofs.`}>
+        <ActionLink href={next.href} kind="primary" event="why_hire_step_clicked" props={{ mark: next.key, part, place: 'header' }}>
+          {next.step}
+        </ActionLink>
+      </NextStep>
     ) : (
-      <ActionLink href="/dashboard/linkedin" kind="primary" event="why_hire_step_clicked" props={{ mark: 'linkedin', part, place: 'header' }}>
-        Put it on LinkedIn
-      </ActionLink>
+      <NextStep why="Every proof is in place. Put your edge where recruiters look first.">
+        <ActionLink href="/dashboard/linkedin" kind="primary" event="why_hire_step_clicked" props={{ mark: 'linkedin', part, place: 'header' }}>
+          Put it on LinkedIn
+        </ActionLink>
+      </NextStep>
     )
   return (
     <div className="space-y-8">
@@ -53,6 +59,16 @@ export function WhyHireView({ part, st, extras, statement, skills }: { part: Why
       {part === 'edge' && <EdgePart st={st} extras={extras} statement={statement} />}
       {part === 'gaps' && <GapsPart st={st} extras={extras} skills={skills} />}
       {part === 'pitch' && <PitchPart st={st} extras={extras} />}
+    </div>
+  )
+}
+
+function NextStep({ why, children }: { why: string; children: ReactNode }) {
+  return (
+    <div className="max-w-sm space-y-2">
+      <p className="text-sm font-semibold text-ink">Your next step</p>
+      {children}
+      <p className="text-sm text-muted-foreground">{why}</p>
     </div>
   )
 }
@@ -77,6 +93,17 @@ export function WhyHireStatement({ whyHire }: { whyHire: WhyHire }) {
           ))}
         </ul>
       )}
+      <div className="space-y-2 pt-2">
+        <p className="max-w-2xl text-base text-muted-foreground">
+          Use it as the first lines of a cover note or your LinkedIn About, and as your answer when an interviewer asks why they should hire you.
+        </p>
+        <div className="flex flex-wrap items-center gap-4">
+          <CopyText text={whyHire.statement} kind="why_hire_statement" label="Copy it" />
+          <ActionLink href={partHref('pitch')} variant="text" event="why_hire_step_clicked" props={{ mark: 'pitch', part: 'edge', place: 'statement' }}>
+            Turn it into a 30-second pitch
+          </ActionLink>
+        </div>
+      </div>
     </div>
   )
 }
@@ -93,23 +120,13 @@ function EdgePart({ st, extras, statement }: { st: Strengths; extras: WhyHireExt
         {statement}
       </VerdictPanel>
       {lead.length > 0 && (
-        <SectionBlock id="best-h" title={st.shape === 'peaked' ? 'What you are best at' : 'Where you are strong'} why="Each one rests on the evidence under it. Lead with the first in every application and conversation.">
+        <SectionBlock id="best-h" title={st.shape === 'peaked' ? 'What you are best at' : 'Where you are strong'} why="What backs each one is under it. Lead with the first in every application and conversation.">
           <RowList
             label="Strengths"
             items={lead.map((x) => ({
               key: x.key,
               title: x.label,
-              why: x.evidence[0],
-              fact: x.sources > 1 ? `${x.sources} kinds of evidence agree` : undefined,
-              detail:
-                x.evidence.length > 1 ? (
-                  <ul className="list-disc space-y-1 pl-5 text-base text-ink">
-                    {x.evidence.slice(1).map((e) => (
-                      <li key={e}>{e}</li>
-                    ))}
-                  </ul>
-                ) : undefined,
-              detailLabel: 'More evidence',
+              why: `${x.evidence.join('. ')}.`,
             }))}
           />
           {st.shape === 'balanced' && (
