@@ -176,6 +176,68 @@ One screen lists **every public page the organization controls**: its claimed pa
 employer and partner pages, events, and the program and job feeds. Each shows its status (published, draft, unclaimed), who can edit it, what it feeds in
 the portal, its visits, and an edit and unpublish control.
 
+## Organizations working together: shared, connected and combined portals
+
+Owner direction, 2026-11-17. A place has many organizations with a stake in the same people and employers. In Louisville: One Louisville
+(the metro chamber and economic development organization, formerly Greater Louisville Inc.; Live in Lou is its talent program),
+KentuckianaWorks (the Greater Louisville Workforce Development Board, which runs the American Job Centers), the colleges, and community
+groups. Each must be able to stay **separate**, and also **work together** on the place. This applies to every kind of organization on the
+platform (workforce boards, economic development, chambers, colleges, employers, community groups), not only economic development and jobs.
+
+Three ways to work together, from closest to loosest:
+
+| | Shared portal | Connected portals | Combined view |
+|---|---|---|---|
+| What it is | One portal, staff from several organizations, each with their own permissions | Two separate portals that agree to share chosen things | A read-only view over several portals |
+| Example | One Louisville's portal with KentuckianaWorks staff given the People and Support areas | One Louisville and KentuckianaWorks each run their own portal and share layoffs, jobs, events and referrals | "Greater Louisville": One Louisville, KentuckianaWorks and JCTC rolled up for a regional report |
+| Who owns the data | The portal's organization | Each keeps its own; shared items are copies or links both can see | Nobody new: it reads each portal's own data |
+| Built on | `InstitutionUser` roles (a board's staff already get a read-only `WORKFORCE_PARTNER` seat in a college portal) | New: a connection record | `InstitutionSystem` (today a college system's read-only dashboard over its campuses), opened to every organization type |
+
+**1. Shared portal: people from other organizations, with their own permissions.** A portal user is a person, their home organization and a
+role scoped to areas (for example People and Support, read and write; Funding, read only). A guest from another organization is labeled
+with their organization everywhere they act, so records show who did what. The portal's admin invites and removes guests.
+
+**2. Connected portals: separate, but linked.** One portal asks to connect to another, and the other side's admin accepts, like a
+LinkedIn invitation between organizations. Each side then chooses, item by item, what it shares with the other:
+- Layoffs and the response to each (who contacted the employer, which sessions are planned)
+- Jobs and featured jobs
+- Events
+- The partner directory and claimed pages
+- Funding opportunities and joint applications (the match ledger per partner)
+- Aggregate outcomes and reports
+- **Referrals of people**
+
+Sharing is per item and per direction, can be narrowed or ended at any time, and every change is logged. Either side can disconnect.
+
+**3. Combined view: aggregate several.** A combined view rolls up several portals for a place or a funder ("Greater Louisville", "the
+Kentuckiana region", a state system). It is read-only. Each portal in it has agreed to join, and can leave. It shows totals,
+reports and the shared items, never a person.
+
+**People are never moved by a connection.** A person belongs to an organization only through their own membership and their own consent
+(`InstitutionMember`, `InstitutionConsent`), the same as today. A referral from one organization to another is an invitation the person
+accepts. Once they accept, they are a member of both, with separate consent for each. Totals in a combined view count each person once
+(one account, many memberships). Groups under five are hidden, as everywhere else.
+
+**What exists and what is new**
+- Exists: one portal per organization (`Institution`, with `orgType` for college, workforce board, economic development, chamber, community
+  group); staff roles (`InstitutionUser`); a board's read-only seat in a college portal (`WORKFORCE_PARTNER`); a multi-campus roll-up
+  (`InstitutionSystem`); per-person consent; members connecting to a workforce board themselves (`WorkforceBoardConnection`).
+- New:
+  - **Guest seats:** a portal user's home organization and a role per area.
+  - **A portal connection:** the two portals, its status (requested, active, ended), what each side shares, and its log.
+  - **A combined view for any kind of organization:** each member portal's own agreement to join.
+  - **Referral of a person:** an invitation the person accepts.
+
+**Decided (2026-11-17):** organizations can stay separate or work together in all three ways; any kind of organization; people never move
+without their own consent.
+
+**Open:**
+1. Who pays when portals connect or combine: each organization its own plan, or the combined view billed to whoever sets it up.
+2. Whether a combined view needs every member portal's approval, or only the approval of those whose data it shows. Recommended: every member.
+3. Whether a guest seat counts against the host's seats.
+4. Which comes first for Louisville. Recommended: connect One Louisville and KentuckianaWorks (layoffs, jobs, referrals), then the combined
+   Greater Louisville view.
+
 ## Decided and open
 
 Decided: the workspace is called Talent Hub; data sharing starts with partner views, then snapshots; anonymous totals and Candidate A, B, C profiles;
@@ -183,7 +245,7 @@ the organization uploads its splash picture and logo (a generic placeholder unti
 Market section with current data; the directory seeds from public page data; a Home with a splash picture, stats and rankings; Jobs the organization
 can add to; a red zone at 26 weeks; skills demand, supply and gaps; data sharing with partners.
 
-Open:
+Open (see also the open questions under "Organizations working together"):
 1. Who sends partner invitations: the platform (from a verified address, with an opt-out) or the steward from their own email. Decide later.
 2. Which case management system the region uses.
 3. Which two flows matter most to the first customer (recommended: A and B).

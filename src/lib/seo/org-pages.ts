@@ -53,6 +53,8 @@ export interface OrgRow {
   detailsUrl: string | null
   /** Other source records for the same organization, folded into this page. */
   aliasIds?: string[]
+  /** The name a board goes by in public when it differs from the official one ("KentuckianaWorks"). */
+  knownAs?: string | null
   /** A board's own service-area text ("Towns: Abington, Avon"). */
   serviceArea?: string | null
   /** County tokens the organization says it serves; 'all' = the whole state. */
@@ -240,7 +242,7 @@ async function loadStateData(state: string): Promise<StateData> {
   const boards: OrgRow[] = boardRows.map((b) => {
     const keys = boardCountyKeys(b)
     return {
-      kind: 'WORKFORCE_BOARD', id: b.id, state, name: b.name, slug: b.slug, city: null, label: 'Workforce development board', website: absoluteWebUrl(b.website), street: null, zip: b.zip,
+      kind: 'WORKFORCE_BOARD', id: b.id, state, name: b.name, knownAs: b.knownAs, slug: b.slug, city: null, label: 'Workforce development board', website: absoluteWebUrl(b.website), street: null, zip: b.zip,
       phone: null, hours: null, email: null, countyFips: null, detailsUrl: null, countyTokens: keys, serviceArea: b.statewide ? null : b.serviceArea, boardId: b.id, updatedAt: new Date(0), sourceNote: 'CareerOneStop, U.S. Department of Labor',
     }
   })

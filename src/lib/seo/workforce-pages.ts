@@ -21,6 +21,8 @@ export interface PublicBoard {
   slug: string
   state: string
   name: string
+  /** The public brand name when it differs from the official one ("KentuckianaWorks"). */
+  knownAs: string | null
   website: string | null
   zip: string | null
   serviceArea: string | null
@@ -66,7 +68,7 @@ const TTL = 5 * 60_000
 export const getStateBoards = memoTtl(TTL, (state: string) => state, (state: string) => retryOnPoolTimeout(async (): Promise<PublicBoard[]> => {
   const rows = await prisma.workforceBoard.findMany({
     where: { state },
-    select: { id: true, state: true, name: true, website: true, zip: true, serviceArea: true, statewide: true, counties: true, placeCounties: true },
+    select: { id: true, state: true, name: true, knownAs: true, website: true, zip: true, serviceArea: true, statewide: true, counties: true, placeCounties: true },
     orderBy: { name: 'asc' },
   })
   const shown = visibleBoards(rows)

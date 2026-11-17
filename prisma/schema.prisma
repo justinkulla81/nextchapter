@@ -12421,6 +12421,9 @@ model WorkforceBoard {
   id                   String    @id
   state                String
   name                 String
+  /// The name the board goes by in public when it differs from CareerOneStop's official name ("KentuckianaWorks" for the
+  /// Greater Louisville Workforce Development Board). Shown beside the name; the page address still comes from the name.
+  knownAs              String?
   address              String?
   zip                  String?
   website              String?

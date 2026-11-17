@@ -1,4 +1,7 @@
 import { workforceBoardSeo } from '@/lib/seo/templates'
+
+/** The official name with the name the board goes by, when it has one: "Greater Louisville Workforce Development Board (KentuckianaWorks)". */
+const boardDisplayName = (r: { name: string; knownAs?: string | null }) => (r.knownAs ? `${r.name} (${r.knownAs})` : r.name)
 import type { Metadata } from 'next'
 import { notFound, permanentRedirect } from 'next/navigation'
 import { eventsForEmployerNames } from '@/lib/events/sec-events'
@@ -28,7 +31,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   if (!p) return {}
   const { row, blocks } = p
   return {
-    title: titleMeta(workforceBoardSeo(row.name, row.state).title),
+    title: titleMeta(workforceBoardSeo(boardDisplayName(row), row.state).title),
     description: `${row.name} in ${stateName(row.state)}: the area it serves, ${blocks.jobsOpen.toLocaleString('en-US')} open professional jobs there, local unemployment and the American Job Centers where job seekers and employers get help.`,
     ...canonical(`/workforce-boards/${state}/${board}`),
     ...(p.indexable ? {} : { robots: { index: false, follow: true } }),
@@ -52,5 +55,5 @@ export default async function WorkforceBoardPage({ params }: { params: Params })
     boardConnectionCount([p.row.id, ...(p.row.aliasIds ?? [])]),
   ])
   const events = await eventsForEmployerNames(hiring.employers.map((e) => e.name)).catch(() => [])
-  return <OrgPageView h1={workforceBoardSeo(p.row.name, p.row.state).h1} page={p} path={`/workforce-boards/${state}/${board}`} hiring={hiring} claimSlug={claim} notices={notices} events={events} brand={brand?.pair ?? null} peopleCount={peopleCount} />
+  return <OrgPageView h1={workforceBoardSeo(boardDisplayName(p.row), p.row.state).h1} page={p} path={`/workforce-boards/${state}/${board}`} hiring={hiring} claimSlug={claim} notices={notices} events={events} brand={brand?.pair ?? null} peopleCount={peopleCount} />
 }
