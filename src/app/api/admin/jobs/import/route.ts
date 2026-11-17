@@ -468,7 +468,12 @@ export async function POST(request: NextRequest) {
   if (Array.isArray(body.confirmUrls)) {
     const urls = body.confirmUrls.filter((u): u is string => typeof u === 'string' && u.length > 0 && u.length < 2000).slice(0, 5000)
     const now = new Date()
-    const held = urls.length
+    const held = urls.length && body.dryRun
+      ? await prisma.$queryRaw<{ url: string }[]>`
+          SELECT "url" FROM "ExclusiveJobPosting"
+          WHERE "url" = ANY(${urls}::text[]) AND "addedBy" = 'bulk_import'
+            AND ("archivedAt" IS NULL OR "closeReason" IN ('removed', 'aged_out'))`
+      : urls.length
       ? await prisma.$queryRaw<{ url: string }[]>`
           UPDATE "ExclusiveJobPosting"
           SET "lastVerifiedAt" = ${now}, "lastConfirmedAt" = ${now},
