@@ -64,6 +64,10 @@ export interface MetroInputs {
   housing: (cbsa: string) => { rent?: number; home?: number } | null
   /** Open state retraining, job-seeker support and relocation programs, by state code. */
   statePrograms: Map<string, number>
+  /** Each white-collar occupation's median annual wage and employment in the metro (BLS OEWS), by CBSA code. */
+  wages: Map<string, [number, number][]>
+  /** White-collar sector jobs [then, now] for metros the county figures cannot give (Connecticut: ct-metro-growth.json). */
+  growthOverride?: Map<string, [number, number]>
 }
 
 // ---- The metro figures ----
@@ -165,8 +169,10 @@ export function buildMetroStats(input: MetroInputs): MetroStat[] {
     // Postings
     const ps = cs.map((x) => input.postings.get(x.fips)).filter((p): p is WcCounts => !!p)
     const openings = sumOf(ps, (p) => p.n)
-    const paid = sumOf(ps, (p) => p.paid)
-    const payMed = paid >= MIN_PAID ? weightedMedian(ps.flatMap((p) => p.pay)) : null
+    // White-collar pay is the employment-weighted median of the metro's white-collar occupation wages (BLS OEWS), which every
+    // metro has; posted salaries cover only the openings that list one, too few in many metros.
+    const wageRows = input.wages.get(m.cbsa) ?? []
+    const payMed = wageRows.length >= MIN_OCCUPATIONS ? weightedMedian(wageRows) : null
     const socN = sumOf(ps, (p) => p.socN)
     // QCEW sectors: white-collar growth, AI-exposed share, diversity
     let wcThen = 0, wcNow = 0, total = 0, exposed = 0
@@ -193,7 +199,10 @@ export function buildMetroStats(input: MetroInputs): MetroStat[] {
     out.push({
       cbsa: m.cbsa, name, states, st, fullName: m.name, counties: m.counties, population, wcWorkers, openings,
       openingsPer1k: wcWorkers > 0 ? (openings / wcWorkers) * 1000 : null,
-      wcGrowth: wcThen >= 1000 ? (wcNow - wcThen) / wcThen : null,
+      wcGrowth: wcThen >= 1000 ? (wcNow - wcThen) / wcThen : (() => {
+        const o = input.growthOverride?.get(m.cbsa)
+        return o && o[0] >= 1000 ? (o[1] - o[0]) / o[0] : null
+      })(),
       payMed,
       payAdj: payMed != null && m.rpp ? payAfterLiving(payMed, { rpp: m.rpp, housingRpp: m.housingRpp ?? null, home: housing?.home ?? null, rent: housing?.rent ?? null, basis: 'metro' }) : null,
       homeToPay: payMed && housing?.home ? housing.home / payMed : null,
@@ -273,6 +282,8 @@ export const MIN_POPULATION = 150_000
 export const MIN_OPENINGS = 100
 /** Openings that post a salary a metro needs before its median pay (and the pay and housing criteria built on it) is shown. */
 export const MIN_PAID = 25
+/** White-collar occupations with a published wage a metro needs for its pay figure. */
+export const MIN_OCCUPATIONS = 20
 /** Openings that ask for AI skills and post a salary a metro needs for its AI pay premium. */
 export const MIN_AI_PAID = 10
 /** The share of a several-part criterion's weight a metro's published figures must cover for it to be scored. */
@@ -289,21 +300,21 @@ export const CRITERIA: Criterion[] = [
   {
     id: 'wp_grow', label: 'White-collar job growth', weight: 9,
     title: 'Metros with the fastest white-collar job growth', slug: 'metros-with-the-fastest-white-collar-job-growth',
-    what: 'The change in private-sector jobs in the white-collar sectors (information, finance and insurance, professional and technical services, management of companies) from 2022 to 2025.',
+    what: 'The change in private-sector jobs in the white-collar sectors (information, finance and insurance, professional and technical services, management of companies) from 2022 to 2025. Connecticut\'s metros use 2022 to 2024 metro-wide figures, because BLS publishes the state\'s new planning regions only from 2024; New Haven and Waterbury-Shelton have no comparable figure since the 2023 boundaries split them.',
     parts: [{ label: 'White-collar sector jobs, 2022 to 2025', weight: 1, value: (m) => m.wcGrowth, show: signed }],
     lead: (n, v, s) => `${n} grew its white-collar sector jobs fastest in ${s}: ${v} from 2022 to 2025.`,
   },
   {
     id: 'wp_pay', label: 'White-collar pay after cost of living', weight: 11,
     title: 'Metros with the best white-collar pay after cost of living', slug: 'metros-with-the-best-white-collar-pay-after-cost-of-living',
-    what: 'The median salary posted on white-collar openings, minus a year of owning the median home, with everything else priced locally (BEA price parity with housing taken out), so it reads as what the pay leaves you.',
+    what: 'The median annual wage of the metro\'s white-collar occupations (BLS Occupational Employment and Wage Statistics, weighted by employment), minus a year of owning the median home, with everything else priced locally (BEA price parity with housing taken out), so it reads as what the pay leaves you.',
     parts: [{ label: 'Median white-collar pay after housing and local prices', weight: 1, value: (m) => m.payAdj, show: usdK }],
-    lead: (n, v, s) => `White-collar pay goes furthest in ${n}: after a year of owning the median home, the median posted salary leaves what ${v} buys at national prices, the best in ${s}.`,
+    lead: (n, v, s) => `White-collar pay goes furthest in ${n}: after a year of owning the median home, the median white-collar wage leaves what ${v} buys at national prices, the best in ${s}.`,
   },
   {
     id: 'wp_house', label: 'Housing costs against salaries', weight: 8,
     title: 'Metros where housing is most affordable on a white-collar salary', slug: 'metros-with-the-most-affordable-housing-for-white-collar-salaries',
-    what: 'The median home value and a year of median rent, each divided by the median posted white-collar salary.',
+    what: 'The median home value and a year of median rent, each divided by the median white-collar wage (BLS Occupational Employment and Wage Statistics).',
     parts: [
       { label: 'Median home value ÷ median white-collar pay', weight: 60, value: (m) => m.homeToPay, show: (v) => `${one(v)}×`, lowerIsBetter: true },
       { label: 'A year of median rent ÷ median white-collar pay', weight: 40, value: (m) => m.rentToPay, show: pct0, lowerIsBetter: true },

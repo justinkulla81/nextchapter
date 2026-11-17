@@ -435,6 +435,7 @@ const WHITE_PLACES_SOURCES = [
   'Bureau of Labor Statistics: Quarterly Census of Employment and Wages 2022 to 2025, Local Area Unemployment Statistics',
   'Census Bureau: American Community Survey (occupations, rent, home value), population estimates, Building Permits Survey, CBSA delineation 2023',
   'Bureau of Economic Analysis regional price parities 2024',
+  'Bureau of Labor Statistics, Occupational Employment and Wage Statistics (median wage by occupation and metro)',
   'State WARN layoff notices, last 12 months',
   'CareerOneStop American Job Center directory; NCES college directory; IRS exempt-organization records (workforce, job-training and economic development organizations); NextChapter benefits catalog (open state programs)',
   'County Health Rankings & Roadmaps 2025 (child care cost and centers, Stanford Education Data Archive test scores, broadband, school funding adequacy, libraries, parks, commuting)',

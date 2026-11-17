@@ -131,3 +131,17 @@ export async function loadStatePrograms(): Promise<Map<string, number>> {
     GROUP BY 1`
   return new Map(rows.map((r) => [r.state, r.n]))
 }
+
+/**
+ * Median annual wage of each white-collar occupation (SOC 11 to 29) in each metro, with its employment, from BLS Occupational
+ * Employment and Wage Statistics (OccupationWage, newest year). About 35,000 narrow rows a month.
+ */
+export async function loadMetroWages(): Promise<Map<string, [number, number][]>> {
+  const rows = await prisma.$queryRaw<{ area: string; wage: number; emp: number }[]>`
+    SELECT "areaCode" AS area, "wageMedian" AS wage, "employment" AS emp FROM "OccupationWage"
+    WHERE "areaType" = 'METRO' AND "year" = (SELECT max("year") FROM "OccupationWage" WHERE "areaType" = 'METRO')
+      AND left("soc6", 2) BETWEEN '11' AND '29' AND "wageMedian" IS NOT NULL AND "employment" > 0`
+  const out = new Map<string, [number, number][]>()
+  for (const r of rows) out.set(r.area, [...(out.get(r.area) ?? []), [r.wage, r.emp]])
+  return out
+}
