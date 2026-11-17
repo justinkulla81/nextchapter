@@ -12,6 +12,7 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { StatTile } from './StatTile'
 import { HiringToggle, LayoffOpenToggle, LayoffSeatsForm, LocalAreaForm, MemberAccess, MemberCompanyForm, SeatRequestAnswer } from './HubForms'
 import { BriefCard } from './BriefCard'
+import { nextReserveDeadline } from './screens-hub-program'
 
 type Props = { ctx: WorkspaceContext; searchParams: { q?: string; company?: string }; base: string }
 
@@ -21,38 +22,167 @@ function Th({ children }: { children: React.ReactNode }) {
   return <th className="px-3 py-2 text-left font-medium">{children}</th>
 }
 
-export async function HubHome({ ctx }: Props) {
-  const d = await hubDashboard(ctx.institution.id)
-  const slug = ctx.institution.slug
-  const activation = d.participants ? Math.round((d.joined / d.participants) * 100) : null
-  const feats = ctx.institution.isDemo ? (await prisma.institution.findUnique({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } }))?.enabledFeatures : null
-  const preparedFor = (feats as { demo?: { preparedFor?: string | null } } | null)?.demo?.preparedFor
+type Notice = Awaited<ReturnType<typeof regionNotices>>[number]
+type Verb = { verb: string; line: string; tab: string; demoOnly?: boolean; from?: 'execed' | 'workforce' }
+const VERBS: Verb[] = [
+  { verb: 'Attract', line: 'Bring people here for the job, with benefits and proof of a move.', tab: 'attract', demoOnly: true },
+  { verb: 'Retrain', line: 'Colleges and partners that move people into growing roles.', tab: 'learning', demoOnly: true },
+  { verb: 'Support', line: 'A plan for every layoff, from the first day.', tab: 'layoffs' },
+  { verb: 'Train', line: 'Programs, cohorts and who is enrolled.', tab: 'programs', from: 'execed' },
+  { verb: 'Fund', line: 'Grants and funding, with the partners to bring in.', tab: 'funding', demoOnly: true },
+  { verb: 'Understand', line: 'Jobs, skills, pay and unemployment in your region.', tab: 'region' },
+  { verb: 'Coordinate', line: 'Employers, colleges and the public system in one picture.', tab: 'companies' },
+]
+
+// The splash picture: the organization's own, or a generic placeholder until it uploads one.
+function HomeHero({ name, region, tagline, imageUrl, stats }: { name: string; region: string; tagline: string | null; imageUrl: string | null; stats: { label: string; value: string; note?: string }[] }) {
   return (
-    <div className="space-y-6">
-      {preparedFor && (
+    <section aria-label={`${name} overview`} className="overflow-hidden rounded-xl border border-border">
+      <div className="relative h-44 w-full bg-primary/10 sm:h-56">
+        {imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={imageUrl} alt="" className="absolute inset-0 size-full object-cover" />
+        ) : (
+          <svg viewBox="0 0 800 220" preserveAspectRatio="xMidYMax slice" role="img" aria-label="Placeholder skyline: upload your own picture in Admin, Branding" className="absolute inset-0 size-full text-primary">
+            <rect width="800" height="220" fill="currentColor" opacity="0.08" />
+            <g fill="currentColor" opacity="0.28">
+              <rect x="40" y="110" width="60" height="110" />
+              <rect x="110" y="70" width="50" height="150" />
+              <rect x="170" y="130" width="70" height="90" />
+              <rect x="250" y="40" width="56" height="180" />
+              <rect x="316" y="95" width="64" height="125" />
+              <rect x="390" y="120" width="48" height="100" />
+              <rect x="448" y="60" width="62" height="160" />
+              <rect x="520" y="105" width="70" height="115" />
+              <rect x="600" y="80" width="52" height="140" />
+              <rect x="662" y="125" width="80" height="95" />
+            </g>
+          </svg>
+        )}
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-4 sm:p-6">
+          <p className="text-sm font-medium text-white/90">{region}</p>
+          {tagline && <p className="text-lg font-semibold text-white sm:text-xl">{tagline}</p>}
+        </div>
+      </div>
+      <dl className="grid grid-cols-2 gap-px bg-border sm:grid-cols-4">
+        {stats.map((x) => (
+          <div key={x.label} className="bg-card p-4">
+            <dt className="text-xs font-medium text-muted-foreground">{x.label}</dt>
+            <dd className="mt-1 text-2xl font-semibold tabular-nums">{x.value}</dd>
+            {x.note && <p className="mt-0.5 text-xs text-muted-foreground">{x.note}</p>}
+          </div>
+        ))}
+      </dl>
+    </section>
+  )
+}
+
+export async function HubHome({ ctx, base }: Props) {
+  const slug = ctx.institution.slug
+  const id = ctx.institution.id
+  const now = new Date()
+  const redZoneCutoff = new Date(now.getTime() - 26 * 7 * 86_400_000)
+  const [d, inst, notices, requests, redZone] = await Promise.all([
+    hubDashboard(id),
+    prisma.institution.findUniqueOrThrow({ where: { id }, select: { profile: true, enabledFeatures: true } }),
+    regionNotices(id).catch(() => [] as Notice[]),
+    seatRequests(id),
+    // In the group for 26 weeks or more without landing. Counts only.
+    prisma.institutionMember.count({ where: { institutionId: id, candidate: { journey: 'LAID_OFF', journeyStage: { not: 'LANDED' }, journeyChangedAt: { lte: redZoneCutoff } } } }),
+  ])
+  const profile = inst.profile as { heroImageUrl?: string; tagline?: string; region?: { name?: string; unemployment?: { area: string; rate: number; period: string; laborForce?: number | null }[] } } | null
+  const demo = (inst.enabledFeatures as { demo?: { preparedFor?: string | null } } | null)?.demo
+  const un = profile?.region?.unemployment?.[0]
+  const activation = d.participants ? Math.round((d.joined / d.participants) * 100) : null
+  const unanswered = notices.filter((n) => !n.responseId).length
+  const isDemo = ctx.institution.isDemo
+  const needs: { label: string; detail: string; href: string; cta: string }[] = []
+  if (unanswered > 0) needs.push({ label: `${unanswered} layoff${unanswered === 1 ? '' : 's'} filed in your region with no response yet`, detail: 'Real filings from the last 120 days.', href: `${base}/${isDemo ? 'rapid' : 'layoffs'}`, cta: 'Plan the response' })
+  if (requests.length > 0) needs.push({ label: `${requests.length} seat request${requests.length === 1 ? '' : 's'} from member companies waiting`, detail: 'A company asked for free access for its people.', href: `${base}/layoffs`, cta: 'Answer the request' })
+  if (redZone > 0) needs.push({ label: `${small(redZone)} people out of work 26 weeks or more`, detail: 'The longest searches, where outreach matters most.', href: `${base}/participants`, cta: 'See who' })
+  if (isDemo) needs.push({ label: `Governor’s Reserve Fund: next deadline ${nextReserveDeadline(now)}`, detail: 'Monthly, first Wednesday. Check fit and partners.', href: `${base}/funding`, cta: 'See funding' })
+  const verbs = VERBS.filter((v) => (!v.demoOnly || isDemo) && (!v.from || ctx.workspaces.includes(v.from)))
+  return (
+    <div className="space-y-8">
+      {demo?.preparedFor && (
         <p className="text-sm text-muted-foreground">
-          Prepared for <span className="font-medium text-foreground">{preparedFor}</span>, {ctx.institution.name}. Sample people and companies; regional data is real.
+          Prepared for <span className="font-medium text-foreground">{demo.preparedFor}</span>, {ctx.institution.name}. Sample people and companies; regional data is real.
         </p>
       )}
-      <BriefCard institutionId={ctx.institution.id} agent="workforce_dev" />
+      <HomeHero
+        name={ctx.institution.name}
+        region={profile?.region?.name ?? ctx.institution.name}
+        tagline={profile?.tagline ?? null}
+        imageUrl={profile?.heroImageUrl ?? null}
+        stats={[
+          { label: un ? `Unemployment, ${un.area}` : 'Unemployment', value: un ? `${un.rate}%` : '—', note: un ? `${un.period}, U.S. Bureau of Labor Statistics` : 'Set your region to show it' },
+          { label: 'Labor force', value: un?.laborForce ? un.laborForce.toLocaleString() : '—', note: un?.laborForce ? un.area : undefined },
+          { label: 'People helped', value: d.participants.toLocaleString(), note: activation === null ? undefined : `${activation}% have joined` },
+          { label: 'Member companies', value: String(d.companies), note: `${d.layoffs} layoff${d.layoffs === 1 ? '' : 's'} with seats` },
+        ]}
+      />
+
+      <section aria-labelledby="needs-h" className="space-y-3">
+        <h2 id="needs-h" className="text-base font-semibold">
+          Needs you this week
+        </h2>
+        {needs.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">Nothing needs you this week.</p>
+        ) : (
+          <ul className="divide-y divide-border rounded-lg border border-border">
+            {needs.map((n, i) => (
+              <li key={n.label} className="flex flex-wrap items-center justify-between gap-3 p-4">
+                <div>
+                  <p className="text-sm font-medium">{n.label}</p>
+                  <p className="text-xs text-muted-foreground">{n.detail}</p>
+                </div>
+                <Link href={n.href} className={i === 0 ? 'inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90' : 'text-sm font-medium text-primary hover:underline'}>
+                  {n.cta}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section aria-labelledby="verbs-h" className="space-y-3">
+        <h2 id="verbs-h" className="text-base font-semibold">
+          What your team does
+        </h2>
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {verbs.map((v) => (
+            <li key={v.verb}>
+              <Link href={`${base}/${v.tab}`} className="block h-full rounded-lg border border-border p-4 transition-colors hover:border-primary">
+                <p className="font-semibold text-primary">{v.verb}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{v.line}</p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <BriefCard institutionId={id} agent="workforce_dev" />
       {!d.local && (
         <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm">
           Set your region in <Link href={`/i/${slug}/hub/local`} className="font-medium text-primary hover:underline">Kept in region</Link> so local jobs rank first for your participants and we can count who stays.
         </p>
       )}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatTile label="Participants" value={d.participants.toLocaleString()} href={`/i/${slug}/hub/participants`} />
-        <StatTile label="Joined NextChapter" value={small(d.joined)} note={activation === null ? undefined : `${activation}% activation`} />
-        <StatTile label="Active this week" value={small(d.activeThisWeek)} />
-        <StatTile label="Applying or interviewing" value={small(d.searching)} note={`${small(d.interviewing)} interviewing`} />
-        <StatTile label="Landed new roles" value={small(d.landed)} note="Of people who share their outcome" />
-        <StatTile label={`Kept in ${d.local?.label ?? 'region'}`} value={pct(d.kept)} note="Local or remote, of hires with a known place" href={`/i/${slug}/hub/local`} />
-        <StatTile label="Seats used" value={`${d.seats.used.toLocaleString()} of ${d.seats.pool.toLocaleString()}`} />
-        <StatTile label="Member companies" value={d.companies} note={`${d.layoffs} layoff${d.layoffs === 1 ? '' : 's'} with seats`} href={`/i/${slug}/hub/companies`} />
-      </div>
-      <p className="max-w-2xl text-sm text-muted-foreground">
-        Counts only. Where someone is in their search shows only for people who chose to share it, and any group under five shows as &lt;5.
-      </p>
+      <section aria-labelledby="part-h" className="space-y-3">
+        <h2 id="part-h" className="text-base font-semibold">
+          Participation
+        </h2>
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <StatTile label="Joined NextChapter" value={small(d.joined)} note={activation === null ? undefined : `${activation}% activation`} />
+          <StatTile label="Active this week" value={small(d.activeThisWeek)} />
+          <StatTile label="Applying or interviewing" value={small(d.searching)} note={`${small(d.interviewing)} interviewing`} />
+          <StatTile label="Landed new roles" value={small(d.landed)} note="Of people who share their outcome" />
+          <StatTile label={`Kept in ${d.local?.label ?? 'region'}`} value={pct(d.kept)} note="Local or remote, of hires with a known place" href={`/i/${slug}/hub/local`} />
+          <StatTile label="Seats used" value={`${d.seats.used.toLocaleString()} of ${d.seats.pool.toLocaleString()}`} />
+        </div>
+        <p className="max-w-2xl text-sm text-muted-foreground">
+          Counts only. Where someone is in their search shows only for people who chose to share it, and any group under five shows as &lt;5.
+        </p>
+      </section>
     </div>
   )
 }
