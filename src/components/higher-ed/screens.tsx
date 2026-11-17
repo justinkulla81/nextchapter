@@ -94,6 +94,7 @@ import {
 } from './screens-community'
 import { CareerStatusCard } from './CareerStatusCard'
 import { CandidateGroups } from './screens-groups'
+import { WorkforcePreviewHome } from './WorkforcePreviewHome'
 import { HubPeople } from './screens-people'
 import { PrivacyPanel } from './PrivacyPanel'
 import { CrmUploadForm } from './CrmUploadForm'
@@ -201,6 +202,8 @@ const CANDIDATE_TOOLS = [
 ]
 
 async function CandidateHome({ ctx, base }: ScreenProps) {
+  // A workforce program's staff preview: the candidate-site Home (src/components/higher-ed/WorkforcePreviewHome.tsx).
+  if (orgKindOf(ctx.institution.orgType) === 'workforce' && ctx.workspaces.includes('hub')) return <WorkforcePreviewHome ctx={ctx} base={base} />
   const member = ctx.memberId
     ? await prisma.institutionMember.findUnique({
         where: { id: ctx.memberId },
