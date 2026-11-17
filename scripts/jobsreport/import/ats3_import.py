@@ -15,19 +15,36 @@ def post(jobs,*a):
     if os.environ.get("REFRESH")=="1" and not (a and a[0]):
         got=set(_confirm([j["url"] for j in jobs]).get("confirmedUrls",[]))
         rest=[j for j in jobs if j["url"] not in got]
+        for j in rest:
+            d=j.pop("_d",None)
+            if d:
+                info=((get(d) or {}).get("jobPostingInfo")) or {}
+                j["description"]=info.get("jobDescription"); j["postedAt"]=info.get("startDate")
+                loc=j.pop("_loc","")
+                if info.get("location") and re.match(r"^\d+ Locations?$",loc): loc=info["location"]
+                if isinstance(info.get("country"),dict) and "," not in loc: loc=loc+", "+info["country"]["descriptor"]
+                j["location"]=loc
         out=dict(_post(rest,*a)) if rest else {}
         out["updated"]=(out.get("updated",0) or 0)+len(got); return out
     return _post(jobs,*a)
 
 UA="Mozilla/5.0 (compatible; NextChapterJobs/1.0)"
+_rl=__import__('threading').Lock(); _last=[0.0]
+def _pace(url):
+    if 'myworkdayjobs' not in url: return
+    with _rl:
+        w=_last[0]+float(os.environ.get('WD_GAP','0.9'))-time.time()
+        if w>0: time.sleep(w)
+        _last[0]=time.time()
 def get(url, data=None, headers=None, timeout=40):
-    for a in range(3):
+    _pace(url)
+    for a in range(6):
         try:
             h={"User-Agent":UA,"Accept":"application/json"}; h.update(headers or {})
             r=urllib.request.Request(url,data=data,headers=h,method="POST" if data is not None else "GET")
             return json.load(urllib.request.urlopen(r,timeout=timeout))
         except urllib.error.HTTPError as e:
-            if e.code in (429,503): time.sleep(4*(a+1)); continue
+            if e.code in (429,503): time.sleep(10*(a+1)); _pace(url); continue
             return None
         except Exception: time.sleep(2)
     return None
@@ -68,6 +85,8 @@ def workday(s):
             if not p: continue
             loc=j.get("locationsText") or ""
             desc=None
+            if os.environ.get("REFRESH")=="1":
+                jj=J(j["title"],s["employer"],loc,base+"/"+s["site"]+p,None,None,"Workday"); jj["_d"]=api+p; jj["_loc"]=loc; yield jj; continue
             if re.match(r"^\d+ Locations?$",loc) or True:
                 det=get(api+p)
                 info=(det or {}).get("jobPostingInfo") or {}
@@ -158,6 +177,6 @@ def work(s):
     except Exception as e: print("ERR",s.get("name"),str(e)[:100],flush=True)
     flush()
     with lock: tot["sources"]+=1
-    if tot["sources"]%20==0: print(tot,flush=True)
+    if tot["sources"]%5==0: print(tot,flush=True)
 with cf.ThreadPoolExecutor(int(os.environ.get("T","12"))) as ex: list(ex.map(work,srcs))
 print("DONE",tot,flush=True)
