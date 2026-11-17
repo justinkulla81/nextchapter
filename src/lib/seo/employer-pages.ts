@@ -114,8 +114,11 @@ export const getEmployerBySlug = cache(async (slug: string): Promise<EmployerPag
   if (!company || employerSlug(company.canonicalNameNormalized, company.id) !== slug) return null
 
   const [listed, ghosts] = await Promise.all([
+    // closeReason: null matches the partial index (companyId, lastVerifiedAt DESC) WHERE approved, live and not closed, so this reads the
+    // 60 rows it keeps. Without it the read fetched and sorted every row the employer ever had: up to 6 s and ~15,000 blocks for a large
+    // employer, 27,103 calls in a day and a half (2026-11-17). isPublicJob drops closed rows anyway.
     prisma.exclusiveJobPosting.findMany({
-      where: { companyId: company.id, status: 'approved', archivedAt: null },
+      where: { companyId: company.id, status: 'approved', archivedAt: null, closeReason: null },
       select: PUBLIC_JOB_LIST_SELECT,
       orderBy: { lastVerifiedAt: 'desc' },
       take: 60,
