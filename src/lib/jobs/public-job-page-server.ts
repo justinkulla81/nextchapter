@@ -255,16 +255,24 @@ export async function publicJobsInShard(shard: number): Promise<{ id: string; la
 export async function publicJobIdsInShard(shard: number): Promise<{ id: string; createdAt: Date; postedAt: Date | null; offered: boolean; value: number }[]> {
   if (!Number.isInteger(shard) || shard < 0 || shard >= PUBLIC_JOB_SITEMAP_SHARDS) return []
   // value: stated pay and an employer-system listing, the part of googleJobPriority that comes from the row (src/lib/syndication/syndication.ts).
-  return prisma.$queryRaw<{ id: string; createdAt: Date; postedAt: Date | null; offered: boolean; value: number }[]>`
-    SELECT id, "createdAt", "postedAt", ${PUBLIC_JOB_OFFERED_SQL} AS offered,
-      (CASE WHEN "salaryMin" IS NOT NULL AND "payPeriod" = 'year' THEN 3 WHEN "salaryMin" IS NOT NULL AND "payPeriod" = 'hour' THEN 1 ELSE 0 END
-        + CASE WHEN "directListing" THEN 2 ELSE 0 END)::int AS value FROM "ExclusiveJobPosting"
-    WHERE ${PUBLIC_JOB_STATIC_SQL}
-      AND (hashtext(id) & 15) = ${shard}::int
-      AND ${PUBLIC_JOB_SEARCH_SQL}
-      AND octet_length(description) >= ${PUBLIC_JOB_MIN_INDEX_DESCRIPTION}
-      AND ${PUBLIC_JOB_LIVE_SQL}
-    ORDER BY id`
+  // Confirmed ghosts are dropped after the read, as publicJobsInShard does: the per-row NOT EXISTS probed the flag index for each of a
+  // shard's ~15,000 jobs (#32 by database time in the 2026-11-17 statement stats). Read directly, so a failed read fails the run instead
+  // of reporting a ghost as live. Same ids as before.
+  const [rows, ghosts] = await Promise.all([
+    prisma.$queryRaw<{ id: string; createdAt: Date; postedAt: Date | null; offered: boolean; value: number }[]>`
+      SELECT id, "createdAt", "postedAt", ${PUBLIC_JOB_OFFERED_SQL} AS offered,
+        (CASE WHEN "salaryMin" IS NOT NULL AND "payPeriod" = 'year' THEN 3 WHEN "salaryMin" IS NOT NULL AND "payPeriod" = 'hour' THEN 1 ELSE 0 END
+          + CASE WHEN "directListing" THEN 2 ELSE 0 END)::int AS value FROM "ExclusiveJobPosting"
+      WHERE ${PUBLIC_JOB_STATIC_SQL}
+        AND (hashtext(id) & 15) = ${shard}::int
+        AND ${PUBLIC_JOB_SEARCH_SQL}
+        AND octet_length(description) >= ${PUBLIC_JOB_MIN_INDEX_DESCRIPTION}
+        AND ${PUBLIC_JOB_LIVE_DATES_SQL}
+      ORDER BY id`,
+    prisma.jobPostingFlag.findMany({ where: { adminDecision: 'confirmed_ghost' }, select: { postingId: true }, distinct: ['postingId'] }),
+  ])
+  const ghost = new Set(ghosts.map((g) => g.postingId))
+  return ghost.size ? rows.filter((r) => !ghost.has(r.id)) : rows
 }
 
 /**
