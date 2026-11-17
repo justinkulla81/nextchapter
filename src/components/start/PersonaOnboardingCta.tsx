@@ -28,7 +28,8 @@ export function PersonaOnboardingCta({
       nativeButton={false}
       render={
         <Link
-          href={MARKET_REALITY_START_HREF}
+          // The situation rides on the link too: onboarding runs on the candidate host, where this page's session storage is not seen.
+          href={`${MARKET_REALITY_START_HREF}&situation=${situation}`}
           onClick={() => {
             posthog?.capture('persona_landing_cta_clicked', { persona, situation, source })
             sessionStorage.setItem(SITUATION_SESSION_KEY, situation)
