@@ -107,6 +107,9 @@ export type WorkforceDemoInput = {
   // 'public' demos expire; 'admin' ones stay until deleted.
   source: 'public' | 'admin'
   requestedBy: string | null
+  // The directory record the demo was built from ("WORKFORCE_BOARD:KY-247"), so the demo page finds it again
+  // instead of building another (src/lib/workforce/demo-orgs.ts). Null when the organization was typed in.
+  sourceOrg?: string | null
 }
 
 export type WorkforceDemoResult = { slug: string; institutionId: string } | { error: string }
@@ -180,7 +183,7 @@ export async function generateWorkforceDemo(input: WorkforceDemoInput, now = new
         local,
         // The real workforce board's site behind "Your local career center".
         ...(board?.website ? { services: { career_center: { on: true, provider: 'college', linkUrl: board.website } } } : {}),
-        demo: { source: input.source, requestedBy: input.requestedBy, preparedFor: input.preparedFor?.trim().slice(0, 80) || null, createdAt: now.toISOString(), expiresAt: expiresAt?.toISOString() ?? null },
+        demo: { source: input.source, requestedBy: input.requestedBy, preparedFor: input.preparedFor?.trim().slice(0, 80) || null, createdAt: now.toISOString(), expiresAt: expiresAt?.toISOString() ?? null, sourceOrg: input.sourceOrg ?? null },
       },
     },
     select: { id: true },
