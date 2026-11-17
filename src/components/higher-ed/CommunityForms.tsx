@@ -194,22 +194,49 @@ export function ListedToggle({ slug, listed: initial }: { slug: string; listed: 
   )
 }
 
-type MajorOption = { major: string; n: number }
+type RosterOption = { value: string; n: number }
+export type AutoJoinOptions = { majors: RosterOption[]; schools: RosterOption[]; departments: RosterOption[] }
+const NO_OPTIONS: AutoJoinOptions = { majors: [], schools: [], departments: [] }
 
-// The roster's majors as suggestions for the majors box (typed, comma-separated).
-function MajorList({ id, majors }: { id: string; majors: MajorOption[] }) {
+// The three roster fields a group can add alumni by. Each box is typed,
+// comma-separated, with the roster's own values suggested.
+const AUTO_FIELDS = [
+  { key: 'majors', label: 'Majors', placeholder: 'Computer Science, Information Systems' },
+  { key: 'schools', label: 'Schools or colleges', placeholder: 'Tepper School of Business' },
+  { key: 'departments', label: 'Departments', placeholder: 'Department of Statistics' },
+] as const
+type AutoKey = (typeof AUTO_FIELDS)[number]['key']
+
+function RosterList({ id, options }: { id: string; options: RosterOption[] }) {
   return (
     <datalist id={id}>
-      {majors.map((m) => (
-        <option key={m.major} value={m.major}>{`${m.n.toLocaleString()} on the roster`}</option>
+      {options.map((o) => (
+        <option key={o.value} value={o.value}>{`${o.n.toLocaleString()} on the roster`}</option>
       ))}
     </datalist>
   )
 }
 
-export function GroupForm({ slug, majors = [] }: { slug: string; majors?: MajorOption[] }) {
+function AutoJoinFields({ idPrefix, values, onChange, options }: { idPrefix: string; values: Record<AutoKey, string>; onChange: (k: AutoKey, v: string) => void; options: AutoJoinOptions }) {
+  return (
+    <>
+      {AUTO_FIELDS.map((f) => (
+        <div key={f.key} className="space-y-1.5">
+          <Label htmlFor={`${idPrefix}-${f.key}`}>{f.label}</Label>
+          <Input id={`${idPrefix}-${f.key}`} name={f.key} list={`${idPrefix}-${f.key}-list`} value={values[f.key]} onChange={(e) => onChange(f.key, e.target.value)} placeholder={f.placeholder} />
+          <RosterList id={`${idPrefix}-${f.key}-list`} options={options[f.key]} />
+        </div>
+      ))}
+    </>
+  )
+}
+
+const AUTO_HELP =
+  'Separate entries with commas. Alumni who have joined and match any entry on your roster are added now, and new ones as they join. Anyone who leaves the group is never added back. School and department come from the school and department columns of your roster file.'
+
+export function GroupForm({ slug, options = NO_OPTIONS }: { slug: string; options?: AutoJoinOptions }) {
   const [state, action] = useActionState<A.FormResult, FormData>(A.createGroupForm.bind(null, slug) as FormAction, undefined)
-  const { v, setV, bind } = useFields({ kind: 'affinity', name: '', description: '', metro: '', leaderEmail: '', majors: '' })
+  const { v, setV, bind } = useFields({ kind: 'affinity', name: '', description: '', metro: '', leaderEmail: '', majors: '', schools: '', departments: '' })
   return (
     <form action={action} className="grid gap-3 sm:grid-cols-2">
       <fieldset className="space-y-1.5 sm:col-span-2">
@@ -231,14 +258,13 @@ export function GroupForm({ slug, majors = [] }: { slug: string; majors?: MajorO
         <Input id="gr-desc" {...bind('description')} />
       </div>
       {v.kind === 'affinity' && (
-        <div className="space-y-1.5 sm:col-span-2">
-          <Label htmlFor="gr-majors">Add alumni with these majors automatically (optional)</Label>
-          <Input id="gr-majors" list="gr-majors-list" {...bind('majors')} placeholder="Computer Science, Information Systems" aria-describedby="gr-majors-help" />
-          <MajorList id="gr-majors-list" majors={majors} />
-          <p id="gr-majors-help" className="text-xs text-muted-foreground">
-            Separate majors with commas. Alumni who have joined and have one of these majors on your roster are added now, and new ones as they join. Anyone who leaves the group is never added back.
+        <fieldset className="grid gap-3 sm:col-span-2 sm:grid-cols-3" aria-describedby="gr-auto-help">
+          <legend className="text-sm font-medium">Add alumni automatically (optional)</legend>
+          <AutoJoinFields idPrefix="gr" values={v} onChange={(k, val) => setV({ ...v, [k]: val })} options={options} />
+          <p id="gr-auto-help" className="text-xs text-muted-foreground sm:col-span-3">
+            {AUTO_HELP}
           </p>
-        </div>
+        </fieldset>
       )}
       <div className="space-y-1.5 sm:col-span-2">
         <Label htmlFor="gr-lead">First leader’s email (optional, must be on the roster)</Label>
@@ -252,22 +278,33 @@ export function GroupForm({ slug, majors = [] }: { slug: string; majors?: MajorO
   )
 }
 
-export function GroupMajorsForm({ slug, groupId, current, majors = [] }: { slug: string; groupId: string; current: string; majors?: MajorOption[] }) {
-  const [state, action] = useActionState<A.FormResult, FormData>(A.setGroupMajorsForm.bind(null, slug, groupId) as FormAction, undefined)
-  const [value, setValue] = useState(current)
-  const listId = `gm-list-${groupId}`
+export function GroupAutoJoinForm({
+  slug,
+  groupId,
+  current,
+  options = NO_OPTIONS,
+}: {
+  slug: string
+  groupId: string
+  current: Record<AutoKey, string>
+  options?: AutoJoinOptions
+}) {
+  const [state, action] = useActionState<A.FormResult, FormData>(A.setGroupAutoJoinForm.bind(null, slug, groupId) as FormAction, undefined)
+  const [values, setValues] = useState(current)
   return (
-    <form action={action} className="flex flex-wrap items-center gap-2">
-      <Label htmlFor={`gm-${groupId}`} className="text-xs text-muted-foreground">
-        Auto-join majors
-      </Label>
-      <Input id={`gm-${groupId}`} name="majors" list={listId} className="h-8 w-72" placeholder="None: join by click only" value={value} onChange={(e) => setValue(e.target.value)} />
-      <MajorList id={listId} majors={majors} />
-      <SubmitButton size="sm" variant="outline" pendingLabel="Saving…">
-        Save majors
-      </SubmitButton>
-      <Msg r={state} />
-    </form>
+    <details className="text-sm">
+      <summary className="cursor-pointer text-xs font-medium text-primary">Who this group adds automatically</summary>
+      <form action={action} className="mt-2 grid gap-3 sm:grid-cols-3">
+        <AutoJoinFields idPrefix={`ga-${groupId}`} values={values} onChange={(k, val) => setValues({ ...values, [k]: val })} options={options} />
+        <p className="text-xs text-muted-foreground sm:col-span-3">{AUTO_HELP} Leave all three empty for join-by-click only.</p>
+        <div className="flex items-center gap-3 sm:col-span-3">
+          <SubmitButton size="sm" variant="outline" pendingLabel="Saving…">
+            Save who it adds
+          </SubmitButton>
+          <Msg r={state} />
+        </div>
+      </form>
+    </details>
   )
 }
 

@@ -18,6 +18,10 @@ export type RosterRow = {
   classYear: number | null
   degree: string | null
   major: string | null
+  // undefined when the file has no such column, so an import without it
+  // leaves what the roster already holds. "college" is accepted for school.
+  school?: string | null
+  department?: string | null
   employer: string | null
   title: string | null
   doNotContact: boolean
@@ -89,6 +93,8 @@ export function parseRosterRecords(records: Record<string, unknown>[], now = new
       return errors.push({ row, column: 'class_year', message: `"${classYearRaw}" isn't a class year.` })
     }
     seen.add(externalId)
+    const has = (col: string) => col in rec
+    const optional = (...cols: string[]) => (cols.some(has) ? cols.map(get).find((v) => v) || null : undefined)
     out.push({
       row,
       externalId,
@@ -99,6 +105,8 @@ export function parseRosterRecords(records: Record<string, unknown>[], now = new
       classYear,
       degree: get('degree') || null,
       major: get('major') || null,
+      school: optional('school', 'college'),
+      department: optional('department'),
       employer: get('employer') || null,
       title: get('title') || null,
       doNotContact: truthy(get('do_not_contact')),

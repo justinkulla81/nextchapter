@@ -13100,6 +13100,11 @@ model InstitutionMember {
   classYear             Int?
   degree                String?
   major                 String?
+  // The college or school within the university (e.g. "Tepper School of
+  // Business") and the department, from the roster's school and department
+  // columns. Auto-join groups match on them (major-groups.ts).
+  school                String?
+  department            String?
   matchMethod           InstitutionMemberMatchMethod?
   status                InstitutionMemberStatus       @default(IMPORTED)
   claimedAt             DateTime? // §7 metrics count gifts and tool use after this date
@@ -15934,6 +15939,9 @@ model AlumniGroup {
   // Majors (normalizeMajor) whose joined alumni are added automatically.
   // Empty = join by click only. See src/lib/higher-ed/major-groups.ts.
   majors        String[]    @default([])
+  // Same, for the roster's school (college) and department.
+  schools       String[]    @default([])
+  departments   String[]    @default([])
   isActive      Boolean     @default(true)
   createdBy     String
   isSampleData  Boolean     @default(false)
@@ -15954,7 +15962,7 @@ model AlumniGroupMember {
   memberId     String
   member       InstitutionMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
   role         String            @default("MEMBER") // MEMBER | LEADER
-  joinedVia    String            @default("MANUAL") // MANUAL | AUTO_MAJOR
+  joinedVia    String            @default("MANUAL") // MANUAL | AUTO_MAJOR | AUTO_SCHOOL | AUTO_DEPARTMENT
   isSampleData Boolean           @default(false)
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
