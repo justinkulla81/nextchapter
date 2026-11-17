@@ -13040,6 +13040,7 @@ model Institution {
   segments             Segment[]
   rapidResponses       RapidResponse[]
   fundingApplications FundingApplication[]
+  partnerViews        PartnerView[]
   memberCompanies      MemberCompany[]
   alumniOpportunities  AlumniOpportunity[]
   alumniGroups         AlumniGroup[]
@@ -15818,6 +15819,29 @@ model RapidResponseStep {
   isSampleData    Boolean       @default(false)
 
   @@unique([rapidResponseId, key])
+}
+
+// A read-only view of an organization's regional data for one partner (a college, an employer, anyone), opened by an unlisted link.
+// scopes: SKILLS (demand, supply and gaps), TALENT (counts by function, seniority, time out), PROFILES (Candidate A, B, C; needs TALENT
+// guardrails), JOBS (jobs in the region), PROGRAMS (the organization's programs). Aggregates only; revocable; expires.
+model PartnerView {
+  id                String      @id @default(cuid())
+  institutionId     String
+  institution       Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  token             String      @unique
+  partnerName       String
+  partnerKind       String      @default("OTHER") // COLLEGE | EMPLOYER | OTHER
+  scopes            String[]    @default([])
+  note              String?
+  expiresAt         DateTime
+  revokedAt         DateTime?
+  openCount         Int         @default(0)
+  lastOpenedAt      DateTime?
+  createdBy         String
+  isSampleData      Boolean     @default(false)
+  createdAt         DateTime    @default(now())
+
+  @@index([institutionId, createdAt])
 }
 
 // A grant, solicitation or other funding a workforce org is pursuing: considering, drafting, submitted, awarded.

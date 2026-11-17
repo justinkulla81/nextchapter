@@ -175,6 +175,12 @@ What can be shared: skills demand and supply, jobs, training and education progr
 4. **API and exports** later; the portal already issues organization API keys for census data, which is the pattern to extend.
 Rule: individuals are never shared. Row-level detail goes only to the person's own consented recipients.
 
+Built (phase 5): **Partner views** (Partners area). The organization makes a read-only view for a college, an employer or anyone, opened by an unlisted link
+with no account: it picks what to include (skills demand, supply and gaps; talent counts; de-identified profiles; jobs in the region; the organization's
+programs), a 30 or 90 day expiry and an optional note. Everything is counts or coarse groups, groups under five are hidden, and nobody is named. The
+organization sees how many times each link was opened and can switch it off at once. Not built yet: partner accounts (a claimed college or employer signing in),
+the employer's own pipeline view, and an alert when a link is opened.
+
 ## Public presence
 
 One screen lists **every public page the organization controls**: its claimed page, layoff pages for employers in its region, the relocation page,
