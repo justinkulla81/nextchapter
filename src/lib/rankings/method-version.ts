@@ -9,7 +9,8 @@ export const RANKING_METHOD: Record<BuildGroup, string> = {
   functions: '2026-11-17',
   industry: '2026-11-17',
   // 2026-11-17b: complete metros only, no homicide criterion, AI pay premium and local job support added.
-  metro: '2026-11-17b',
+  // 2026-11-17c: AI pay premium optional and weighted 2%; unranked large metros named with what they lack.
+  metro: '2026-11-17c',
   skills: 'v0',
   workforce: 'v0',
   college: 'v0',

@@ -43,7 +43,7 @@ export async function HubSkillsGaps({ ctx }: Props) {
         <StatTile label="Postings read" value={market ? market.sampled.toLocaleString() : '—'} note={market ? `Newest in ${local?.anchorCity}` : 'Set your region to read postings'} />
         <StatTile label="People with résumé skills" value={enough ? withSkills.length.toLocaleString() : `<${MIN_GROUP}`} note="In your group, counted anonymously" />
         <StatTile label="Skills compared" value={rows.length} />
-        <StatTile label="Largest gap" value={biggest ? biggest.skill : '—'} note={biggest && biggest.gap !== null ? `${Math.round(biggest.gap * 100)} points more demand than supply` : undefined} />
+        <StatTile label="Largest gap" value={biggest ? biggest.skill : '—'} note={biggest && biggest.gap !== null ? `${Math.round(biggest.gap * 100)} ${Math.round(biggest.gap * 100) === 1 ? 'point' : 'points'} more demand than supply` : undefined} />
       </div>
 
       <Section title="Demand against supply" intro="Demand is the share of current local postings that name the skill. Supply is the share of people in your group whose résumé names it. A gap is demand minus supply.">
@@ -74,7 +74,7 @@ export async function HubSkillsGaps({ ctx }: Props) {
                       {pct(r.demandShare)} <span className="text-xs text-muted-foreground">({r.demandPostings} postings)</span>
                     </td>
                     <td className="px-3 py-2 tabular-nums">{r.supplyShare === null ? '—' : r.supplyPeople === null ? `<${MIN_GROUP} people` : `${pct(r.supplyShare)} (${shown(r.supplyPeople)} people)`}</td>
-                    <td className="px-3 py-2 tabular-nums">{r.gap === null ? '—' : r.gap > 0.005 ? `${Math.round(r.gap * 100)} points short` : 'Covered'}</td>
+                    <td className="px-3 py-2 tabular-nums">{r.gap === null ? '—' : r.gap > 0.005 ? `${Math.max(1, Math.round(r.gap * 100))} ${Math.round(r.gap * 100) <= 1 ? 'point' : 'points'} short` : 'Covered'}</td>
                   </tr>
                 ))}
               </tbody>
