@@ -3,6 +3,8 @@
 // SQL, role checked again there), never Prisma models directly. Tabs with no
 // entry render a "coming in HE-xx" panel from COMING_DESCRIPTIONS.
 
+import { suggestRelated } from '@/lib/org-claims/related-suggest'
+import { suggestionLine } from '@/lib/org-claims/related-suggest-rules'
 import { PortalNumbers } from '@/components/partners/PortalHome'
 import { ConnectSections, ConsentHistory, MonthlyEmailPanel, StaffConnect } from './screens-connect'
 import { MIN_CELL_SIZE } from '@/lib/admin/cell-suppression'
@@ -1247,17 +1249,27 @@ const TIER_VALUE: Record<string, string> = {
 async function LaunchChecklist({ ctx }: { ctx: WorkspaceContext }) {
   const id = ctx.institution.id
   const base = `/i/${ctx.institution.slug}`
-  const [inst, staff, members, coaches, jobs] = await Promise.all([
+  const [inst, staff, members, coaches, jobs, relatedLinked] = await Promise.all([
     prisma.institution.findUnique({ where: { id }, select: { logoUrl: true, accentColor: true, enabledFeatures: true, tier: true } }),
     prisma.institutionUser.findMany({ where: { institutionId: id, revokedAt: null }, select: { role: true } }),
     prisma.institutionMember.count({ where: { institutionId: id } }),
     prisma.coach.count({ where: { institutionId: id } }),
     prisma.exclusiveJobPosting.count({ where: { institutionScopeId: id, archivedAt: null } }),
+    // Organizations this one has linked: each link is an invitation to claim a free page.
+    prisma.ecosystemPartner.count({ where: { institutionId: id, crmOrganizationId: { not: null } } }).catch(() => 0),
   ])
+  // Until the first link, the first thing to do is choose who to invite (cached for 30 minutes, shared with the Related organizations screen).
+  const suggestions = relatedLinked === 0 ? await suggestRelated(id).catch(() => []) : []
   const roles = new Set(staff.map((s) => s.role))
   const wanted: InstitutionUserRole[] = ['CAREER_SERVICES', 'ALUMNI_RELATIONS', ...(inst?.tier === 'CAREER' ? [] : (['DEVELOPMENT'] as const))]
   const officesNeeded = wanted.filter((r) => !roles.has(r))
   const steps: { done: boolean; label: string; detail: string; href?: string }[] = [
+    {
+      done: relatedLinked > 0,
+      label: 'Invite the people you work with',
+      detail: relatedLinked > 0 ? `${relatedLinked} linked. Each one gets an invite to claim a free page of its own.` : suggestions.length ? suggestionLine(suggestions.length) : 'Link the employers, colleges and boards you work with; each gets an invite to claim a free page.',
+      href: `${base}/admin/related`,
+    },
     { done: !!(inst?.logoUrl && inst.accentColor), label: 'Add your brand', detail: 'Logo, color and a campus photo.', href: `${base}/admin/branding` },
     {
       done: officesNeeded.length === 0,

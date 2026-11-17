@@ -10,7 +10,10 @@ import { relatedOrgs, searchClaimableOrgs, partnerKindFor } from '@/lib/org-clai
 import { ecoKindLabel } from '@/lib/workforce/ecosystem'
 import { removeRelatedOrgAction } from '@/app/i/[slug]/(portal)/related-actions'
 import { SITE_URL } from '@/lib/org-claims/urls'
-import { orgBasePath } from '@/lib/higher-ed/workspaces'
+import { orgBasePath, orgKindOf } from '@/lib/higher-ed/workspaces'
+import { byGroup } from '@/lib/org-claims/related-suggest-rules'
+import { suggestRelated } from '@/lib/org-claims/related-suggest'
+import { NetworkPicker } from './HubNetworkForms'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -27,7 +30,8 @@ export async function AdminRelatedOrgs({ ctx, searchParams }: Props) {
   const canEdit = !ctx.readOnly && !ctx.institution.isDemo
   const q = searchParams.q?.trim() ?? ''
   const inst = await prisma.institution.findUnique({ where: { id: ctx.institution.id }, select: { crmOrganizationId: true } })
-  const [{ linked, linkedYou }, results] = await Promise.all([relatedOrgs(ctx.institution.id), q ? searchClaimableOrgs(q, inst?.crmOrganizationId ?? null) : Promise.resolve([])])
+  const [{ linked, linkedYou }, results, suggested] = await Promise.all([relatedOrgs(ctx.institution.id), q ? searchClaimableOrgs(q, inst?.crmOrganizationId ?? null) : Promise.resolve([]), suggestRelated(ctx.institution.id).catch(() => [])])
+  const groups = byGroup(suggested, orgKindOf(ctx.institution.orgType))
   const linkedIds = new Set(linked.map((l) => l.slug))
   const inviter = ctx.institution.programBrandName ?? ctx.institution.name
   return (
@@ -36,6 +40,15 @@ export async function AdminRelatedOrgs({ ctx, searchParams }: Props) {
         Link the colleges, employers, workforce boards and community groups you work with. You can link any organization that has its own page on NextChapter,
         as many as you like. Each one gets an invite to claim its free page; once it does, you are connected and each of you sees the other here.
       </p>
+
+      {groups.length > 0 && (
+        <section aria-labelledby="rel-sugg" className="space-y-3">
+          <h2 id="rel-sugg" className="text-base font-semibold">
+            We think you know
+          </h2>
+          <NetworkPicker slug={slug} groups={groups.map((g) => ({ key: g.key, label: g.label, items: g.items.map((i) => ({ orgId: i.orgId, name: i.name, reason: i.reason, onNextChapter: i.onNextChapter })) }))} disabled={!canEdit} />
+        </section>
+      )}
 
       {canEdit && (
         <section aria-labelledby="rel-find" className="space-y-3">

@@ -42,6 +42,12 @@ describe('related suggestions', () => {
     ]
     expect(byGroup(mergeSuggestions(c, hits(hit('c'), hit('p')), new Set())).map((g) => g.key)).toEqual(['PEERS', 'HIGHER_ED'])
   })
+  it('words the groups for a college in its own terms', () => {
+    const c: Candidate[] = [{ group: 'PEERS', keys: ['k-p'], reason: 'x' }]
+    const r = mergeSuggestions(c, hits(hit('p')), new Set())
+    expect(byGroup(r)[0].label).toBe('Organizations like yours')
+    expect(byGroup(r, 'college')[0].label).toBe('Workforce and community partners')
+  })
   it('words the reminder', () => {
     expect(suggestionLine(1)).toMatch(/1 organization you/)
     expect(suggestionLine(7)).toMatch(/7 organizations you/)

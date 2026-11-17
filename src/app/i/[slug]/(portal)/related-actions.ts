@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { addRelatedOrg, removeRelatedOrg } from '@/lib/org-claims/related-orgs'
 import { MAX_LINK_BATCH } from '@/lib/org-claims/related-suggest-rules'
+import { orgKindOf } from '@/lib/higher-ed/workspaces'
 
 export type RelatedState = { ok?: boolean; message?: string; error?: string; inviteUrl?: string } | undefined
 
@@ -34,7 +35,9 @@ export async function removeRelatedOrgAction(slug: string, partnerId: string): P
 // Talent Hub > Your network: link every organization the person ticked in one go. Each link is an invitation to claim its own page; an
 // organization already on NextChapter is connected at once. Nothing is emailed by NextChapter: the invites come back to copy or open as a draft.
 export async function linkSuggestedOrgs(slug: string, _prev: RelatedState, f: FormData): Promise<RelatedState> {
-  const ctx = await requireWorkspace(slug, 'hub', { write: true })
+  // A workforce organization links from the Talent Hub, a college from Admin: each needs the workspace its screen is in.
+  const row = await prisma.institution.findUnique({ where: { slug }, select: { orgType: true } })
+  const ctx = await requireWorkspace(slug, row && orgKindOf(row.orgType) === 'workforce' ? 'hub' : 'admin', { write: true })
   const ids = [...new Set(f.getAll('orgId').map(String))].filter((x) => /^[A-Za-z0-9_-]{8,40}$/.test(x)).slice(0, MAX_LINK_BATCH)
   if (ids.length === 0) return { error: 'Pick at least one organization.' }
   const inst = await prisma.institution.findUnique({ where: { id: ctx.institution.id }, select: { crmOrganizationId: true } })
