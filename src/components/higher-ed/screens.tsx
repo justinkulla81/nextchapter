@@ -43,7 +43,8 @@ import { OutcomesScreen } from './OutcomesScreen'
 import { MentorsScreen } from './MentorsScreen'
 import { ServicesPanel } from './ServicesPanel'
 import { readProfile, type InstitutionProfile } from '@/lib/higher-ed/profile'
-import { checkInMonthFrom, memberAudiences, memberCards, serviceSettingsFrom } from '@/lib/higher-ed/services'
+import { checkInMonthFrom, customServices, memberAudiences, memberCards, memberTraits, serviceSettingsFrom } from '@/lib/higher-ed/services'
+import { rosterAutoJoinOptions } from '@/lib/higher-ed/major-groups'
 import { serviceUsage30d } from '@/lib/higher-ed/service-usage'
 import { setAnnualCheckInMonth } from '@/app/i/[slug]/(portal)/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -196,7 +197,19 @@ const CANDIDATE_TOOLS = [
 
 async function CandidateHome({ ctx, base }: ScreenProps) {
   const member = ctx.memberId
-    ? await prisma.institutionMember.findUnique({ where: { id: ctx.memberId }, select: { firstName: true, affiliation: true, classYear: true } })
+    ? await prisma.institutionMember.findUnique({
+        where: { id: ctx.memberId },
+        select: {
+          firstName: true,
+          affiliation: true,
+          classYear: true,
+          major: true,
+          school: true,
+          department: true,
+          // City and journey for targeted cards: the member's own NextChapter profile.
+          candidate: { select: { metroArea: true, currentCity: true, journey: true } },
+        },
+      })
     : null
   const brand = ctx.institution.programBrandName ?? ctx.institution.name
   const { profile, enabledFeatures } = await loadInstitutionData(ctx.institution.id)
@@ -206,7 +219,11 @@ async function CandidateHome({ ctx, base }: ScreenProps) {
     ? await prisma.transitionFlag.findUnique({ where: { openFlagMemberId: ctx.memberId }, select: { state: true } })
     : null
   const kind = orgKindOf(ctx.institution.orgType)
-  const services = memberCards(serviceSettingsFrom(enabledFeatures, kind), member ? memberAudiences(member, new Date(), !!openFlag && openFlag.state !== 'CLEARED') : null, kind)
+  const inTransition = !!openFlag && openFlag.state !== 'CLEARED'
+  const traits = member
+    ? memberTraits({ ...member, metroArea: member.candidate?.metroArea, currentCity: member.candidate?.currentCity, journey: member.candidate?.journey, inTransition })
+    : null
+  const services = memberCards(serviceSettingsFrom(enabledFeatures, kind), member ? memberAudiences(member, new Date(), inTransition) : null, kind, { traits, enabledFeatures })
   const hero = profile.heroImageUrl ? { url: profile.heroImageUrl, alt: `${ctx.institution.name} campus`, credit: null } : profile.photos?.[0]
   const career = profile.college?.careerCenter
   // "Give back" only for a joined alum who isn't between jobs or in their
@@ -291,6 +308,7 @@ async function CandidateHome({ ctx, base }: ScreenProps) {
                     <ArrowRight className="size-4 text-muted-foreground group-hover:text-primary" aria-hidden="true" />
                   </span>
                   <span className="text-xs text-muted-foreground">{sv.pitch}</span>
+                  {sv.partnerName && <span className="mt-1 text-xs text-muted-foreground">From {sv.partnerName}</span>}
                 </Link>
               </li>
             ))}
@@ -1252,7 +1270,7 @@ async function SettingsServices({ ctx }: ScreenProps) {
   const { enabledFeatures } = await loadInstitutionData(ctx.institution.id)
   const canEdit = ctx.tokens.has('INSTITUTION_ADMIN') && !ctx.readOnly
   const annualMonth = checkInMonthFrom(enabledFeatures)
-  const usage = await serviceUsage30d(ctx.institution.id)
+  const [usage, rosterOptions] = await Promise.all([serviceUsage30d(ctx.institution.id), canEdit ? rosterAutoJoinOptions(ctx.institution.id) : Promise.resolve(undefined)])
   return (
     <div className="space-y-6">
       <p className="max-w-2xl text-sm text-muted-foreground">
@@ -1289,7 +1307,16 @@ async function SettingsServices({ ctx }: ScreenProps) {
         </p>
       </form>
       )}
-      <ServicesPanel slug={ctx.institution.slug} initial={serviceSettingsFrom(enabledFeatures, kind)} usage={usage} canEdit={canEdit} kind={kind} plan={ctx.institution.plan} />
+      <ServicesPanel
+        slug={ctx.institution.slug}
+        initial={serviceSettingsFrom(enabledFeatures, kind)}
+        custom={customServices(enabledFeatures)}
+        rosterOptions={rosterOptions}
+        usage={usage}
+        canEdit={canEdit}
+        kind={kind}
+        plan={ctx.institution.plan}
+      />
     </div>
   )
 }

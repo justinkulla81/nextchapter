@@ -36,7 +36,7 @@ export default async function ForAlumniPage({ params }: { params: Promise<{ slug
   const inst = await load(slug)
   if (!inst) notFound()
   const profile = readProfile(inst.profile)
-  const services = memberCards(serviceSettingsFrom(inst.enabledFeatures), ['alumni'])
+  const services = memberCards(serviceSettingsFrom(inst.enabledFeatures), ['alumni'], 'college', { enabledFeatures: inst.enabledFeatures })
   const [joined, landed] = await Promise.all([
     prisma.institutionMember.count({ where: { institutionId: inst.id, status: { in: ['CLAIMED', 'ACTIVE'] } } }),
     prisma.outcomeReport.count({ where: { member: { institutionId: inst.id }, shareMilestone: true } }),

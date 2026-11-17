@@ -15,8 +15,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   if (!access || access.workspaces.length === 0) return NextResponse.redirect(new URL(`/i/${slug}`, request.url))
 
   const kind = orgKindOf(access.institution.orgType)
-  const s = getService(service, kind)
   const row = await prisma.institution.findUnique({ where: { id: access.institution.id }, select: { enabledFeatures: true } })
+  const s = getService(service, kind, row?.enabledFeatures)
   const setting = s ? serviceSettingsFrom(row?.enabledFeatures, kind)[s.key] : null
   const target = s && setting?.on ? serviceTarget(s, setting) : null
   if (!s || !target) return NextResponse.redirect(new URL(`/i/${slug}/candidate`, request.url))

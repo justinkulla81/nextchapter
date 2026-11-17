@@ -7,10 +7,11 @@
 // Data, not code paths: adding a service is an entry here.
 
 import type { OrgKind, WorkspaceKey } from './workspaces'
+import { normalizeMajor } from './major-groups-shared'
 
 export type Audience = 'alumni' | 'students' | 'recent_grads' | 'parents' | 'in_transition' | 'job_seekers'
 export type Pricing = 'free' | 'paid' | 'donor'
-export type ServiceGroup = 'core' | 'more' | 'campaigns'
+export type ServiceGroup = 'core' | 'more' | 'campaigns' | 'custom'
 
 export type Service = {
   key: string
@@ -121,9 +122,148 @@ export function officesFor(kind: OrgKind = 'college'): readonly string[] {
 }
 
 // Who delivers it: the college's own (its link, its staff), NextChapter's
-// built-in screen, or both (the college's link first, NextChapter's too).
-export type Provider = 'college' | 'nextchapter' | 'both'
-export const PROVIDER_LABELS: Record<Provider, string> = { college: 'Your college', nextchapter: 'NextChapter', both: 'Both' }
+// built-in screen, both (the college's link first, NextChapter's too), or a
+// partner the college works with (a course platform, an insurer, a coaching
+// firm), named on the card, through the partner's link.
+export type Provider = 'college' | 'nextchapter' | 'both' | 'partner'
+export const PROVIDER_LABELS: Record<Provider, string> = { college: 'Your college', nextchapter: 'NextChapter', both: 'Both', partner: 'A partner' }
+
+// Career moments a card can be aimed at, from the member's NextChapter
+// journey (and, for "between jobs", the transition flag they opened).
+export type Moment = 'between_jobs' | 'exploring' | 'growing' | 'career_change' | 'founders' | 'next_act'
+export const MOMENT_LABELS: Record<Moment, string> = {
+  between_jobs: 'Laid off or between jobs',
+  exploring: 'Thinking about a move',
+  growing: 'Growing or going for a promotion',
+  career_change: 'Changing careers',
+  founders: 'Starting or buying a business',
+  next_act: 'Planning a next act (55+)',
+}
+const JOURNEY_MOMENT: Record<string, Moment> = {
+  LAID_OFF: 'between_jobs',
+  EXPLORING_MOVE: 'exploring',
+  GROWING: 'growing',
+  PROMOTION: 'growing',
+  CAREER_CHANGE: 'career_change',
+  ENTREPRENEUR: 'founders',
+  BUY_BUSINESS: 'founders',
+  NEXT_ACT: 'next_act',
+}
+
+// Narrows a card within its audiences. Every dimension that is set must
+// match; within one, any value does. Text values are stored normalized
+// (normalizeMajor). Empty everywhere = everyone in the audiences.
+export type Targeting = {
+  majors: string[]
+  schools: string[]
+  departments: string[]
+  cities: string[]
+  classYearFrom: number | null
+  classYearTo: number | null
+  moments: Moment[]
+}
+export const NO_TARGETING: Targeting = { majors: [], schools: [], departments: [], cities: [], classYearFrom: null, classYearTo: null, moments: [] }
+
+// What targeting reads about one member. City and moment come only from a
+// joined member's own NextChapter profile.
+export type MemberTraits = {
+  major: string | null
+  school: string | null
+  department: string | null
+  classYear: number | null
+  places: string[] // normalized metro and city
+  moments: Moment[]
+}
+
+export function memberTraits(m: {
+  major: string | null
+  school: string | null
+  department: string | null
+  classYear: number | null
+  metroArea?: string | null
+  currentCity?: string | null
+  journey?: string | null
+  inTransition?: boolean
+}): MemberTraits {
+  const moments = new Set<Moment>()
+  if (m.journey && JOURNEY_MOMENT[m.journey]) moments.add(JOURNEY_MOMENT[m.journey])
+  if (m.inTransition) moments.add('between_jobs')
+  return {
+    major: m.major ? normalizeMajor(m.major) : null,
+    school: m.school ? normalizeMajor(m.school) : null,
+    department: m.department ? normalizeMajor(m.department) : null,
+    classYear: m.classYear,
+    places: [m.metroArea, m.currentCity].filter((x): x is string => !!x).map(normalizeMajor),
+    moments: [...moments],
+  }
+}
+
+export function isTargeted(t: Targeting | undefined): boolean {
+  if (!t) return false
+  return !!(t.majors.length || t.schools.length || t.departments.length || t.cities.length || t.classYearFrom || t.classYearTo || t.moments.length)
+}
+
+/** Does this member fall inside the card's targeting? Exported for tests. */
+export function matchesTargeting(t: Targeting | undefined, m: MemberTraits): boolean {
+  if (!t || !isTargeted(t)) return true
+  if (t.majors.length && !(m.major && t.majors.includes(m.major))) return false
+  if (t.schools.length && !(m.school && t.schools.includes(m.school))) return false
+  if (t.departments.length && !(m.department && t.departments.includes(m.department))) return false
+  // "miami" matches "miami fort lauderdale west palm beach fl".
+  if (t.cities.length && !t.cities.some((c) => m.places.some((p) => p.includes(c)))) return false
+  if (t.classYearFrom && !(m.classYear && m.classYear >= t.classYearFrom)) return false
+  if (t.classYearTo && !(m.classYear && m.classYear <= t.classYearTo)) return false
+  if (t.moments.length && !t.moments.some((x) => m.moments.includes(x))) return false
+  return true
+}
+
+/** "English majors · Miami · class of 2000–2015 · Laid off or between jobs" for staff summaries. */
+export function describeTargeting(t: Targeting | undefined): string | null {
+  if (!t || !isTargeted(t)) return null
+  const years = t.classYearFrom && t.classYearTo ? `class of ${t.classYearFrom}–${t.classYearTo}` : t.classYearFrom ? `class of ${t.classYearFrom} on` : t.classYearTo ? `class of ${t.classYearTo} or earlier` : null
+  return [
+    t.majors.length ? `majors: ${t.majors.join(', ')}` : null,
+    t.schools.length ? `schools: ${t.schools.join(', ')}` : null,
+    t.departments.length ? `departments: ${t.departments.join(', ')}` : null,
+    t.cities.length ? `cities: ${t.cities.join(', ')}` : null,
+    years,
+    t.moments.length ? t.moments.map((m) => MOMENT_LABELS[m]).join(', ') : null,
+  ]
+    .filter(Boolean)
+    .join(' · ')
+}
+
+// Offerings a college adds itself (its own programs or a partner's), beyond
+// the catalog. Stored in enabledFeatures.customServices; their settings live
+// with every other service's in enabledFeatures.services.
+export type CustomOffering = { key: string; name: string; pitch: string }
+export const CUSTOM_GROUP = { key: 'custom' as const, label: 'Your offerings and partners’', blurb: 'Programs, partner products and links you add yourself, aimed at exactly who should see them.' }
+
+export function customOfferingsFrom(enabledFeatures: unknown): CustomOffering[] {
+  const list = (enabledFeatures as { customServices?: unknown } | null)?.customServices
+  if (!Array.isArray(list)) return []
+  return list.filter((o): o is CustomOffering => !!o && typeof o.key === 'string' && o.key.startsWith('x_') && typeof o.name === 'string' && typeof o.pitch === 'string')
+}
+
+export function customServices(enabledFeatures: unknown): Service[] {
+  return customOfferingsFrom(enabledFeatures).map((o) => ({
+    key: o.key,
+    group: 'custom',
+    name: o.name,
+    pitch: o.pitch,
+    defaultOwner: 'Alumni Relations',
+    defaultAudience: ['alumni'],
+    defaultPricing: 'free',
+    builtIn: null,
+    memberCard: true,
+    defaultOn: true,
+  }))
+}
+
+/** The catalog plus the college's own offerings. */
+export function allServices(enabledFeatures: unknown, kind: OrgKind = 'college'): Service[] {
+  return [...servicesFor(kind), ...customServices(enabledFeatures)]
+}
 
 export type ServiceSetting = {
   provider: Provider
@@ -133,14 +273,26 @@ export type ServiceSetting = {
   ownerName: string | null
   pricing: Pricing
   linkUrl: string | null
+  partnerName: string | null
+  targeting: Targeting
 }
 
-export function getService(key: string, kind: OrgKind = 'college'): Service | undefined {
-  return servicesFor(kind).find((s) => s.key === key)
+export function getService(key: string, kind: OrgKind = 'college', enabledFeatures?: unknown): Service | undefined {
+  return allServices(enabledFeatures, kind).find((s) => s.key === key)
 }
 
 export function defaultSetting(s: Service): ServiceSetting {
-  return { provider: s.builtIn ? 'nextchapter' : 'college', on: s.defaultOn, audience: s.defaultAudience, ownerOffice: s.defaultOwner, ownerName: null, pricing: s.defaultPricing, linkUrl: null }
+  return {
+    provider: s.builtIn ? 'nextchapter' : 'college',
+    on: s.defaultOn,
+    audience: s.defaultAudience,
+    ownerOffice: s.defaultOwner,
+    ownerName: null,
+    pricing: s.defaultPricing,
+    linkUrl: null,
+    partnerName: null,
+    targeting: NO_TARGETING,
+  }
 }
 
 // Stored choices merged over each service's defaults; unknown keys dropped.
@@ -150,11 +302,13 @@ export function serviceSettingsFrom(enabledFeatures: unknown, kind: OrgKind = 'c
     Partial<ServiceSetting>
   >
   return Object.fromEntries(
-    servicesFor(kind).map((s) => {
+    allServices(enabledFeatures, kind).map((s) => {
       const merged = { ...defaultSetting(s), ...(stored[s.key] ?? {}) }
+      merged.targeting = { ...NO_TARGETING, ...(stored[s.key]?.targeting ?? {}) }
       // Saved before providers existed: a link meant the college's own.
       if (!stored[s.key]?.provider && merged.linkUrl) merged.provider = s.builtIn ? 'both' : 'college'
-      if (!s.builtIn) merged.provider = 'college'
+      // Only NextChapter's own screens can be NextChapter's.
+      if (!s.builtIn && merged.provider !== 'partner') merged.provider = 'college'
       return [s.key, merged]
     }),
   )
@@ -168,7 +322,7 @@ export function checkInMonthFrom(enabledFeatures: unknown): number {
 // Where a member's card goes: the college's link if it gave one, else the
 // built NextChapter screen. Null = not openable yet (hidden from members).
 export function serviceTarget(s: Service, setting: ServiceSetting): string | null {
-  if (setting.provider === 'college') return setting.linkUrl || null
+  if (setting.provider === 'college' || setting.provider === 'partner') return setting.linkUrl || null
   if (setting.provider === 'nextchapter') return s.builtIn?.path ?? null
   return setting.linkUrl || s.builtIn?.path || null
 }
@@ -183,14 +337,26 @@ export function memberAudiences(m: { affiliation: string; classYear: number | nu
   return [...(recent ? (['alumni', 'recent_grads'] as Audience[]) : (['alumni'] as Audience[])), ...(inTransition ? (['in_transition'] as Audience[]) : [])]
 }
 
-// The cards a member sees: on, has a member card, has somewhere to go, and is
-// for one of their audiences. A preview with no member record sees all.
-export function memberCards(settings: Record<string, ServiceSetting>, audiences: Audience[] | null, kind: OrgKind = 'college'): Service[] {
-  return servicesFor(kind).filter((s) => {
-    const st = settings[s.key]
-    if (!st?.on || !s.memberCard || !serviceTarget(s, st)) return false
-    return audiences === null || st.audience.some((a) => audiences.includes(a))
-  })
+// The cards a member sees: on, has a member card, has somewhere to go, is for
+// one of their audiences, and (when the card is targeted) matches the
+// targeting. A preview with no member record sees all. Without traits (the
+// public "for alumni" page), targeted cards are left out: they are not for
+// every alum.
+export function memberCards(
+  settings: Record<string, ServiceSetting>,
+  audiences: Audience[] | null,
+  kind: OrgKind = 'college',
+  opts: { traits?: MemberTraits | null; enabledFeatures?: unknown } = {},
+): (Service & { partnerName: string | null })[] {
+  return allServices(opts.enabledFeatures, kind)
+    .filter((s) => {
+      const st = settings[s.key]
+      if (!st?.on || !s.memberCard || !serviceTarget(s, st)) return false
+      if (audiences === null) return true
+      if (!st.audience.some((a) => audiences.includes(a))) return false
+      return opts.traits ? matchesTargeting(st.targeting, opts.traits) : !isTargeted(st.targeting)
+    })
+    .map((s) => ({ ...s, partnerName: settings[s.key].provider === 'partner' ? settings[s.key].partnerName : null }))
 }
 
 // Exec Ed's starting catalog (product design examples). Programs, cohorts and
