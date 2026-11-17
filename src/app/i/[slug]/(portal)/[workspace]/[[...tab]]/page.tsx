@@ -99,7 +99,7 @@ export default async function WorkspacePage({
           cn('-mb-px shrink-0 border-b-2 px-3 py-2 text-sm font-medium transition-colors', isActive ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground')
         return (
           // Talent Hub's areas and pages are in the left rail on wide screens (WorkspaceRail); phones keep these rows.
-          <div className={cn('space-y-3', config.key === 'hub' && 'lg:hidden')}>
+          <div className={cn('space-y-3', (config.key === 'hub' || config.key === 'business') && kind === 'workforce' && 'lg:hidden')}>
             {groups.length > 1 && (
               <nav aria-label={`${labelFor(config, kind)} areas`} className="flex flex-wrap gap-2">
                 {groups.map((g) => {

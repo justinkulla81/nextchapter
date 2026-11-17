@@ -20,6 +20,8 @@ export type WorkspaceKey =
   // Workforce customers (boards, economic development orgs, chambers):
   // member companies, participants, layoffs, kept-in-region.
   | 'hub'
+  // Their business side (owner, 2026-11-17): bringing employers to the region, and the businesses already here.
+  | 'business'
 
 // What a person holds at one institution. Staff roles come straight from
 // InstitutionUser; a VIEWER seat is scoped to one workspace ("VIEWER:alumni");
@@ -294,6 +296,25 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'local', label: 'Kept in region', comingIn: null, group: 'Reports' },
       { key: 'grants', label: 'Grant reporting', comingIn: null, demoOnly: true, group: 'Reports' },
       { key: 'public', label: 'Public pages and previews', comingIn: null, group: 'Public presence' },
+    ],
+  },
+  {
+    // A workforce customer's business side (owner, 2026-11-17), next to Talent Hub: companies that could move or expand here,
+    // a pitch built from the region's own data, and the employers and small businesses already here.
+    key: 'business',
+    label: 'Business Hub',
+    icon: 'Building2',
+    release: 'V1',
+    requiredRoles: ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'EMPLOYER_RELATIONS', 'VIEWER:business'],
+    homePath: 'business',
+    orgKind: 'workforce',
+    tabs: [
+      { key: 'home', label: 'Overview', comingIn: null },
+      { key: 'leads', label: 'Expansion leads', comingIn: null },
+      { key: 'pitch', label: 'Pitch builder', comingIn: null },
+      { key: 'incentives', label: 'Incentives and costs', comingIn: null },
+      { key: 'employers', label: 'Big employers', comingIn: null },
+      { key: 'small', label: 'Startups and small business', comingIn: null },
     ],
   },
   {
