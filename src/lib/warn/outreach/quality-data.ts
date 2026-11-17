@@ -43,7 +43,7 @@ export async function loadAddressFacts(items: { email: string; personId?: string
   const personIds = [...new Set([...byEmail.values()].filter((x): x is string => !!x))]
   const domains = [...new Set(emails.map(domainOf).filter(Boolean))]
 
-  const [people, delivered, bounced, saved] = await Promise.all([
+  const [people, delivered, bounced, saved, directors] = await Promise.all([
     personIds.length
       ? prisma.crmPerson.findMany({
           where: { id: { in: personIds }, deletedAt: null },
@@ -59,8 +59,11 @@ export async function loadAddressFacts(items: { email: string; personId?: string
     prisma.$queryRaw<{ dom: string; n: bigint; lb: Date | null }[]>`
       SELECT split_part(lower(email), '@', 2) AS dom, count(*) AS n, max("createdAt") AS lb
       FROM "MailingSuppression" WHERE reason = 'BOUNCED' AND split_part(lower(email), '@', 2) = ANY(${domains}::text[]) GROUP BY 1`,
-    prisma.addressVerification.findMany({ where: { email: { in: emails } }, select: { email: true, status: true, score: true, checkedAt: true } }),
+    prisma.addressVerification.findMany({ where: { email: { in: emails } }, select: { email: true, status: true, hunterStatus: true, score: true, checkedAt: true } }),
+    // Addresses that are a workforce board's director in the official CareerOneStop listing (a handful of narrow rows).
+    prisma.workforceBoard.findMany({ where: { directorEmail: { in: emails, mode: 'insensitive' } }, select: { directorEmail: true } }),
   ])
+  const boardDirectors = new Set(directors.map((b) => (b.directorEmail ?? '').trim().toLowerCase()))
   const directory = new Map(saved.map((v) => [v.email, v]))
   const person = new Map(people.map((p) => [p.id, p]))
   const dom = new Map<string, { d: number; b: number; lb: Date | null; lc: Date | null }>()
@@ -87,7 +90,8 @@ export async function loadAddressFacts(items: { email: string; personId?: string
       domainLastBounceAt: d?.lb ?? null,
       domainLastCleanAt: d?.lc ?? null,
       mx: mx.get(domainOf(email)) ?? null,
-      directory: directory.get(email) ? { status: directory.get(email)!.status, score: directory.get(email)!.score, at: directory.get(email)!.checkedAt } : null,
+      directory: directory.get(email) ? { status: directory.get(email)!.status, hunterStatus: directory.get(email)!.hunterStatus ?? null, score: directory.get(email)!.score, at: directory.get(email)!.checkedAt } : null,
+      boardDirector: boardDirectors.has(email),
     })
   }
   return out
