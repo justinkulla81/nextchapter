@@ -2968,6 +2968,7 @@ model EmployerProfile {
 
   @@index([subscriptionTier, subscriptionStatus])
   @@index([companyId])
+  relatedOrgs EmployerRelatedOrg[]
 }
 
 // Team seats, additive to the original single-owner EmployerProfile.userId
@@ -16040,6 +16041,25 @@ model GroupJobFeed {
 
   @@unique([institutionId, provider, token])
   @@index([institutionId, createdAt])
+}
+
+// An organization an employer linked from its hiring portal (Your network): each link is an invitation to claim that organization's own
+// page, tagged with inviteToken (?via=<token> on the claim page). When NextChapter approves the claim the link is CONNECTED. Same loop as
+// EcosystemPartner (source CRM_ORG) for colleges and workforce organizations, kept apart because an employer is not an Institution.
+model EmployerRelatedOrg {
+  id                  String          @id @default(cuid())
+  employerProfileId   String
+  employerProfile     EmployerProfile @relation(fields: [employerProfileId], references: [id], onDelete: Cascade)
+  crmOrganizationId   String
+  name                String
+  kind                String          @default("OTHER")
+  inviteToken         String          @unique
+  status              String          @default("INVITED") // INVITED | CONNECTED
+  linkedInstitutionId String?
+  createdAt           DateTime        @default(now())
+
+  @@unique([employerProfileId, crmOrganizationId])
+  @@index([crmOrganizationId])
 }
 
 // A grant, solicitation or other funding a workforce org is pursuing: considering, drafting, submitted, awarded.

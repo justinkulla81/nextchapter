@@ -36,7 +36,10 @@ export function mergeSuggestions(candidates: Candidate[], hits: Map<string, Hit>
   return out
 }
 
-export const byGroup = <T extends Suggestion>(list: T[]) => SUGGEST_GROUPS.map((g) => ({ ...g, items: list.filter((s) => s.group === g.key) })).filter((g) => g.items.length > 0)
+/** A college reads the groups in its own words. */
+const COLLEGE_LABELS: Record<SuggestGroup, string> = { PEERS: 'Workforce and community partners', EMPLOYERS: 'Employers', HIGHER_ED: 'Other colleges and universities' }
+export const byGroup = <T extends Suggestion>(list: T[], kind: 'workforce' | 'college' = 'workforce') =>
+  SUGGEST_GROUPS.map((g) => ({ key: g.key, label: kind === 'college' ? COLLEGE_LABELS[g.key] : g.label, items: list.filter((s) => s.group === g.key) })).filter((g) => g.items.length > 0)
 
 /** How many organizations to link in one go. */
 export const MAX_LINK_BATCH = 40
