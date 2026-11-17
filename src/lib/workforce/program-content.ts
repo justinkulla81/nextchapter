@@ -67,7 +67,7 @@ export const BENEFITS: Benefit[] = [
   { group: 'Transportation', name: 'Transportation help (transit and supportive services)', what: 'Getting to interviews, training and a new job: transit options and, during approved training, supportive services.', how: 'Asked for with the program or the board’s career coach.' },
   { group: 'Legal', name: 'Free legal help on work authorization and benefits', what: 'Legal aid on benefits, taxes and work authorization questions, and free tax preparation for eligible incomes.', how: 'The program lists local legal aid and tax sites.' },
   { group: 'Moving here', name: 'Relocation help', what: 'Housing, schools, a partner job search and a welcome network for people moving to the region.', how: 'Through the program’s relocation concierge.' },
-  { group: 'Moving here', name: 'Relocation help (if your region offers it)', what: 'Where a region or state has an incentive for new households, it is listed here with the income rules.', how: 'Set by the program; the demo leaves it empty.' },
+  { group: 'Moving here', name: 'Relocation incentives (if your region offers them)', what: 'Where a region or state has an incentive for new households, it is listed here with the income rules.', how: 'Set by the program; the demo leaves it empty.' },
 ]
 
 // ---------------------------------------------------------------------------
