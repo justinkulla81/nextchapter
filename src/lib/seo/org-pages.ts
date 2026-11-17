@@ -165,7 +165,9 @@ async function loadStateJobStats(state: string): Promise<StateJobStats> {
 }
 
 type StoredEmployer = { name: string; n: number; cn: string | null; cid: string | null; linkable: boolean | null }
-type StateFigure = { cityJobs: CityJobRow[]; stateJob: JobStatRow | null; topEmployers: StoredEmployer[]; newestJobs: AreaJob[] }
+/** topCap: how many employers the cron kept per state (the place pages need it to tell a short list from a capped one). */
+export const STATE_TOP_EMPLOYERS = 12
+type StateFigure = { cityJobs: CityJobRow[]; stateJob: JobStatRow | null; topEmployers: StoredEmployer[]; topCap: number; newestJobs: AreaJob[] }
 
 /**
  * One pass over the open board for every state's city and state counts, plus the statewide "who is hiring" block (top ten employers,
@@ -198,7 +200,7 @@ export async function buildOrgJobStats(): Promise<Map<string, StateFigure>> {
       ) g
       LEFT JOIN "Company" c ON c.id = g.cid
       LEFT JOIN "CompanyHiringProfile" p ON p."companyId" = c.id
-      WHERE g.rk <= 10
+      WHERE g.rk <= ${STATE_TOP_EMPLOYERS} -- the place pages show 12 (places.ts topHiringEmployers), the organization pages 10
       ORDER BY g.st, g.n DESC, g.name`
     const newest = await tx.$queryRaw<(AreaJob & { st: string })[]>`
       SELECT st, id, title, company, location FROM (
@@ -209,7 +211,7 @@ export async function buildOrgJobStats(): Promise<Map<string, StateFigure>> {
     return { rows, employers, newest }
   }, { timeout: 620_000, maxWait: 30_000 })
   const out = new Map<string, StateFigure>()
-  for (const code of ALL_STATE_CODES) out.set(code, { cityJobs: [], stateJob: null, topEmployers: [], newestJobs: [] })
+  for (const code of ALL_STATE_CODES) out.set(code, { cityJobs: [], stateJob: null, topEmployers: [], topCap: STATE_TOP_EMPLOYERS, newestJobs: [] })
   for (const r of rows) {
     const entry = out.get(r.st)
     if (!entry) continue
@@ -389,7 +391,7 @@ async function loadAreaHiring(state: string, area: Area): Promise<{ employers: H
   // A whole state: the board-figures cron's stored row (buildOrgJobStats), refreshed twice a day. The page is cached 7 days anyway.
   if (area.statewide) {
     const stored = await readBoardFigure<Partial<StateFigure>>(`org-job-stats:${state}`).catch(() => null)
-    if (stored?.topEmployers && stored.newestJobs) return { employers: stored.topEmployers.map(hiringEmployer), jobs: stored.newestJobs }
+    if (stored?.topEmployers && stored.newestJobs) return { employers: stored.topEmployers.slice(0, 10).map(hiringEmployer), jobs: stored.newestJobs }
   }
   const spellings = area.statewide ? null : [...new Set(area.places.flatMap(citySpellings))]
   const where = Prisma.sql`AND "locationState" = ${state} ${spellings ? Prisma.sql`AND lower("locationCity") = ANY(${spellings})` : Prisma.empty}`

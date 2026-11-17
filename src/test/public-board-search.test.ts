@@ -27,7 +27,8 @@ vi.mock('@/lib/seo/topics', () => ({ industryRawValues: () => [] }))
 
 import { COUNT_CAP, searchPublicBoard } from '@/lib/jobs/public-board'
 
-const ids = (n: number) => Array.from({ length: n }, (_, i) => ({ id: `c${i}` }))
+// What the count reads: each match's id and its two dates (the page is cut from it when it is complete).
+const ids = (n: number) => Array.from({ length: n }, (_, i) => ({ id: `c${i}`, postedAt: new Date(Date.UTC(2026, 10, 1) + i * 60_000), createdAt: new Date('2026-11-01') }))
 const light = (n: number) =>
   Array.from({ length: n }, (_, i) => ({ id: `j${i}`, title: `Role ${i}`, companyName: 'Acme', location: 'Louisville, KY', postedAt: new Date('2026-11-01'), createdAt: new Date('2026-11-01'), salaryMin: null, salaryMax: null }))
 
@@ -53,7 +54,7 @@ describe('public board search', () => {
     const result = await searchPublicBoard({ q: '', loc: ', KY', remote: false })
     const countCall = findLight.mock.calls[0][0]
     expect(countCall.take).toBe(COUNT_CAP + 1)
-    expect(countCall.select).toEqual({ id: true })
+    expect(countCall.select).toEqual({ id: true, postedAt: true, createdAt: true })
     expect(countCall.skip).toBeUndefined()
     // No order on the count, and plain index scans off for it: ordered, it walked the date index row by row (#12, 2026-11-17).
     expect(countCall.orderBy).toBeUndefined()
@@ -64,11 +65,25 @@ describe('public board search', () => {
     expect(result.totalCapped).toBe(true)
   })
 
-  it('keeps an exact count when the matches are at or under the cap', async () => {
-    findLight.mockResolvedValueOnce(ids(40)).mockResolvedValueOnce(light(12))
+  it('keeps an exact count when the matches are at or under the cap, and cuts the page from them instead of an ordered scan', async () => {
+    findLight.mockResolvedValueOnce(ids(40)).mockImplementationOnce(async ({ where }: { where: { id: { in: string[] } } }) =>
+      // Read by id, returned in another order: the page keeps the count's newest-first order.
+      [...where.id.in].reverse().map((id) => ({ ...light(1)[0], id })),
+    )
     const result = await searchPublicBoard({ q: 'analyst', loc: 'Louisville, KY', remote: false })
     expect(result.total).toBe(40)
     expect(result.totalCapped).toBeUndefined()
+    const pageCall = findLight.mock.calls[1][0]
+    expect(pageCall.orderBy).toBeUndefined()
+    expect(pageCall.where.id.in[0]).toBe('c39') // the newest posted first
+    expect(result.jobs.map((j) => j.id).slice(0, 3)).toEqual(['c39', 'c38', 'c37'])
+    expect(limits).toEqual([10_000]) // one board read with a time limit: the count; the page is read by primary key
+  })
+
+  it('pages through the matches it counted', async () => {
+    findLight.mockResolvedValueOnce(ids(40)).mockImplementationOnce(async ({ where }: { where: { id: { in: string[] } } }) => where.id.in.map((id) => ({ ...light(1)[0], id })))
+    await searchPublicBoard({ q: 'analyst', loc: '', remote: false, offset: 30 })
+    expect(findLight.mock.calls[1][0].where.id.in).toEqual(['c9', 'c8', 'c7', 'c6', 'c5', 'c4', 'c3', 'c2', 'c1', 'c0'])
   })
 
   it('skips the count query when the caller only wants the jobs (the saved-search alerts)', async () => {
@@ -83,5 +98,20 @@ describe('public board search', () => {
   it('lets a read that cannot finish fail instead of answering with nothing', async () => {
     findLight.mockRejectedValue(new Error('canceling statement due to statement timeout'))
     await expect(searchPublicBoard({ q: '', loc: ', KY', remote: false })).rejects.toThrow('statement timeout')
+  })
+})
+
+describe('newestFirst', () => {
+  it('orders as the board does: posted newest first, no posted date last, then created newest first', async () => {
+    const { newestFirst } = await import('@/lib/jobs/public-board')
+    const d = (s: string) => new Date(s)
+    const rows = [
+      { id: 'none-old', postedAt: null, createdAt: d('2026-11-01') },
+      { id: 'p1', postedAt: d('2026-11-10'), createdAt: d('2026-11-01') },
+      { id: 'none-new', postedAt: null, createdAt: d('2026-11-12') },
+      { id: 'p2-late', postedAt: d('2026-11-12'), createdAt: d('2026-11-02') },
+      { id: 'p2-early', postedAt: d('2026-11-12'), createdAt: d('2026-11-01') },
+    ]
+    expect(newestFirst(rows).map((r) => r.id)).toEqual(['p2-late', 'p2-early', 'p1', 'none-new', 'none-old'])
   })
 })
