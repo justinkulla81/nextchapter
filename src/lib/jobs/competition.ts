@@ -27,7 +27,25 @@ export interface CompetitionScore {
   fewer?: string[]
 }
 
-type Scorable = Pick<ExclusiveJobPosting, 'sourceCategory' | 'location' | 'postedAt' | 'createdAt' | 'sourceCount'>
+type Scorable = Pick<ExclusiveJobPosting, 'sourceCategory' | 'location' | 'postedAt' | 'createdAt' | 'sourceCount'> & {
+  // The recorded work arrangement ('remote' | 'hybrid' | 'onsite') and remote policy, when the caller has them: they
+  // win over the location text, which often names only a country ("United States") for a remote job.
+  workArrangement?: string | null
+  targetRemotePolicy?: string | null
+}
+
+// A location that names only the country, or nothing specific: it says nothing about on-site.
+const COUNTRY_ONLY = /^\s*(?:united states(?: of america)?|usa?|u\.s\.a?\.?|us|nationwide|anywhere|multiple locations|various locations)\s*$/i
+
+/** Remote, on-site/hybrid, or unknown, from the recorded arrangement first and the location text after. */
+export function workSetting(p: Pick<Scorable, 'location' | 'workArrangement' | 'targetRemotePolicy'>): 'remote' | 'local' | null {
+  const arrangement = (p.workArrangement ?? '').toLowerCase()
+  if (arrangement === 'remote' || (p.targetRemotePolicy ?? '').toLowerCase() === 'remote') return 'remote'
+  if (p.location && REMOTE.test(p.location)) return 'remote'
+  if (arrangement === 'onsite' || arrangement === 'hybrid') return 'local'
+  if (!p.location || COUNTRY_ONLY.test(p.location)) return null
+  return 'local'
+}
 
 const DAY_MS = 86_400_000
 const REMOTE = /\bremote\b/i
@@ -115,10 +133,11 @@ export function scoreCompetition(p: Scorable, companyJobCount: number, now = new
       break
   }
 
-  if (p.location && REMOTE.test(p.location)) {
+  const setting = workSetting(p)
+  if (setting === 'remote') {
     score -= 2
     reasons.push('Remote — draws the most applicants')
-  } else if (p.location) {
+  } else if (setting === 'local') {
     score += 1
     reasons.push('On-site or hybrid — a smaller, local applicant pool')
     fewer.push('on-site')
