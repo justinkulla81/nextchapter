@@ -115,9 +115,11 @@ person says yes. We never write to a member's Google account.
 ## Home page
 
 The Home page opens with a **splash picture of the place** (downtown or an economic image) that **the organization uploads**, with its logo; until it does,
-a generic placeholder image shows (**Decided**) and the organization's high-level stats, then what needs
+an iconic photo of the city shows (**Decided**, 2026-11-17) and the organization's high-level stats, then what needs
 the team this week.
-- **Picture and logo:** the organization uploads them. Until then, a generic placeholder. We do not take pictures from the web.
+- **Picture and logo:** the organization uploads them. Until then, a demo shows an iconic photo of its city (skyline or landmark) from Wikimedia Commons'
+  reviewed Quality images and Featured pictures, nothing grim, with the photographer's credit (owner decision, 2026-11-17; `src/lib/workforce/city-hero.ts`).
+  Uploading their own picture replaces it and its credit.
 - **Stats:** from Market (jobs open, unemployment rate and labor force, the figures the organization chooses to headline), each with its source and date.
 - **Best-of rankings and awards:** from our own rankings where the place ranks (for example best places for white-collar professionals), and awards the
   organization adds itself with a source link. Nothing is invented.
