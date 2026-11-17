@@ -90,16 +90,29 @@ export function FindUnposted({
       </FindPartMessage>
     )
   }
-  const { shown, more } = splitFirstView(items)
+  // Only worth a look with a way in (owner, 2026-11-17): companies where they know someone lead, each with "Reach out to".
+  // With nobody known, the first few show with "Find someone there"; the rest fold away.
+  const known = items.filter((i) => i.action.kind === 'contact')
+  const unknown = items.filter((i) => i.action.kind !== 'contact')
+  const { shown, more } = known.length > 0 ? { shown: known, more: unknown } : splitFirstView(unknown)
   return (
     <div className="space-y-6">
+      <p className="text-base text-ink">
+        {known.length > 0
+          ? `You know someone at ${known.length === 1 ? 'this company' : `these ${known.length} companies`}. A note now gets you in before the job is posted.`
+          : 'Find one person at each company. A note before a job is posted beats an application after.'}
+      </p>
       <ul className="divide-y divide-border rounded-2xl border border-border" aria-label="Likely openings">
         {shown.map((i) => (
           <OpeningRow key={i.id} item={i} />
         ))}
       </ul>
       {more.length > 0 && (
-        <ShowMore label={`Show ${more.length} more opening${more.length === 1 ? '' : 's'}`} event="find_more_options_opened" properties={{ part: 'unposted', section: 'more_openings', count: more.length }}>
+        <ShowMore
+          label={known.length > 0 ? `${more.length} more where you don't know anyone yet` : `Show ${more.length} more opening${more.length === 1 ? '' : 's'}`}
+          event="find_more_options_opened"
+          properties={{ part: 'unposted', section: 'more_openings', count: more.length, known: known.length }}
+        >
           <ul className="divide-y divide-border rounded-2xl border border-border" aria-label="More likely openings">
             {more.map((i) => (
               <OpeningRow key={i.id} item={i} />

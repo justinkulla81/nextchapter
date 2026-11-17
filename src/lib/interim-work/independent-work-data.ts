@@ -28,7 +28,8 @@ export async function loadIndependentWork(profile: Awaited<ReturnType<typeof get
 
   const [phases, marketplaceListings, expertNetworkListings, allBoardListings, signedUpIds, interimSignups, isMember, oldClickThroughs, platformRows, gmailConnection] =
     await Promise.all([
-      getInterimLaunchPlan(profile),
+      // No rate step (owner, 2026-11-17): typing a rate to open the directories was work with no benefit. The page suggests one instead.
+      getInterimLaunchPlan(profile).then((plan) => plan.filter((p) => p.number !== 1)),
       getActiveListings(marketplaceCategories),
       getActiveListings([InterimListingCategory.EXPERT_NETWORK]),
       getActiveListings([boardReady ? InterimListingCategory.BOARD_ADVISORY : InterimListingCategory.NONPROFIT_BOARD]),

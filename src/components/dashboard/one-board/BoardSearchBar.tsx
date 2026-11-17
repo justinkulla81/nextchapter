@@ -21,6 +21,9 @@ import {
 } from '@/lib/jobs/board-search'
 import type { SearchSuggestion } from '@/lib/jobs/board-search-index'
 import { suggestBoardSearch } from '@/app/dashboard/find-my-job/search-actions'
+import { CollapsedOptions } from '@/components/candidate/CollapsedOptions'
+import { LookingForChoice } from '@/components/dashboard/one-board/LookingForChoice'
+import { LOOKING_FOR_LABEL, type LookingFor } from '@/lib/jobs/looking-for'
 
 const TYPING_DEBOUNCE_MS = 600
 const SUGGEST_DEBOUNCE_MS = 150
@@ -35,7 +38,7 @@ const fromUrl = (sp: URLSearchParams): BoardSearchParams =>
  * shared; keywords apply after a short pause in typing, a location once picked; Enter or
  * "Search jobs" applies at once.
  */
-export function BoardSearchBar() {
+export function BoardSearchBar({ lookingFor }: { lookingFor?: LookingFor } = {}) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -146,26 +149,39 @@ export function BoardSearchBar() {
         </Button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-        <ButtonGroup
-          label="Work arrangement"
-          options={[{ key: 'any', label: 'Any' }, ...REMOTE_FILTERS.map((r) => ({ key: r, label: REMOTE_FILTER_LABEL[r] }))]}
-          value={applied.remote ?? 'any'}
-          pending={pending}
-          onSelect={(k) => apply({ ...current, remote: k === 'any' ? null : (k as RemoteFilter) })}
-        />
-        <ButtonGroup
-          label="Sort"
-          options={BOARD_SORTS.map((s) => ({ key: s, label: BOARD_SORT_LABEL[s] }))}
-          value={applied.sort}
-          pending={pending}
-          onSelect={(k) => apply({ ...current, sort: k as BoardSort })}
-        />
+      {/* The current choices in one line; the options open on Change (owner, 2026-11-17). */}
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <CollapsedOptions
+          surface="board_search"
+          summary={[
+            lookingFor ? LOOKING_FOR_LABEL[lookingFor] : null,
+            applied.remote ? REMOTE_FILTER_LABEL[applied.remote] : 'Any arrangement',
+            BOARD_SORT_LABEL[applied.sort],
+          ]
+            .filter(Boolean)
+            .join(' · ')}
+        >
+          {lookingFor && <LookingForChoice selected={lookingFor} />}
+          <ButtonGroup
+            label="Work arrangement"
+            options={[{ key: 'any', label: 'Any' }, ...REMOTE_FILTERS.map((r) => ({ key: r, label: REMOTE_FILTER_LABEL[r] }))]}
+            value={applied.remote ?? 'any'}
+            pending={pending}
+            onSelect={(k) => apply({ ...current, remote: k === 'any' ? null : (k as RemoteFilter) })}
+          />
+          <ButtonGroup
+            label="Sort"
+            options={BOARD_SORTS.map((s) => ({ key: s, label: BOARD_SORT_LABEL[s] }))}
+            value={applied.sort}
+            pending={pending}
+            onSelect={(k) => apply({ ...current, sort: k as BoardSort })}
+          />
+        </CollapsedOptions>
         {hasAnything && (
           <button
             type="button"
             onClick={clear}
-            className="ml-auto inline-flex items-center gap-1 rounded-md px-2 py-1 text-muted-foreground underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none"
+            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm text-muted-foreground underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none"
           >
             <X className="size-3.5" aria-hidden /> Clear search
           </button>

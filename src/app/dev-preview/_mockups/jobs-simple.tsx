@@ -1,5 +1,4 @@
 import { BoardSearchBar } from '@/components/dashboard/one-board/BoardSearchBar'
-import { LookingForChoice } from '@/components/dashboard/one-board/LookingForChoice'
 import { NextMoveCard } from '@/components/dashboard/NextMoveSection'
 import { nextMove } from '@/lib/market/next-move'
 
@@ -31,8 +30,7 @@ export function FindSimple() {
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-6">
       <h1 className="font-serif text-4xl text-ink">Find a job</h1>
-      <BoardSearchBar />
-      <LookingForChoice selected="fractional" />
+      <BoardSearchBar lookingFor="full_time" />
       <NextMove m={MOVES[0]} />
       <div>
         <p className="mb-2 text-sm font-medium text-ink">6 jobs, best fit first</p>

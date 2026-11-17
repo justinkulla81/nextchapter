@@ -37,7 +37,8 @@ export function FindParts({
 }) {
   return (
     <nav aria-label="Find a job" className="flex flex-wrap gap-2">
-      {FIND_PARTS.filter((p) => p.key !== 'independent' || independent).map((p) => (
+      {/* Resources is a link at the foot of the page, not a tab (owner, 2026-11-17); its URL (part=resources) still works. */}
+      {FIND_PARTS.filter((p) => p.key !== 'resources' && (p.key !== 'independent' || independent)).map((p) => (
         <Link
           key={p.key}
           href={boardHref(urlParams, { part: p.key === 'jobs' ? undefined : p.key, job: null, tab: 'board' })}

@@ -10,7 +10,6 @@ import { InterimLaunchPlanTracker } from '@/components/dashboard/InterimLaunchPl
 import { InterimListingGrid } from '@/components/dashboard/InterimListingGrid'
 import { InterimListingCarousel } from '@/components/dashboard/InterimListingCarousel'
 import { InterimOfferDefinitionForm } from '@/components/dashboard/InterimOfferDefinitionForm'
-import { GigDirectoryUnlockForm } from '@/components/dashboard/GigDirectoryUnlockForm'
 import { WorkHistoryForm } from '@/components/dashboard/WorkHistoryForm'
 import { WorkHistoryList } from '@/components/dashboard/WorkHistoryList'
 import { TierSummaryCard } from '@/components/dashboard/TierSummaryCard'
@@ -44,6 +43,7 @@ function ListingsEmpty({ children }: { children: ReactNode }) {
 export function FindIndependent({
   data,
   unlocked,
+  dayRate,
   boardAdvisoryWillingness,
   boardDiversityOptIn,
   workHistory,
@@ -52,6 +52,8 @@ export function FindIndependent({
   data: IndependentWorkData
   /** The member has set a rate target, which opens the directories. */
   unlocked: boolean
+  /** A day rate to aim for, from the member's last salary (suggestedDayRate), or null. */
+  dayRate?: { low: number; high: number } | null
   boardAdvisoryWillingness: boolean | null
   boardDiversityOptIn: boolean | null
   workHistory: WorkHistoryEntry[]
@@ -86,13 +88,18 @@ export function FindIndependent({
           <p className="max-w-2xl text-base text-white/85">
             Most interim work comes through a warm introduction, so the fastest route is to package what you already do as an offer and take it to your network.
           </p>
+          {dayRate && (
+            <p className="max-w-2xl text-sm text-white/85">
+              A day rate to aim for: ${dayRate.low.toLocaleString('en-US')} to ${dayRate.high.toLocaleString('en-US')}, from your last salary. Fractional work usually pays 1.5 to 2 times a full-time day.
+            </p>
+          )}
         </div>
         <div className="space-y-2">
           <p className="text-sm text-white/85">{launchProgressLine(phases)}</p>
           <ol className="grid gap-2 sm:grid-cols-3" aria-label="Launch steps">
-            {steps.map((s) => (
+            {steps.map((s, i) => (
               <li key={s.number} className={cn('flex items-center gap-2 rounded-lg p-3 text-sm', s.done ? 'bg-white/15' : s.number === next?.number ? 'bg-white/10 ring-1 ring-white/40' : 'bg-white/5 text-white/80')}>
-                {s.done ? <Check className="size-4 shrink-0" aria-label="Done" /> : <span className="w-4 shrink-0 text-center text-xs tabular-nums" aria-hidden>{s.number}</span>}
+                {s.done ? <Check className="size-4 shrink-0" aria-label="Done" /> : <span className="w-4 shrink-0 text-center text-xs tabular-nums" aria-hidden>{i + 1}</span>}
                 <span>{s.label}</span>
               </li>
             ))}
@@ -105,7 +112,6 @@ export function FindIndependent({
               <h3 className="text-lg font-semibold">{next.label}</h3>
               <p className="text-sm text-muted-foreground">{next.description}</p>
             </div>
-            {next.number === 1 && <GigDirectoryUnlockForm />}
             {next.number === 2 && <InterimOfferDefinitionForm />}
             {next.number === 6 && (
               <form action={markInterimOutreachStarted}>

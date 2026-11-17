@@ -30,6 +30,18 @@ export function launchSteps(phases: LaunchPhaseInput[]): LaunchStep[] {
   return phases.map((p) => ({ number: p.number, label: LAUNCH_LABEL[p.number] ?? p.title, done: p.completed }))
 }
 
+/**
+ * A day rate to aim for, from the member's last salary: the salary's working-day equivalent (260 days) times 1.5 to 2,
+ * the usual premium for fractional and interim work, rounded to $50. Null without a salary. Shown instead of asking
+ * the member to type one (owner, 2026-11-17).
+ */
+export function suggestedDayRate(lastSalary: number | null | undefined): { low: number; high: number } | null {
+  if (!lastSalary || lastSalary < 20_000) return null
+  const day = lastSalary / 260
+  const round = (n: number) => Math.round(n / 50) * 50
+  return { low: round(day * 1.5), high: round(day * 2) }
+}
+
 /** The first phase not done: it is the one primary action on the page. Null once all are done. */
 export function nextLaunchPhase(phases: LaunchPhaseInput[]): (LaunchPhaseInput & { label: string }) | null {
   const next = phases.find((p) => !p.completed)
