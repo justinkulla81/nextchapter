@@ -55,6 +55,7 @@ import { StaffInviteForm } from './StaffInviteForm'
 import { LockedFeature } from '@/components/plans/LockedFeature'
 import { institutionEntitlements } from '@/lib/plans/entitlements'
 import { AlumniEngagement, AlumniLayoffs, AlumniOutreach, CareerCheckIns, WaitingForYou } from './screens-outreach'
+import { AlumniData } from './screens-alumni-data'
 import { InternshipsScreen } from './screens-internships'
 import { AlumniMentors, CandidateJobs, CareerEmployers, CareerStudents, EmployerDossiersWithIntros, EmployerPage, IntroRequestsCard } from './screens-network'
 import { counselors, searchRoster } from '@/lib/higher-ed/caseload'
@@ -1485,6 +1486,7 @@ export const COMING_DESCRIPTIONS: Record<string, string> = {
   'alumni:outreach': 'Campaigns, a merge-field template editor, and a send log with opens, clicks and claims.',
   'alumni:mentors': 'The mentor roster, invitations and request activity.',
   'alumni:engagement': 'Engagement score distribution and CASE breakdown by class decade.',
+  'alumni:data': 'Where alumni work: function, seniority, industry, employer size, region and founders.',
   'development:signals': 'Promotion, new-employer and gratitude signals to approve, dismiss or export.',
   'development:fund': 'Resilience Fund settings, awards and the donor report.',
   'development:crm': 'Roster and gift CSV uploads, the updates export, and run history.',
@@ -1633,6 +1635,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'alumni:layoffs': AlumniLayoffs,
   'alumni:outreach': AlumniOutreach,
   'alumni:engagement': AlumniEngagement,
+  'alumni:data': AlumniData,
   'career:checkins': CareerCheckIns,
   'hub:home': HubHome,
   'hub:companies': HubCompanies,

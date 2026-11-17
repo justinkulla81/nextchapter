@@ -12,6 +12,7 @@
 import 'server-only'
 import type { InstitutionConsentScope } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { autoJoinMajorGroups } from './major-groups'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { grantRoleIfMissing } from '@/lib/auth/role-grants'
@@ -103,6 +104,8 @@ export async function completeJoin(args: { member: JoinableMember; userId: strin
     })
   }
   if (member.sendId) await prisma.outreachSend.update({ where: { id: member.sendId }, data: { claimedAt: now } })
+  // Their major's groups, right away (the nightly run would catch it too). Fail-soft: joining never fails over a group.
+  await autoJoinMajorGroups({ memberId: member.id }).catch((err) => console.error('[completeJoin] major groups', err))
   await grantRoleIfMissing(userId, 'alum')
   return { candidateId: profile.id }
 }
