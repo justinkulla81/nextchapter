@@ -56,6 +56,15 @@ export function sendHiringClaimApprovedEmail(p: { to: string; name: string; orgN
   )
 }
 
+/** To the team when an organization's first version of its public page section waits for review. */
+export function sendPublicPageReviewEmail(p: { orgName: string; by: string; reviewUrl: string }): Promise<boolean> {
+  return send(
+    'admin', 'justin@launchyournextchapter.com', `${p.orgName}: public page edit to review`,
+    `<div style="font:14px/1.5 Arial,Helvetica,sans-serif;color:#111"><p>${esc(p.by)} wrote ${esc(p.orgName)}&apos;s own section for its public page. It shows once you approve it; after that, their saves publish without review.</p><p><a href="${esc(p.reviewUrl)}">${esc(p.reviewUrl)}</a></p></div>`,
+    'public page review',
+  )
+}
+
 /** To the team when a claim is verified. */
 export function sendOrgClaimAdminEmail(p: { orgName: string; name: string; title: string; email: string; needsReview: boolean; pageUrl: string; approveUrl?: string; section?: { label: string; outcome: string } }): Promise<boolean> {
   return send(

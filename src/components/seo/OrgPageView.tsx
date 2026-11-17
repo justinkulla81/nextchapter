@@ -18,6 +18,8 @@ import { periodLabel, rateText } from '@/lib/seo/workforce-pages'
 import type { AreaJob, HiringEmployer, OrgPage } from '@/lib/seo/org-pages'
 import { AreaNotices } from '@/components/seo/AreaNotices'
 import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
+import { OrgOwnSection } from '@/components/public-page/OrgOwnSection'
+import type { PublicPageContentData } from '@/lib/public-page/content'
 import { CompanyEvents } from '@/components/seo/CompanyEvents'
 import type { eventsForCompanyIds } from '@/lib/events/sec-events'
 import type { PageNotices } from '@/lib/seo/org-notices'
@@ -32,8 +34,10 @@ function addressLine(row: { street: string | null; city: string | null; state: s
 const ROOT_NAME = { JOB_CENTER: 'American Job Centers', ECON_DEV: 'Economic development', WORKFORCE_BOARD: 'Workforce boards' } as const
 
 /** The page for an American Job Center or an economic development organization. */
-export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events, brand = null, peopleCount = null }: {
+export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events, brand = null, peopleCount = null, own = null }: {
   h1?: string
+  /** What the organization wrote on its own page (paid plan, src/lib/public-page). */
+  own?: PublicPageContentData | null
   /** The organization's two colors, read from its own website (workforce boards): paints the candidate band. */
   brand?: BrandPair | null
   /** People connected with the organization, already held back under the floor (null = show nothing). */
@@ -88,6 +92,7 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
         </p>
       )}
       {(row.kind === 'JOB_CENTER' || row.kind === 'WORKFORCE_BOARD') && <StateFilingLink name={st} slug={ss} className="mt-6" />}
+      {own && <OrgOwnSection orgName={row.name} kind="WORKFORCE" content={own} />}
       <section aria-labelledby="market" className="mt-10">
         <h2 id="market" className={H2}>Jobs where it serves</h2>
         <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
