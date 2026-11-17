@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { stateName } from '@/lib/pivots/scoring'
 import { stateCode } from '@/lib/pivots/load'
 import { loadAddressableMarket } from '@/lib/profile/addressable-market'
-import { readSearchExpansion } from '@/lib/profile/search-expansion'
+import { readSearchExpansion, STATE_NEIGHBORS } from '@/lib/profile/search-expansion'
 import { industriesHiringTarget, memberMarketTarget, type MarketMember } from '@/lib/market/market-size-server'
 import { subFunctionLabel } from '@/lib/jobs/sub-functions'
 import { topCities, type CityStatRow } from '@/lib/market/city-stats'
@@ -11,8 +11,8 @@ import { loadSkillsMarket } from '@/lib/skills/market-server'
 import { functionKeyFor, industryKeyFor, readWidenStrategy, skillsIntel, type WidenCity, type WidenStrategyView } from './widen-strategy'
 
 // The server half of the Widen your search page (widen-strategy.ts). Reads, per page view:
-//  - MarketCityStat for the member's function and their first industry: at most 15 cities x 8 bands x 2 keys
-//    (~240 narrow rows, ~20 KB), held per instance for 30 minutes per key.
+//  - MarketCityStat for the member's function and their first industry: at most 60 cities x 9 bands for the function, 15 x 9 for function-in-industry
+//    (up to ~540 narrow rows for a function, ~45 KB), held per instance for 30 minutes per key.
 //  - The addressable market (related roles, remote count) and the market-size rows for their function, both
 //    already cached for the market pages.
 //  - The skills-market snapshot, held per instance for 30 minutes (market-server.ts).
@@ -83,4 +83,21 @@ export async function loadWidenStrategy(p: WidenMember): Promise<WidenStrategyVi
     on: { remote: exp.remote, states: exp.states, cities: (exp.cities ?? []).map((c) => c.name), industries: exp.industries, roles: exp.roles },
     savedAt: readWidenStrategy(p.journeyDetails)?.at ?? null,
   }
+}
+
+/**
+ * The top cities in the member's neighbouring states for their kind of work at their level: the market page's
+ * "just across the state line" suggestions, offered one city at a time instead of whole states. Same cached
+ * MarketCityStat rows as the Widen your search page.
+ */
+export async function loadNearbyCities(p: MarketMember, limit = 4): Promise<WidenCity[]> {
+  const target = memberMarketTarget(p)
+  const home = stateCode(p.currentState ?? null)
+  if (!target || !home) return []
+  const neighbours = STATE_NEIGHBORS[home] ?? []
+  if (neighbours.length === 0) return []
+  const rows = (await cityRows('fn', target.fn)).filter((r) => neighbours.includes(r.state))
+  const mine = topCities(rows, target.stages, limit)
+  const list = mine.length > 0 ? mine : topCities(rows, [], limit)
+  return list.filter((c) => c.openNow >= 3).map((c) => ({ ...c, stateName: stateName(c.state), home: false }))
 }

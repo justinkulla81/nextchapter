@@ -112,8 +112,12 @@ export interface CityStatRow {
   openNow: number
 }
 
-/** Cities kept per key and band. The page shows six; the rest cover the sum across a member's bands. */
-export const CITIES_PER_KEY = 15
+/**
+ * Cities kept per key and band. Pages show four to six; the rest cover the sum across a member's bands and, for a
+ * function, the cities in a member's neighbouring states (the market page's nearby cities), which are rarely the
+ * national top few.
+ */
+export const CITIES_PER_KEY: Record<CityStatKind, number> = { fn: 60, fn_ind: 15 }
 /** A city needs this many open roles in a key and band to be kept. */
 export const MIN_CITY_OPEN = 2
 
@@ -143,7 +147,7 @@ export function aggregateCityStats(rows: Iterable<CityStatInput>): CityStatRow[]
     groups.set(g, list)
   }
   const out: CityStatRow[] = []
-  for (const list of groups.values()) out.push(...list.sort((a, b) => b.openNow - a.openNow || a.city.localeCompare(b.city)).slice(0, CITIES_PER_KEY))
+  for (const list of groups.values()) out.push(...list.sort((a, b) => b.openNow - a.openNow || a.city.localeCompare(b.city)).slice(0, CITIES_PER_KEY[list[0].kind]))
   return out
 }
 
