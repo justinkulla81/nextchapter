@@ -1,6 +1,7 @@
 import 'server-only'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { memoTtl, sharedLoad } from '@/lib/db/heavy'
 import type { Prospect } from './config'
 
 export interface Opening { title: string; company: string; location: string | null; level: string | null; pay: number | null; url: string; fn: string | null }
@@ -50,6 +51,22 @@ export async function getMarket(p: Prospect): Promise<Market> {
   }
 }
 
+/**
+ * A state's WARN filings over the last `days` days, the biggest first: one read per state, kept six hours in the shared data cache and
+ * half an hour on the instance. Every organization page in a state read the same rows itself (~2,000 reads in three hours, 2026-11-17
+ * egress); the county and city narrowing is done on the cached rows.
+ */
+const stateWarnRows = memoTtl(30 * 60_000, (state: string, days: number) => `${state}:${days}`, (state: string, days: number) =>
+  sharedLoad(`state-warn-rows-v1:${state}:${days}`, 6 * 3600, () => {
+    const since = new Date(Date.now() - days * 86_400_000)
+    return prisma.warnNotice.findMany({
+      // Some states (Pennsylvania) give no filing date, so the day we fetched the notice stands in for it.
+      where: { state, source: 'WARN_FILING', dismissedAt: null, employees: { not: null }, OR: [{ noticeDate: { gte: since } }, { noticeDate: null, fetchedAt: { gte: since } }] },
+      select: { employer: true, employees: true, noticeDate: true, fetchedAt: true, effectiveDate: true, county: true, address: true, normalizedEmployer: true },
+      orderBy: { employees: 'desc' },
+    })
+  }))
+
 /** Layoff notices (state WARN filings) in the place over the last six months, the biggest first. */
 export async function getNotices(p: Prospect, days = 180): Promise<NoticeSummary> {
   return getNoticesFor({ state: p.state, counties: p.counties, cityWords: p.cityWords }, days)
@@ -60,13 +77,7 @@ export async function getNotices(p: Prospect, days = 180): Promise<NoticeSummary
  * No counties means the whole state. A place with no notices of its own shows the state, and says so (scope 'state').
  */
 export async function getNoticesFor(p: { state: string; counties: string[]; cityWords?: string[] }, days = 180): Promise<NoticeSummary> {
-  const since = new Date(Date.now() - days * 86_400_000)
-  const rows = await prisma.warnNotice.findMany({
-    // Some states (Pennsylvania) give no filing date, so the day we fetched the notice stands in for it.
-    where: { state: p.state, source: 'WARN_FILING', dismissedAt: null, employees: { not: null }, OR: [{ noticeDate: { gte: since } }, { noticeDate: null, fetchedAt: { gte: since } }] },
-    select: { employer: true, employees: true, noticeDate: true, fetchedAt: true, effectiveDate: true, county: true, address: true, normalizedEmployer: true },
-    orderBy: { employees: 'desc' },
-  })
+  const rows = await stateWarnRows(p.state, days)
   const base = (c: string | null) => (c ?? '').replace(/\s+(county|parish)$/i, '').trim().toLowerCase()
   const words = p.cityWords ?? []
   // Some states give the county in the address column (Pennsylvania), so both fields are read.

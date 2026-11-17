@@ -231,12 +231,13 @@ async function loadStateData(state: string): Promise<StateData> {
     getStateCityPlaces(state),
     getStateCounties(state),
     loadStateJobStats(state),
-    prisma.localCollege.findMany({
+    // A day in the shared data cache too (2026-11-17 egress: ~250 reads in half an hour across cold instances).
+    sharedLoad(`state-org-colleges-v1:${state}`, 24 * 3600, () => prisma.localCollege.findMany({
       where: { state, sector: { in: [1, 2, 4, 5] } },
       select: { id: true, name: true, city: true, sector: true, size: true, website: true, countyFips: true },
       orderBy: [{ size: { sort: 'desc', nulls: 'last' } }, { name: 'asc' }],
-    }),
-    prisma.countyLabor.findMany({ where: { state }, select: { nameKey: true, laborForce: true, unemployed: true, rateYearAgo: true, period: true } }),
+    }), { reviveDates: false }),
+    sharedLoad(`state-county-labor-v1:${state}`, 24 * 3600, () => prisma.countyLabor.findMany({ where: { state }, select: { nameKey: true, laborForce: true, unemployed: true, rateYearAgo: true, period: true } }), { reviveDates: false }),
   ])
 
   const cityStats = new Map<string, CityStat>()
@@ -481,8 +482,9 @@ export interface AcrossStateHelp {
 type DirectoryEntry = { id: string; name: string; slug: string }
 const stateDirectory = memoTtl(6 * 60 * 60_000, (state: string) => state, async (state: string) => {
   const [centerRows, partnerRows, boardRows, counties] = await Promise.all([
-    prisma.americanJobCenter.findMany({ where: { state }, select: { id: true, name: true, city: true, countyFips: true } }),
-    prisma.localPartnerOrg.findMany({ where: { state }, select: { id: true, name: true, city: true, kind: true, source: true, counties: true, website: true } }),
+    // A day in the shared data cache (2026-11-17 egress: the centers read ran ~1,000 times in half an hour, one per cold instance and state).
+    sharedLoad(`state-directory-centers-v1:${state}`, 24 * 3600, () => prisma.americanJobCenter.findMany({ where: { state }, select: { id: true, name: true, city: true, countyFips: true } }), { reviveDates: false }),
+    sharedLoad(`state-directory-partners-v1:${state}`, 24 * 3600, () => prisma.localPartnerOrg.findMany({ where: { state }, select: { id: true, name: true, city: true, kind: true, source: true, counties: true, website: true } }), { reviveDates: false }),
     getStateBoards(state),
     getStateCounties(state),
   ])
