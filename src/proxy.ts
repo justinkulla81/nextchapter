@@ -1,6 +1,7 @@
 import { NextResponse, type NextFetchEvent, type NextRequest } from 'next/server'
 import { matchAiCrawler } from '@/lib/http/ai-crawlers'
 import { stripTrailingPunctuation } from '@/lib/http/trailing-punctuation'
+import { orgPortalPathOnMainSite } from '@/lib/http/org-portal-path'
 import { updateSession } from '@/lib/supabase/middleware'
 import { PROTECTED_APP_PATH_PREFIXES, pathStartsWith } from '@/lib/supabase/portal'
 import { APP_TOP_LEVEL, PORTAL_ROOT_PAGES } from '@/lib/app-top-level'
@@ -71,6 +72,17 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
       const url = request.nextUrl.clone()
       url.pathname = clean
       return NextResponse.redirect(url, 308)
+    }
+  }
+
+  // A college or workforce portal address (/<slug>/hub/...) typed on the main site: to /i/<slug>/..., which moves to the
+  // org's own host (src/lib/http/org-portal-path.ts).
+  if (MAIN_HOSTS.has(host) && (request.method === 'GET' || request.method === 'HEAD')) {
+    const portalPath = orgPortalPathOnMainSite(pathname)
+    if (portalPath) {
+      const url = request.nextUrl.clone()
+      url.pathname = portalPath
+      return NextResponse.redirect(url, 307)
     }
   }
 
