@@ -17,6 +17,7 @@ import { FindJobsLive, MyJobsLive, MyJobsEmptyLive } from './jobs-find-live'
 import { FindUnpostedLive, FindUnpostedEmptyLive, FindUnpostedErrorLive, FindIndependentLive, FindIndependentNewLive, FindIndependentOfferLive, FindResourcesLive, FindResourcesOptedInLive } from './jobs-find-parts-live'
 import { FindUnposted, FindIndependent, FindResources, MyJobs, Companies, CompanyProfile, MarketYours, MarketPay, MarketLocal, MarketPivot, Interviews, Offers } from './jobs-more'
 import { PayChartLive, CompanySectionsLive, CompanyCultureEmptyLive, InterviewTabsLive, InWorkLive, FormsLive } from './jobs-leftovers-live'
+import { InterviewHub, InterviewHubNew, InterviewQuestion, InterviewFollowUp, InterviewReveal } from './strength-interview'
 import { CompaniesLive, MarketLive, PayLive, ResumeLive, StrengthsLive, WhyHireGapsLive, WhyHirePitchLive, WhyHireNewLive, WhyHireNewPitchLive, LocalLive, InterviewsLive } from './jobs-redesign-live'
 import { PeopleYouKnow, AlumniGroups, IndustryFunction, RecruitersCircle, NetworkThisWeek, Messages } from './network-more'
 import { LearnSkills, LearnVideos, ProfileMock, ResumeMock, WhyHireMe, HowIWork, WhatRecruitersSee, DocumentsMock, MembershipMock, HelpTalk, HelpScams, HelpQuestions } from './learn-help'
@@ -195,6 +196,11 @@ export const MOCKUPS: Mockup[] = [
   { path: 'jobs/live/local', place: 'Jobs', title: 'Local market (the built page, sample data)', replaces: 'the code that ships, fed sample data', Component: LocalLive },
   { path: 'jobs/live/resume', place: 'Jobs', title: 'Résumé (the built page, sample data)', replaces: 'the code that ships, fed sample data', Component: ResumeLive },
   { path: 'jobs/live/whyhire', place: 'Jobs', title: 'Why hire me (the built page, sample data)', replaces: 'the code that ships, fed sample data', Component: StrengthsLive },
+  { path: 'jobs/live/strengths-discover', place: 'Jobs', title: 'Find your strengths: the six areas', replaces: 'nothing; new', Component: InterviewHub },
+  { path: 'jobs/live/strengths-discover-new', place: 'Jobs', title: 'Find your strengths: not started', replaces: 'nothing; new', Component: InterviewHubNew },
+  { path: 'jobs/live/strengths-question', place: 'Jobs', title: 'Find your strengths: a question', replaces: 'nothing; new', Component: InterviewQuestion },
+  { path: 'jobs/live/strengths-followup', place: 'Jobs', title: 'Find your strengths: the follow-up', replaces: 'nothing; new', Component: InterviewFollowUp },
+  { path: 'jobs/live/strengths-reveal', place: 'Jobs', title: 'Find your strengths: an area done', replaces: 'nothing; new', Component: InterviewReveal },
   { path: 'jobs/live/whyhire-gaps', place: 'Jobs', title: 'Why hire me: Close the gaps (sample data)', replaces: 'the Show more on /dashboard/strengths', Component: WhyHireGapsLive },
   { path: 'jobs/live/whyhire-pitch', place: 'Jobs', title: 'Why hire me: Your pitch (sample data)', replaces: 'nothing; new part', Component: WhyHirePitchLive },
   { path: 'jobs/live/whyhire-new', place: 'Jobs', title: 'Why hire me: a new member (sample data)', replaces: 'the "Not enough evidence yet" state', Component: WhyHireNewLive },
