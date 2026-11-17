@@ -4,6 +4,7 @@ import { confirmNewsRecord } from './layoff-official'
 import { readDivision } from './division'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
+import { findOrgByStrictKey } from '@/lib/crm/org-lookup'
 import { strictOrgKey } from '@/lib/crm/normalize'
 import { matchOrCreateCompanyForEmployer, loadCompanyIndex, type CompanyIndex } from './company-match'
 import { WARN_SOURCES, WARN_USER_AGENT, RENDERED_STATES, FILE_STATES, SCRAPED_STATES, parseScrapedNotices, sourceUrl, isKnowledgeSector, type WarnRow, type ScrapedNotice } from './sources'
@@ -293,9 +294,10 @@ async function promoteNotice(row: WarnRow, sourceUrl: string, orgs?: OrgIndex): 
   // Match an existing organization before creating one, using the same strict
   // key the importer and dedupe share — otherwise a WARN filing for "Genentech,
   // Inc." creates a second Genentech next to the one already on file.
-  const strict = strictOrgKey(row.employer, normalizeOrgName)
-  const all = orgs ?? await prisma.crmOrganization.findMany({ select: { id: true, name: true, orgTypes: true, goals: true } })
-  const match = all.find((o) => strictOrgKey(o.name, normalizeOrgName) === strict)
+  // A run that already holds every organization (orgs) matches in memory; a single promotion asks the database for this name only.
+  const match = orgs
+    ? orgs.find((o) => strictOrgKey(o.name, normalizeOrgName) === strictOrgKey(row.employer, normalizeOrgName))
+    : await findOrgByStrictKey(row.employer)
 
   // A layoff the owner or the news filed is an announcement, not a state WARN filing, and the CRM text must not say it was filed.
   const announced = notice.source === 'MANUAL_ANNOUNCEMENT' || /layoffs\.fyi/i.test(sourceUrl)

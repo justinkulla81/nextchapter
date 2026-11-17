@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { sharedLoad } from '@/lib/db/heavy'
 import { pickPrograms, rankCourses, soc7, type CourseText, type SkillCourse, type SkillProgram } from '@/lib/skills/learn'
 
 const TTL_MS = 30 * 60_000
@@ -9,8 +10,8 @@ let held: { at: number; rows: Promise<ActiveCourse[]> } | null = null
 /** The active course list, held per server instance for 30 minutes (about a hundred rows; every skill page filters the same list). */
 function activeCourses(now = Date.now()): Promise<ActiveCourse[]> {
   if (held && now - held.at < TTL_MS) return held.rows
-  const rows = prisma.course
-    .findMany({ where: { isActive: true }, select: { id: true, title: true, description: true, keywords: true, sponsor: true, provider: true, url: true, free: true, skillLevel: true } })
+  // One copy in the shared data cache for six hours (2026-11-17 egress: ~300 cold instances read every course's text in six hours).
+  const rows = sharedLoad('active-courses-v1', 6 * 3600, () => prisma.course.findMany({ where: { isActive: true }, select: { id: true, title: true, description: true, keywords: true, sponsor: true, provider: true, url: true, free: true, skillLevel: true } }), { reviveDates: false })
     .then((r) => r.map((c) => ({ ...c, skillLevel: String(c.skillLevel) })))
     .catch(() => [] as ActiveCourse[])
   held = { at: now, rows }
