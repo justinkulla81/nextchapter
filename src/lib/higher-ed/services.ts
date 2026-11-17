@@ -286,6 +286,8 @@ export type ServiceSetting = {
   linkUrl: string | null
   partnerName: string | null
   targeting: Targeting
+  // Skills this offering teaches (normalized), for the skills bridge: an alum missing one is shown this card.
+  skills: string[]
 }
 
 export function getService(key: string, kind: OrgKind = 'college', enabledFeatures?: unknown): Service | undefined {
@@ -303,6 +305,7 @@ export function defaultSetting(s: Service): ServiceSetting {
     linkUrl: null,
     partnerName: null,
     targeting: NO_TARGETING,
+    skills: [],
   }
 }
 
@@ -316,6 +319,7 @@ export function serviceSettingsFrom(enabledFeatures: unknown, kind: OrgKind = 'c
     allServices(enabledFeatures, kind).map((s) => {
       const merged = { ...defaultSetting(s), ...(stored[s.key] ?? {}) }
       merged.targeting = { ...NO_TARGETING, ...(stored[s.key]?.targeting ?? {}) }
+      merged.skills = Array.isArray(stored[s.key]?.skills) ? (stored[s.key]!.skills as unknown[]).filter((x): x is string => typeof x === 'string') : []
       // Saved before providers existed: a link meant the college's own.
       if (!stored[s.key]?.provider && merged.linkUrl) merged.provider = s.builtIn ? 'both' : 'college'
       // Only NextChapter's own screens can be NextChapter's.

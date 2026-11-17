@@ -190,6 +190,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'companies', label: 'Target companies', comingIn: null, requiredRoles: TARGET_COMPANIES },
       { key: 'recruiting', label: 'Recruiting & internships', comingIn: null, requiredRoles: TARGET_COMPANIES },
       { key: 'outcomes', label: 'Outcomes', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
+      { key: 'bridge', label: 'Skills bridge', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
       { key: 'checkins', label: 'Check-ins', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
       { key: 'students', label: 'Student tools', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
       { key: 'internships', label: 'Internships', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'COACH', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
@@ -226,6 +227,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'home', label: 'Programs', comingIn: null },
       { key: 'enrollments', label: 'Enrollments', comingIn: null },
       { key: 'clients', label: 'Corporate clients', comingIn: null },
+      { key: 'bridge', label: 'Skills bridge', comingIn: null },
     ],
   },
   {

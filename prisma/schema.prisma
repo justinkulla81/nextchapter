@@ -16048,6 +16048,24 @@ model AlumniGroupMember {
   @@index([memberId])
 }
 
+// The skills bridge (src/lib/higher-ed/skills-bridge.ts). NEED: a skill the
+// member's target jobs ask for that they don't show, recorded when their bridge
+// is shown. OPENED: they opened a college offering that teaches it (offeringKey
+// "program:<id>", "audit:<id>" or "service:<key>"). Staff read counts only:
+// which skills alumni need, and which offerings lead to jobs.
+model SkillBridgeEvent {
+  id            String   @id @default(cuid())
+  institutionId String
+  memberId      String
+  kind          String // NEED | OPENED
+  skill         String // normalized (normalizeMajor)
+  offeringKey   String   @default("")
+  createdAt     DateTime @default(now())
+
+  @@unique([memberId, kind, skill, offeringKey])
+  @@index([institutionId, kind])
+}
+
 // A member who left a group. Auto-join never adds them back; joining by
 // click again deletes the row.
 model AlumniGroupLeave {
