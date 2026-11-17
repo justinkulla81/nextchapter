@@ -10,14 +10,14 @@ export function EditLink({ href, what, readOnly, className, onDark = false }: { 
     return (
       <span className={cn(base, 'opacity-80')}>
         <Pencil className="size-3" aria-hidden="true" />
-        Edit {what} · off in read-only view
+        {['Edit', what].filter(Boolean).join(' ')} · off in read-only view
       </span>
     )
   }
   return (
     <Link href={href} className={cn(base, onDark ? 'hover:bg-black/60' : 'hover:text-foreground hover:underline')}>
       <Pencil className="size-3" aria-hidden="true" />
-      Edit {what}
+      {['Edit', what].filter(Boolean).join(' ')}
     </Link>
   )
 }

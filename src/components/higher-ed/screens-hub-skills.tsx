@@ -24,18 +24,44 @@ function Section({ title, intro, children }: { title: string; intro?: string; ch
 }
 
 const pct = (x: number) => `${Math.round(x * 100)}%`
+const dayFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
 const shown = (n: number | null) => (n === null ? `<${MIN_GROUP}` : n.toLocaleString('en-US'))
 
-export async function HubSkillsGaps({ ctx }: Props) {
+export async function HubSkillsGaps({ ctx, base }: Props) {
   const inst = await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } })
   const local = readLocal(inst.enabledFeatures)
-  const [market, people] = await Promise.all([local ? marketJobs(local.anchorCity, local.anchorState).catch(() => null) : Promise.resolve(null), loadSupply(ctx.institution.id).catch(() => [])])
+  const [market, people, programs] = await Promise.all([
+    local ? marketJobs(local.anchorCity, local.anchorState).catch(() => null) : Promise.resolve(null),
+    loadSupply(ctx.institution.id).catch(() => []),
+    // The organization's own programs, to match each gap to what teaches it (a handful of rows).
+    prisma.program.findMany({
+      where: { institutionId: ctx.institution.id, isActive: true },
+      select: { id: true, name: true, skills: true, wioaEligible: true, priceCents: true, cohorts: { where: { startsAt: { gte: new Date() } }, orderBy: { startsAt: 'asc' }, take: 1, select: { startsAt: true } } },
+    }),
+  ])
   const withSkills = people.filter((p) => p.keywords.length > 0)
   const rows = market ? gapRows(market.skills, withSkills) : []
   const planning = planningCounts(people)
   const planningCell = (skill: string) => (planning.size === 0 ? '—' : !planning.has(skill) ? 'None' : planning.get(skill) === null ? `<${MIN_GROUP} people` : `${shown(planning.get(skill) as number)} people`)
   const enough = withSkills.length >= MIN_GROUP
   const biggest = enough ? [...rows].filter((r) => r.gap !== null).sort((a, b) => (b.gap ?? 0) - (a.gap ?? 0))[0] : null
+  // The five largest shortfalls, each with how many people lack it (hidden under MIN_GROUP) and the programs that teach it.
+  const teaches = (skill: string) =>
+    programs
+      .filter((pg) => pg.skills.some((k) => k.toLowerCase() === skill.toLowerCase()) || pg.name.toLowerCase().includes(skill.toLowerCase()))
+      .map((pg) => ({ id: pg.id, name: pg.name, priceCents: pg.priceCents, wioaEligible: pg.wioaEligible, next: pg.cohorts[0]?.startsAt ?? null }))
+  const retrain = enough
+    ? [...rows]
+        .filter((r) => r.gap !== null && r.gap > 0.005)
+        .sort((a, b) => (b.gap ?? 0) - (a.gap ?? 0))
+        .slice(0, 5)
+        .map((r) => {
+          // When fewer than MIN_GROUP people have the skill their count is hidden, so the lacking count is a floor.
+          const lack = r.supplyPeople === null ? withSkills.length - (MIN_GROUP - 1) : withSkills.length - r.supplyPeople
+          const label = lack < MIN_GROUP ? `<${MIN_GROUP}` : `${lack.toLocaleString('en-US')}${r.supplyPeople === null ? ' or more' : ''}`
+          return { skill: r.skill, demand: r.demandShare, lacking: label, teach: teaches(r.skill) }
+        })
+    : []
   return (
     <div className="space-y-8">
       <p className="max-w-3xl text-sm text-muted-foreground">
@@ -85,6 +111,46 @@ export async function HubSkillsGaps({ ctx }: Props) {
           </div>
         )}
       </Section>
+      {enough && retrain.length > 0 && (
+        <Section title="Retraining to close the gaps" intro="The largest shortfalls, how many people in your group lack each skill, and which of your programs teach it. A skill no program teaches is the gap to fund next.">
+          <ul className="divide-y divide-border rounded-lg border border-border bg-card">
+            {retrain.map((r) => (
+              <li key={r.skill} className="grid gap-2 p-4 sm:grid-cols-[14rem_1fr]">
+                <div>
+                  <p className="font-medium">{r.skill}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {r.lacking} people lack it · in {pct(r.demand)} of local postings
+                  </p>
+                </div>
+                {r.teach.length ? (
+                  <ul className="space-y-1 text-sm">
+                    {r.teach.map((pg) => (
+                      <li key={pg.id}>
+                        <a href={`${base}/programs`} className="font-medium hover:underline">
+                          {pg.name}
+                        </a>
+                        <span className="text-muted-foreground">
+                          {' '}
+                          · {pg.priceCents === 0 ? 'free' : pg.wioaEligible ? 'can be paid by the workforce board' : 'paid'}
+                          {pg.next ? ` · next cohort ${dayFmt.format(pg.next)}` : ' · no cohort scheduled'}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No program of yours teaches this yet.{' '}
+                    <a href={`${base}/programs`} className="font-medium text-primary hover:underline">
+                      Add one in Programs
+                    </a>
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
+
       <p className="max-w-3xl text-xs text-muted-foreground">
         How this is made: skills are matched against a fixed vocabulary in posting text and in résumé keywords, one count per posting or person. It is a signal, not a ruling on a role. Learning plans are counted the same way, from the skills a planned or started course names. People are counted without names, and any group under {MIN_GROUP} is hidden.
       </p>
