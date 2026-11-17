@@ -5,6 +5,7 @@ import { provisionFreeWorkspace } from '@/lib/plans/provision'
 import { orgSlug } from '@/lib/crm/org-slug'
 import { FREE_WORKSPACE_TYPES, freeWorkspaceType } from './claim'
 import { applySectionClaim } from './section-claim'
+import { connectRelated } from './related-orgs'
 import { cleanDomain } from './rules'
 import { employerSection, isEmployerSectionKey, type EmployerSectionKey } from '@/lib/employer/sections'
 import { sendHiringClaimApprovedEmail } from '@/lib/email/send-org-claim-email'
@@ -29,6 +30,8 @@ export type PendingClaim = {
   hasWorkspace: boolean
   /** Hiring, Employees or Outplacement for an employer's section claim; null for a whole-page claim. */
   section: EmployerSectionKey | null
+  /** The organization whose related-organization invite the claimant came from. */
+  invitedBy: string | null
 }
 
 // Verified claims for a type with a free workspace that nobody has approved or declined yet. Bounded: the queue is short.
@@ -45,11 +48,15 @@ export async function pendingClaims(): Promise<PendingClaim[]> {
     orderBy: { verifiedAt: 'asc' },
     take: 100,
     select: {
-      id: true, name: true, title: true, email: true, emailDomain: true, needsReview: true, verifiedAt: true, crmOrganizationId: true, section: true,
+      id: true, name: true, title: true, email: true, emailDomain: true, needsReview: true, verifiedAt: true, crmOrganizationId: true, section: true, referredByPartnerId: true,
       crmOrganization: { select: { name: true, canonicalNameNormalized: true, orgTypes: true, emailDomain: true } },
     },
   })
   const orgIds = rows.map((r) => r.crmOrganizationId)
+  const refIds = rows.map((r) => r.referredByPartnerId).filter((x): x is string => !!x)
+  const inviters = new Map(
+    refIds.length ? (await prisma.ecosystemPartner.findMany({ where: { id: { in: refIds } }, select: { id: true, institution: { select: { name: true } } } })).map((p) => [p.id, p.institution.name]) : [],
+  )
   const withWorkspace = new Set(
     orgIds.length ? (await prisma.institution.findMany({ where: { crmOrganizationId: { in: orgIds } }, select: { crmOrganizationId: true } })).map((i) => i.crmOrganizationId) : [],
   )
@@ -58,6 +65,7 @@ export async function pendingClaims(): Promise<PendingClaim[]> {
     orgId: r.crmOrganizationId, orgName: r.crmOrganization.name, orgSlug: orgSlug(r.crmOrganization.canonicalNameNormalized),
     orgTypes: r.crmOrganization.orgTypes.map(String), orgDomain: r.crmOrganization.emailDomain ?? null, hasWorkspace: withWorkspace.has(r.crmOrganizationId),
     section: isEmployerSectionKey(r.section) ? r.section : null,
+    invitedBy: r.referredByPartnerId ? (inviters.get(r.referredByPartnerId) ?? null) : null,
   }))
 }
 
@@ -67,7 +75,7 @@ async function loadOpen(claimId: string) {
   return prisma.orgClaim.findUnique({
     where: { id: claimId },
     select: {
-      id: true, name: true, title: true, email: true, emailDomain: true, needsReview: true, verifiedAt: true, approvedAt: true, declinedAt: true, crmOrganizationId: true, section: true, outcome: true,
+      id: true, name: true, title: true, email: true, emailDomain: true, needsReview: true, verifiedAt: true, approvedAt: true, declinedAt: true, crmOrganizationId: true, section: true, outcome: true, referredByPartnerId: true,
       crmOrganization: { select: { name: true, orgTypes: true, emailDomain: true } },
     },
   })
@@ -86,7 +94,8 @@ export async function approveOrgClaim(claimId: string, adminEmail: string): Prom
   const r = await provisionFreeWorkspace({ crmOrganizationId: claim.crmOrganizationId, name: claim.crmOrganization.name, orgType: type, claimantEmail: claim.email })
   if (!r.ok) return { ok: false, error: r.error }
   await prisma.orgClaim.update({ where: { id: claim.id }, data: { approvedAt: new Date(), approvedBy: adminEmail } })
-  captureServerEvent(`org-claim:${claim.crmOrganizationId}`, 'org_claim_approved', { orgId: claim.crmOrganizationId, claimId: claim.id, orgType: type, institutionId: r.institutionId, workspaceCreated: r.created })
+  const connected = await connectRelated({ crmOrgId: claim.crmOrganizationId, institutionId: r.institutionId, referredByPartnerId: claim.referredByPartnerId })
+  captureServerEvent(`org-claim:${claim.crmOrganizationId}`, 'org_claim_approved', { orgId: claim.crmOrganizationId, claimId: claim.id, orgType: type, institutionId: r.institutionId, workspaceCreated: r.created, relatedConnected: connected, referredByPartnerId: claim.referredByPartnerId })
   return { ok: true, slug: r.slug }
 }
 
@@ -124,7 +133,8 @@ async function approveEmployerSection(claim: OpenClaim, section: EmployerSection
     })
   }
   await prisma.orgClaim.update({ where: { id: claim.id }, data: { approvedAt: new Date(), approvedBy: adminEmail } })
-  captureServerEvent(`org-claim:${claim.crmOrganizationId}`, 'org_claim_approved', { orgId: claim.crmOrganizationId, claimId: claim.id, orgType: 'EMPLOYER', section, outcome })
+  const connected = await connectRelated({ crmOrgId: claim.crmOrganizationId, institutionId: null, referredByPartnerId: claim.referredByPartnerId })
+  captureServerEvent(`org-claim:${claim.crmOrganizationId}`, 'org_claim_approved', { orgId: claim.crmOrganizationId, claimId: claim.id, orgType: 'EMPLOYER', section, outcome, relatedConnected: connected, referredByPartnerId: claim.referredByPartnerId })
   return { ok: true }
 }
 
