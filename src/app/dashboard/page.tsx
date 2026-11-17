@@ -67,7 +67,7 @@ import { loadApplyPrompts } from '@/lib/jobs/my-jobs-data'
 import { getResumeFixes } from '@/lib/reports/market-reality-sections'
 import { earlyCareerAudience } from '@/lib/early-career/audience'
 import { EarlyCareerHomeModule } from '@/components/dashboard/early-career/EarlyCareerHomeModule'
-import { pickHomeNote, simpleNote } from '@/lib/redesign/home-note'
+import { pickHomeNote, simpleNote, withinDaysOf } from '@/lib/redesign/home-note'
 import { getUnviewedCoachUpdate } from '@/lib/coach/session-notes-service'
 import { withBlockerStep } from '@/lib/personalization/blocker-step'
 import { HomeNote } from '@/components/candidate/HomeNote'
@@ -441,12 +441,18 @@ export default async function DashboardPage() {
   const firstName = profile.firstName ?? 'there'
   // The coach sent a session summary the member has not opened: the in-app notice (fail-soft; null if nothing or no table).
   const coachUpdate = await getUnviewedCoachUpdate(profile.id)
+  // The day-one invitation to Find your strengths: first two weeks, until one area is finished. One indexed count (fail-soft).
+  const inFirstTwoWeeks = withinDaysOf(profile.registrationCompletedAt, 14)
+  const findStrengths = inFirstTwoWeeks
+    ? (await prisma.strengthReflection.count({ where: { candidateId: profile.id, completedAt: { not: null } } }).catch(() => 1)) === 0
+    : false
   const note = pickHomeNote({
     needsCoachingForm,
     needsResume: profile.resumes.length === 0,
     searchStrategyIncomplete: !isSearchStrategyGateComplete(profile),
     reportReady: showReportReadyMessage,
     coachUpdate: !!coachUpdate,
+    findStrengths,
     accountsNotConnected: !bothConnectedUnlocked,
     coachOffer: !!coachOffer,
     stalledReask: !!stalledReask,

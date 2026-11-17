@@ -3,7 +3,7 @@ import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { loadReflections } from '@/lib/strengths-interview/load'
 import { areaOf, type AreaKey } from '@/lib/strengths-interview/areas'
 import { StrengthInterview } from '@/components/dashboard/why-hire/StrengthInterview'
-import { finishStrengthArea, saveStrengthAnswer, skipStrengthFollowUp } from './actions'
+import { finishStrengthArea, saveStrengthAnswer, setStrengthHidden, skipStrengthFollowUp } from './actions'
 
 export const metadata: Metadata = { title: 'Find your strengths' }
 
@@ -15,7 +15,7 @@ export default async function DiscoverStrengthsPage({ searchParams }: { searchPa
   const rows = await loadReflections(profile.id)
   return (
     <div className="max-w-2xl">
-      <StrengthInterview area={area} rows={rows} redo={redo === '1'} actions={{ save: saveStrengthAnswer, skipFollowUp: skipStrengthFollowUp, finish: finishStrengthArea }} />
+      <StrengthInterview area={area} rows={rows} redo={redo === '1'} actions={{ save: saveStrengthAnswer, skipFollowUp: skipStrengthFollowUp, finish: finishStrengthArea, setHidden: setStrengthHidden }} />
     </div>
   )
 }

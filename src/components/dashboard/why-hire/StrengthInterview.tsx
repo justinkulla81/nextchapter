@@ -21,6 +21,7 @@ export interface InterviewActions {
   save: (input: { area: string; questionKey: string; text: string; isFollowUp: boolean }) => Promise<SaveAnswerResult>
   skipFollowUp: (input: { area: string; questionKey: string }) => Promise<SaveAnswerResult>
   finish: (area: string) => Promise<FinishResult>
+  setHidden: (input: { area: string; hidden: boolean }) => Promise<{ ok: boolean; error?: string }>
 }
 
 const BASE = '/dashboard/strengths/discover'
@@ -28,13 +29,13 @@ const BACK = '/dashboard/strengths'
 
 export function StrengthInterview({ area, rows, redo = false, actions }: { area: AreaKey | null; rows: ReflectionRow[]; redo?: boolean; actions: InterviewActions }) {
   const done = rows.filter((r) => r.completed).length
-  if (!area) return <Hub rows={rows} done={done} />
+  if (!area) return <Hub rows={rows} done={done} actions={actions} />
   return <AreaFlow key={`${area}-${redo}`} areaKey={area} row={rows.find((r) => r.area === area)} rows={rows} redo={redo} actions={actions} />
 }
 
 // ---- Hub ------------------------------------------------------------------------------------------------------------
 
-function Hub({ rows, done }: { rows: ReflectionRow[]; done: number }) {
+function Hub({ rows, done, actions }: { rows: ReflectionRow[]; done: number; actions: InterviewActions }) {
   const next = AREAS.find((a) => !rows.find((r) => r.area === a.key)?.completed)
   return (
     <div className="space-y-8">
@@ -51,7 +52,7 @@ function Hub({ rows, done }: { rows: ReflectionRow[]; done: number }) {
       />
       <div className="space-y-3">
         <p className="rounded-xl bg-muted/60 px-4 py-3 text-sm text-ink">
-          <span className="font-semibold">Why we ask:</span> what you say here becomes your “why hire me”, your pitch and the strengths you lead with. Weaker spots stay private: only you see them, never employers.
+          <span className="font-semibold">Why we ask:</span> what you say here becomes your “why hire me”, your pitch and the strengths employers see in your Dossier (you can hide any one). Weaker spots stay private: only you see them, never employers.
         </p>
         <div className="space-y-1.5">
           <div className="flex justify-between text-sm">
@@ -72,9 +73,12 @@ function Hub({ rows, done }: { rows: ReflectionRow[]; done: number }) {
                   {i + 1}. {a.title}
                 </p>
                 {r?.completed && r.summary ? (
-                  <p className="text-sm text-ink">
-                    <span className="font-medium">Your strength:</span> {r.summary.strength}
-                  </p>
+                  <>
+                    <p className="text-sm text-ink">
+                      <span className="font-medium">Your strength:</span> {r.summary.strength}
+                    </p>
+                    <DossierSwitch area={a.key} hidden={!!r.hidden} setHidden={actions.setHidden} />
+                  </>
                 ) : (
                   <p className="text-sm text-muted-foreground">{a.why}</p>
                 )}
@@ -128,7 +132,7 @@ function AreaFlow({ areaKey, row, rows, redo, actions }: { areaKey: AreaKey; row
   const othersDone = rows.filter((r) => r.completed && r.area !== area.key).length
   const nextArea = AREAS.find((a) => a.key !== area.key && !rows.find((r) => r.area === a.key)?.completed)
 
-  if (summary) return <Reveal areaTitle={area.title} summary={summary} done={othersDone + 1} nextArea={nextArea ? { key: nextArea.key, title: nextArea.title } : null} />
+  if (summary) return <Reveal areaKey={area.key} areaTitle={area.title} summary={summary} done={othersDone + 1} nextArea={nextArea ? { key: nextArea.key, title: nextArea.title } : null} hidden={!!row?.hidden} setHidden={actions.setHidden} />
 
   if (step.kind === 'done') {
     return (
@@ -291,7 +295,7 @@ function AreaTop({ title, index, why }: { title: string; index: number; why: str
   )
 }
 
-function Reveal({ areaTitle, summary, done, nextArea }: { areaTitle: string; summary: AreaSummary; done: number; nextArea: { key: string; title: string } | null }) {
+function Reveal({ areaKey, areaTitle, summary, done, nextArea, hidden, setHidden }: { areaKey: AreaKey; areaTitle: string; summary: AreaSummary; done: number; nextArea: { key: string; title: string } | null; hidden: boolean; setHidden: InterviewActions['setHidden'] }) {
   return (
     <div className="space-y-6">
       <section aria-labelledby="reveal-h" className="space-y-5 rounded-2xl bg-ink p-8 text-white">
@@ -341,7 +345,41 @@ function Reveal({ areaTitle, summary, done, nextArea }: { areaTitle: string; sum
           {nextArea ? 'Stop here and see your Why hire me' : 'All areas'}
         </Link>
       </div>
-      <p className="text-sm text-muted-foreground">Your Why hire me and your pitch now use this. Write your pitch again on Your pitch to pick it up there.</p>
+      <div className="space-y-1">
+        <p className="text-sm text-muted-foreground">Your Why hire me and your pitch now use this. Write your pitch again on Your pitch to pick it up there.</p>
+        <DossierSwitch area={areaKey} hidden={hidden} setHidden={setHidden} />
+      </div>
     </div>
+  )
+}
+
+/** Shows whether a strength is in the member's Dossier, with one button to hide or show it. The weak spot is never there. */
+function DossierSwitch({ area, hidden: initial, setHidden }: { area: AreaKey; hidden: boolean; setHidden: InterviewActions['setHidden'] }) {
+  const [hidden, set] = useState(initial)
+  const [error, setError] = useState<string | null>(null)
+  const [pending, startTransition] = useTransition()
+  return (
+    <p className={cn('flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground', pending && 'cursor-wait')} aria-live="polite">
+      <span>{hidden ? 'Hidden from employers.' : 'Employers see this strength and its proof in your Dossier, never the weaker spot.'}</span>
+      <button
+        type="button"
+        disabled={pending}
+        aria-busy={pending}
+        onClick={() =>
+          startTransition(async () => {
+            setError(null)
+            const r = await setHidden({ area, hidden: !hidden })
+            if (r.ok) {
+              set(!hidden)
+              posthog.capture('strength_dossier_visibility_clicked', { area, hidden: !hidden })
+            } else setError(r.error ?? 'That did not save. Try again.')
+          })
+        }
+        className="font-medium text-brand underline underline-offset-4"
+      >
+        {pending ? 'Saving…' : hidden ? 'Show it in my Dossier' : 'Hide it from employers'}
+      </button>
+      {error && <span role="alert" className="text-destructive">{error}</span>}
+    </p>
   )
 }

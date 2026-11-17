@@ -14,6 +14,7 @@ export type HomeNoteKind =
   | 'setup_strategy'
   | 'report_ready'
   | 'coach_update'
+  | 'find_strengths'
   | 'connect_accounts'
   | 'coach_offer'
   | 'stalled_reask'
@@ -32,6 +33,8 @@ export interface HomeNoteInputs {
   reportReady: boolean
   /** The coach sent a session summary the member has not opened yet (src/lib/coach/session-notes-service.ts). */
   coachUpdate?: boolean
+  /** In the first two weeks with no Find your strengths area finished: the day-one invitation (owner, 2026-11-17). */
+  findStrengths?: boolean
   accountsNotConnected: boolean
   /** A reason to offer a coach today (src/lib/coach/offer.ts); not snoozed, and no coach yet. */
   coachOffer?: boolean
@@ -44,6 +47,11 @@ export interface HomeNoteInputs {
   searchPlaybook: boolean
 }
 
+/** True within `days` of `since` (registration), for notes that only belong to a member's first days. */
+export function withinDaysOf(since: Date | null, days: number, now = new Date()): boolean {
+  return !!since && now.getTime() - since.getTime() < days * 86_400_000
+}
+
 /** The one note for today. Time-sensitive and setup first, then nudges, then prompts. */
 export function pickHomeNote(i: HomeNoteInputs): HomeNoteKind {
   if (i.needsCoachingForm) return 'coaching_form'
@@ -51,6 +59,7 @@ export function pickHomeNote(i: HomeNoteInputs): HomeNoteKind {
   if (i.searchStrategyIncomplete) return 'setup_strategy'
   if (i.reportReady) return 'report_ready'
   if (i.coachUpdate) return 'coach_update'
+  if (i.findStrengths) return 'find_strengths'
   if (i.accountsNotConnected) return 'connect_accounts'
   if (i.coachOffer) return 'coach_offer'
   // The wider question comes before the narrower stalled-search card: both are about a stall, and only one is the note.
@@ -127,6 +136,14 @@ export function simpleNote(kind: HomeNoteKind, ctx: { firstName: string; firstWe
         whyDetail: `This is day ${s.day} of your first week: one small step a day, each pointing at something that already exists.`,
       }
     }
+    case 'find_strengths':
+      return {
+        title: 'Find what you’re best at, in your own words',
+        why: noteWhyWithMotivation('A few questions about your best work. It becomes your pitch and the strengths employers see. About 3 minutes', ctx.motivations),
+        startLabel: 'Start with my best work',
+        startHref: '/dashboard/strengths/discover?area=best_work',
+        whyDetail: 'Most people can’t say what they’re best at until someone asks. You see this in your first two weeks until you finish one area. Weaker spots you mention stay private.',
+      }
     case 'got_hired':
       return {
         title: 'Landed a job through NextChapter?',

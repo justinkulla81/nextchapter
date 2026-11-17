@@ -172,6 +172,7 @@ function DossierSectionBlock({
       if (
         dossier.howIOperate.dimensionSummaries.length === 0 &&
         dossier.howIOperate.superpowers.length === 0 &&
+        dossier.howIOperate.inTheirWords.length === 0 &&
         (!dossier.howIOperate.gritStatText || hideGradeSignals)
       ) {
         if (readOnly) return null
@@ -212,6 +213,19 @@ function DossierSectionBlock({
                   )}
                 </p>
               ))}
+            </div>
+          )}
+          {dossier.howIOperate.inTheirWords.length > 0 && (
+            <div className="mt-3 space-y-2">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">In their own words</p>
+              {dossier.howIOperate.inTheirWords.map((w) => (
+                <div key={w.area} className="space-y-0.5">
+                  <p className="text-sm font-medium text-foreground">{w.strength}</p>
+                  {w.proof && <p className="text-sm text-foreground">{w.proof}</p>}
+                  {w.sayIt && <p className="text-sm italic text-muted-foreground">&ldquo;{w.sayIt}&rdquo;</p>}
+                </div>
+              ))}
+              <p className="text-xs text-muted-foreground">From a guided interview on NextChapter, in the candidate&apos;s own words.</p>
             </div>
           )}
           {dossier.howIOperate.gritStatText && !hideGradeSignals && (
