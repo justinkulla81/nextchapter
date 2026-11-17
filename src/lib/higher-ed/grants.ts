@@ -27,8 +27,12 @@ export const PURPOSE_QUERIES: Record<GrantPurpose, Query[]> = {
   research: [{ keyword: 'future of work' }, { keyword: 'workforce research' }, { keyword: 'artificial intelligence education' }, { keyword: 'learning sciences' }],
 }
 
+export type GrantSource = 'federal' | 'state' | 'foundation' | 'yours'
+export const SOURCE_LABELS: Record<GrantSource, string> = { federal: 'Federal', state: 'State', foundation: 'Foundations', yours: 'Added by your team' }
+
 export type Grant = {
   id: string
+  source: GrantSource
   number: string
   title: string
   agency: string
@@ -37,6 +41,11 @@ export type Grant = {
   status: 'posted' | 'forecasted'
   purposes: GrantPurpose[]
   url: string
+  // Directory and staff-added entries: how to apply, the amount, one line, when it was checked.
+  how?: 'open call' | 'rolling' | 'invitation' | null
+  amount?: string | null
+  note?: string | null
+  checked?: string | null
 }
 
 type Hit = { id: string; number: string; title: string; agency: string; agencyCode: string; openDate: string; closeDate: string; oppStatus: string }
@@ -87,6 +96,7 @@ export function mergeHits(byPurpose: { purpose: GrantPurpose; hits: Hit[] }[], t
       }
       out.set(h.id, {
         id: h.id,
+        source: 'federal',
         number: h.number.trim(),
         title,
         agency: decodeEntities(h.agency).trim(),
@@ -146,11 +156,44 @@ export function federalGrants(): Promise<{ grants: Grant[]; checkedAt: string; f
   return cached()
 }
 
-// A college's choices, in Institution.enabledFeatures.grants.
-export type GrantSettings = { saved: string[]; dismissed: string[] }
+// A grant a college's own staff added (a state notice, a foundation they know).
+export type CustomGrant = { id: string; title: string; funder: string; url: string; deadline: string | null; purposes: GrantPurpose[]; note: string | null; addedAt: string }
+
+// A college's choices, in Institution.enabledFeatures.grants: the shortlist,
+// what it hid, extra states (a campus elsewhere, e.g. Miami), and its own grants.
+export type GrantSettings = { saved: string[]; dismissed: string[]; states: string[]; custom: CustomGrant[] }
+
+const PURPOSE_KEYS = new Set(GRANT_PURPOSES.map((p) => p.key))
 
 export function grantSettingsFrom(enabledFeatures: unknown): GrantSettings {
   const g = (enabledFeatures as { grants?: Partial<GrantSettings> } | null)?.grants ?? {}
   const ids = (x: unknown) => (Array.isArray(x) ? x.filter((v): v is string => typeof v === 'string').slice(0, 500) : [])
-  return { saved: ids(g.saved), dismissed: ids(g.dismissed) }
+  const custom = Array.isArray(g.custom)
+    ? g.custom.filter((c): c is CustomGrant => !!c && typeof c.id === 'string' && typeof c.title === 'string' && typeof c.url === 'string').map((c) => ({
+        ...c,
+        purposes: (Array.isArray(c.purposes) ? c.purposes : []).filter((p): p is GrantPurpose => PURPOSE_KEYS.has(p)),
+      }))
+    : []
+  const states = ids(g.states).map((s) => s.toUpperCase()).filter((s) => /^[A-Z]{2}$/.test(s))
+  return { saved: ids(g.saved), dismissed: ids(g.dismissed), states, custom }
+}
+
+/** Staff-added grants in the same shape as the rest; past deadlines drop off. */
+export function customGrants(settings: GrantSettings, today: string): Grant[] {
+  return settings.custom
+    .filter((c) => !c.deadline || c.deadline >= today)
+    .map((c) => ({
+      id: c.id,
+      source: 'yours' as const,
+      number: '',
+      title: c.title,
+      agency: c.funder,
+      openDate: null,
+      closeDate: c.deadline,
+      status: 'posted' as const,
+      purposes: c.purposes,
+      url: c.url,
+      note: c.note,
+      checked: c.addedAt.slice(0, 10),
+    }))
 }

@@ -1,28 +1,43 @@
-// Development › Grants and RFPs: current federal funding the college can apply
-// for, matched to retraining, entrepreneurship and research. Live from
-// Grants.gov (cached 12 hours); the college keeps a shortlist and hides what
-// doesn't fit.
+// Development › Grants and RFPs: funding the college can apply for, matched to
+// retraining, entrepreneurship and research, from four sources:
+// federal (live from Grants.gov, cached 12 hours), state and foundation (a
+// directory checked by hand, for the college's states), and grants the team
+// added itself. The team keeps a shortlist and hides what doesn't fit.
 
 import Link from 'next/link'
 import { HandCoins } from 'lucide-react'
 import type { WorkspaceContext } from '@/lib/higher-ed/access'
 import { prisma } from '@/lib/prisma'
-import { federalGrants, grantSettingsFrom, GRANT_PURPOSES, type Grant, type GrantPurpose } from '@/lib/higher-ed/grants'
-import { markGrant } from '@/app/i/[slug]/(portal)/development-actions'
+import { customGrants, federalGrants, grantSettingsFrom, GRANT_PURPOSES, SOURCE_LABELS, type Grant, type GrantPurpose, type GrantSource } from '@/lib/higher-ed/grants'
+import { directoryGrants } from '@/lib/higher-ed/grant-directory'
+import { readProfile, regionAreas } from '@/lib/higher-ed/profile'
+import { markGrant, removeCustomGrant } from '@/app/i/[slug]/(portal)/development-actions'
 import { EmptyState } from '@/components/ui/empty-state'
 import { ActionButton } from './CommunityForms'
+import { AddGrantForm, GrantStatesForm } from './GrantForms'
 import { cn } from '@/lib/utils'
 
 type Props = { ctx: WorkspaceContext; base: string; searchParams?: { purpose?: string } }
 
 const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
-const fmt = (iso: string | null) => (iso ? dateFmt.format(new Date(`${iso}T00:00:00Z`)) : null)
+const fmt = (iso: string | null | undefined) => (iso ? dateFmt.format(new Date(`${iso}T00:00:00Z`)) : null)
 const DAY = 86_400_000
+const HOW: Record<string, string> = { 'open call': 'Open call', rolling: 'Rolling applications', invitation: 'By invitation or inquiry' }
 
 function GrantRow({ g, slug, saved, canWrite, soonBefore }: { g: Grant; slug: string; saved: boolean; canWrite: boolean; soonBefore: string }) {
   const closes = fmt(g.closeDate)
   const soon = !!g.closeDate && g.closeDate < soonBefore
   const labels = g.purposes.map((p) => GRANT_PURPOSES.find((x) => x.key === p)?.label ?? p).join(', ')
+  const when =
+    g.status === 'forecasted'
+      ? 'Forecast: not open yet'
+      : closes
+        ? `Closes ${closes}${soon ? ', within 30 days' : ''}`
+        : g.how
+          ? HOW[g.how]
+          : g.source === 'federal'
+            ? 'Open, no closing date given'
+            : 'No deadline given'
   return (
     <li className="space-y-1 p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -30,17 +45,22 @@ function GrantRow({ g, slug, saved, canWrite, soonBefore }: { g: Grant; slug: st
           {g.title}
         </a>
         {canWrite && (
-          <span className="flex gap-2">
+          <span className="flex flex-wrap gap-2">
             <ActionButton label={saved ? 'Remove from shortlist' : 'Add to shortlist'} variant={saved ? 'ghost' : 'outline'} run={markGrant.bind(null, slug, g.id, saved ? 'unsave' : 'save', g.purposes)} />
-            {!saved && <ActionButton label="Hide" variant="ghost" done="Hidden." run={markGrant.bind(null, slug, g.id, 'dismiss', g.purposes)} />}
+            {!saved && g.source !== 'yours' && <ActionButton label="Hide" variant="ghost" done="Hidden." run={markGrant.bind(null, slug, g.id, 'dismiss', g.purposes)} />}
+            {g.source === 'yours' && <ActionButton label="Remove" variant="ghost" done="Removed." run={removeCustomGrant.bind(null, slug, g.id)} />}
           </span>
         )}
       </div>
       <p className="text-xs text-muted-foreground">
-        {g.agency} · {g.number} · For {labels}
+        {SOURCE_LABELS[g.source]} · {g.agency}
+        {g.number ? ` · ${g.number}` : ''} · For {labels || 'any purpose'}
+        {g.amount ? ` · ${g.amount}` : ''}
       </p>
+      {g.note && <p className="text-sm">{g.note}</p>}
       <p className={cn('text-xs', soon ? 'font-medium text-foreground' : 'text-muted-foreground')}>
-        {g.status === 'forecasted' ? 'Forecast: not open yet' : closes ? `Closes ${closes}${soon ? ', within 30 days' : ''}` : 'Open, no closing date given'}
+        {when}
+        {g.source !== 'federal' && g.checked ? ` · ${g.source === 'yours' ? 'Added' : 'Checked'} ${fmt(g.checked)}` : ''}
       </p>
     </li>
   )
@@ -50,27 +70,36 @@ export async function DevelopmentGrants({ ctx, searchParams }: Props) {
   const slug = ctx.institution.slug
   const canWrite = !ctx.readOnly && (ctx.tokens.has('DEVELOPMENT') || ctx.tokens.has('INSTITUTION_ADMIN'))
   const purpose = GRANT_PURPOSES.find((p) => p.key === searchParams?.purpose)?.key as GrantPurpose | undefined
-  const row = await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } })
+  const row = await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true, profile: true } })
   const settings = grantSettingsFrom(row.enabledFeatures)
-  let data: Awaited<ReturnType<typeof federalGrants>> | null = null
+  const profile = readProfile(row.profile)
+  const ownStates = [...new Set([profile.college?.state, ...regionAreas(profile.region).map((a) => a.state)].filter((s): s is string => !!s).map((s) => s.toUpperCase()))]
+  const states = [...new Set([...ownStates, ...settings.states])]
+
+  let federal: Awaited<ReturnType<typeof federalGrants>> | null = null
   try {
-    data = await federalGrants()
+    federal = await federalGrants()
   } catch (err) {
-    console.error('[grants] load failed', err)
+    console.error('[grants] federal load failed', err)
   }
-  const href = (p?: GrantPurpose) => (p ? `?purpose=${p}` : '?')
-  const all = data?.grants ?? []
-  const shown = all.filter((g) => !settings.dismissed.includes(g.id) && (!purpose || g.purposes.includes(purpose)))
+  const checkedAt = federal?.checkedAt ?? new Date(0).toISOString()
+  const today = checkedAt.slice(0, 10)
+  const all: Grant[] = [...(federal?.grants ?? []), ...directoryGrants(states, today), ...customGrants(settings, today)]
+  const fits = (g: Grant) => !purpose || g.purposes.includes(purpose)
   const shortlist = all.filter((g) => settings.saved.includes(g.id))
-  const rest = shown.filter((g) => !settings.saved.includes(g.id))
-  // "Within 30 days" is measured from when the list was checked.
-  const soonBefore = new Date(new Date(data?.checkedAt ?? 0).getTime() + 30 * DAY).toISOString().slice(0, 10)
+  const visible = all.filter((g) => fits(g) && !settings.saved.includes(g.id) && !settings.dismissed.includes(g.id))
+  // "Within 30 days" is measured from when the federal list was checked.
+  const soonBefore = new Date(new Date(checkedAt).getTime() + 30 * DAY).toISOString().slice(0, 10)
+  const href = (p?: GrantPurpose) => (p ? `?purpose=${p}` : '?')
+  const sources: GrantSource[] = ['federal', 'state', 'foundation', 'yours']
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <p className="max-w-3xl text-sm text-muted-foreground">
-        Federal grants and funding notices {ctx.institution.name} is eligible for as a college or university, matched to retraining, entrepreneurship and research.
-        Live from Grants.gov, checked every 12 hours. State and foundation funding are not included yet. Confirm each in its official notice before you apply.
+        Funding {ctx.institution.name} can apply for as a college or university, matched to retraining, entrepreneurship and research. Federal notices are live
+        from Grants.gov, checked every 12 hours. State and foundation programs are a directory NextChapter checks by hand on each funder’s own page, for{' '}
+        {states.length ? states.join(', ') : 'your state'} and national foundations; each shows when it was checked. Confirm details in the official notice
+        before you apply.
       </p>
 
       <nav aria-label="Purpose" className="flex flex-wrap gap-2">
@@ -88,40 +117,67 @@ export async function DevelopmentGrants({ ctx, searchParams }: Props) {
           )
         })}
       </nav>
-      {purpose && <p className="text-xs text-muted-foreground">{GRANT_PURPOSES.find((p) => p.key === purpose)?.blurb}</p>}
 
-      {!data ? (
-        <EmptyState icon={HandCoins} title="Grants.gov isn’t answering right now" description="Try again in a few minutes. Your shortlist is kept." />
-      ) : (
-        <>
-          {data.failed > 0 && <p className="text-xs text-muted-foreground">Some searches didn’t answer this time, so the list may be short. It refreshes within 12 hours.</p>}
-          {shortlist.length > 0 && (
-            <section aria-labelledby="grants-short" className="space-y-2">
-              <h2 id="grants-short" className="text-base font-semibold">
-                Your shortlist
-              </h2>
-              <ul className="divide-y divide-border rounded-lg border border-border bg-card">
-                {shortlist.map((g) => (
-                  <GrantRow key={g.id} g={g} slug={slug} saved canWrite={canWrite} soonBefore={soonBefore} />
-                ))}
-              </ul>
-            </section>
-          )}
-          <section aria-labelledby="grants-all" className="space-y-2">
-            <h2 id="grants-all" className="text-base font-semibold">
-              {rest.length} current {rest.length === 1 ? 'opportunity' : 'opportunities'}
+      {shortlist.length > 0 && (
+        <section aria-labelledby="grants-short" className="space-y-2">
+          <h2 id="grants-short" className="text-base font-semibold">
+            Your shortlist
+          </h2>
+          <ul className="divide-y divide-border rounded-lg border border-border bg-card">
+            {shortlist.map((g) => (
+              <GrantRow key={g.id} g={g} slug={slug} saved canWrite={canWrite} soonBefore={soonBefore} />
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {sources.map((src) => {
+        const rows = visible.filter((g) => g.source === src)
+        const heading = src === 'state' ? `State programs${states.length ? ` (${states.join(', ')})` : ''}` : SOURCE_LABELS[src]
+        if (src === 'yours' && !rows.length && !canWrite) return null
+        return (
+          <section key={src} aria-labelledby={`grants-${src}`} className="space-y-2">
+            <h2 id={`grants-${src}`} className="text-base font-semibold">
+              {heading} <span className="text-sm font-normal text-muted-foreground">{rows.length}</span>
             </h2>
-            {rest.length ? (
-              <ul className="divide-y divide-border rounded-lg border border-border bg-card">
-                {rest.map((g) => (
-                  <GrantRow key={g.id} g={g} slug={slug} saved={false} canWrite={canWrite} soonBefore={soonBefore} />
-                ))}
-              </ul>
+            {src === 'federal' && !federal ? (
+              <EmptyState icon={HandCoins} title="Grants.gov isn’t answering right now" description="Try again in a few minutes. State, foundation and your own grants are below." />
+            ) : rows.length ? (
+              <>
+                {src === 'federal' && federal && federal.failed > 0 && <p className="text-xs text-muted-foreground">Some searches didn’t answer this time, so this list may be short.</p>}
+                <ul className="divide-y divide-border rounded-lg border border-border bg-card">
+                  {rows.map((g) => (
+                    <GrantRow key={g.id} g={g} slug={slug} saved={false} canWrite={canWrite} soonBefore={soonBefore} />
+                  ))}
+                </ul>
+              </>
             ) : (
-              <EmptyState icon={HandCoins} title="Nothing open for this purpose" description="New notices appear here as agencies post them." />
+              <p className="text-sm text-muted-foreground">
+                {src === 'state'
+                  ? states.length
+                    ? 'None in the directory for these states and this purpose yet.'
+                    : 'Your state isn’t set. Add it below, or ask NextChapter to set your region.'
+                  : src === 'yours'
+                    ? 'Add a grant your team found and everyone in Development sees it here.'
+                    : 'Nothing current for this purpose.'}
+              </p>
+            )}
+            {src === 'yours' && canWrite && (
+              <details className="rounded-lg border border-border bg-card p-4">
+                <summary className="cursor-pointer text-sm font-medium text-primary">Add a grant</summary>
+                <div className="mt-3">
+                  <AddGrantForm slug={slug} />
+                </div>
+              </details>
             )}
           </section>
-          {settings.dismissed.length > 0 && canWrite && (
+        )
+      })}
+
+      {canWrite && (
+        <section aria-label="Settings" className="space-y-3 rounded-lg border border-border bg-card p-4">
+          <GrantStatesForm slug={slug} current={settings.states} own={ownStates} />
+          {settings.dismissed.length > 0 && (
             <p className="text-xs text-muted-foreground">
               {settings.dismissed.length} hidden.{' '}
               {all
@@ -135,7 +191,7 @@ export async function DevelopmentGrants({ ctx, searchParams }: Props) {
                 ))}
             </p>
           )}
-        </>
+        </section>
       )}
     </div>
   )
