@@ -11,14 +11,11 @@ import { EmptyNote, PlainNote, SectionBlock } from '@/components/candidate/Block
 import { ExpansionToggle } from '@/components/dashboard/ExpansionToggle'
 import { stateName } from '@/lib/pivots/scoring'
 import { cityLabel } from '@/lib/jobs/added-cities'
-import { strategySummary, joinList, type SkillsIntel, type StrategyPicks, type WidenCity, type WidenStrategyView } from '@/lib/jobs/widen-strategy'
+import { strategySummary, joinList, inSentence, type SkillsIntel, type StrategyPicks, type WidenCity, type WidenStrategyView } from '@/lib/jobs/widen-strategy'
 import { finishWidenStrategy } from '@/app/dashboard/find-my-job/widen/actions'
 
 const n = (x: number) => x.toLocaleString()
 const pctOf = (share: number) => `${Math.round(share)}%`
-// A skill name inside a sentence: "Financial statements" → "financial statements"; acronyms ("ERP") and product names ("Excel") keep their capitals.
-const PROPER = /^(excel|salesforce|sap|oracle|netsuite|python|sql|power bi|tableau|workday|hubspot|gaap)\b/i
-const inSentence = (name: string) => (/^[A-Z]{2}/.test(name) || PROPER.test(name) ? name : name.charAt(0).toLowerCase() + name.slice(1))
 
 const ROUNDS = [
   { key: 'where', label: 'Where to look' },

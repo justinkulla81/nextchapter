@@ -4,7 +4,7 @@ import type { AiAtWork } from '@/lib/skills/ai-at-work'
 import type { AddressableMarket } from '@/lib/profile/addressable-market'
 import { ExpansionToggle } from '@/components/dashboard/ExpansionToggle'
 import { cityLabel } from '@/lib/jobs/added-cities'
-import type { WidenCity } from '@/lib/jobs/widen-strategy'
+import { inSentence, type WidenCity } from '@/lib/jobs/widen-strategy'
 import { marketHeadline } from '@/lib/redesign/jobs-pages'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { ShowMore } from '@/components/candidate/ShowMore'
@@ -59,7 +59,7 @@ export function MarketRedesign({ m, aiAtWork = null, nearbyCities = [] }: { m: A
     key: e.kind + e.label,
     title: e.label,
     why: e.open !== null && e.open !== undefined ? `${n(e.open)} more open roles.` : 'More open roles.',
-    fact: e.kind === 'role' && e.carry.length > 0 ? `Your ${e.carry.slice(0, 2).join(' and ')} carry over.` : undefined,
+    fact: e.kind === 'role' && e.carry.length > 0 ? `Your ${e.carry.slice(0, 2).map(inSentence).join(' and ')} carry over.` : undefined,
     actions: toggleFor(e),
   })
   // Three ways to widen, best first: each is one switch that adds jobs to the search. Nothing is added unless chosen.

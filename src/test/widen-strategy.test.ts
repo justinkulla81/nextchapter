@@ -51,3 +51,10 @@ describe('skills intelligence', () => {
     expect(industryKeyFor(market, 'Healthcare & Hospital Systems')).toBe('healthcare')
   })
 })
+
+describe('inSentence', () => {
+  it('lower-cases a skill inside a sentence, keeping acronyms and product names', async () => {
+    const { inSentence } = await import('@/lib/jobs/widen-strategy')
+    expect(['Financial statements', 'ERP', 'FP&A', 'Excel', 'Close process'].map(inSentence)).toEqual(['financial statements', 'ERP', 'FP&A', 'Excel', 'close process'])
+  })
+})
