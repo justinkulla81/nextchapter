@@ -5579,6 +5579,22 @@ model MarketTargetStat {
   @@id([fn, subFunction, band, industry, geo])
 }
 
+// Open roles per city for a function (kind 'fn', key = function) and for a function in one industry
+// (kind 'fn_ind', key = "fn|industry bucket"), per career stage (band, '' = unknown): the top 15
+// cities per key and band. Rebuilt nightly in the market-size pass (src/lib/market/city-stats.ts).
+// Read by the "Widen your search" page. prisma/manual/2026-11-17-market-city-stat.sql.
+model MarketCityStat {
+  kind       String
+  key        String
+  band       String
+  city       String
+  state      String
+  openNow    Int      @default(0)
+  computedAt DateTime @default(now())
+
+  @@id([kind, key, band, city])
+}
+
 model TrackedJob {
   id          String           @id @default(cuid())
   candidateId String

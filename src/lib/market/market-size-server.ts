@@ -162,3 +162,21 @@ export async function loadMarketSize(m: MarketMember, relevant?: { count: number
   const prompt = marketPrompt(relevant?.count ?? counts.openNow, growth, tooFewFor(target.stages))
   return { target, counts, growth, prompt, areas: bestAreas(areas, 3), allAreas: areas, slices, relevant: relevant ?? null }
 }
+
+/**
+ * Open roles for the member's kind of work at their level in each industry they have not targeted, in the places they
+ * search (anywhere when none): the "industries hiring your work" list on the Widen your search page. Same cached rows
+ * as loadMarketSize, so no extra read.
+ */
+export async function industriesHiringTarget(m: MarketMember, limit = 6): Promise<{ industry: string; openNow: number }[]> {
+  const target = memberMarketTarget(m)
+  if (!target) return []
+  const rows = await rowsFor(target.fn)
+  const base: Filter = { subFunction: target.subFunction, industries: null, geos: target.geos, stages: target.stages }
+  const own = new Set((target.industries ?? []).map((i) => i.toLowerCase()))
+  return [...new Set(rows.map((r) => r.industry).filter((i) => i && !own.has(i.toLowerCase())))]
+    .map((industry) => ({ industry, openNow: sum(rows, { ...base, industries: [industry] }).openNow }))
+    .filter((x) => x.openNow > 0)
+    .sort((a, b) => b.openNow - a.openNow)
+    .slice(0, limit)
+}

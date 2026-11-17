@@ -33,6 +33,8 @@ import { SeniorityFilter } from '@/components/dashboard/SeniorityFilter'
 import { loadBoardShortlist, type BoardShortlist, type BoardView } from '@/lib/jobs/board-shortlist'
 import { BoardViewToggle } from '@/components/dashboard/BoardViewToggle'
 import { ScopeToggle } from '@/components/dashboard/ScopeToggle'
+import { needsStrategy } from '@/lib/jobs/widen-strategy'
+import { readSearchExpansion } from '@/lib/profile/search-expansion'
 import { ExploreQuestionCard, ExploredOptionsList, PivotMessageCard } from '@/components/dashboard/PivotScopeCards'
 import { applyScope, widenedFitNote } from '@/lib/jobs/search-scope'
 import { loadScopeContext, type ScopeContext } from '@/lib/jobs/search-scope-server'
@@ -1618,7 +1620,11 @@ async function FindMyJobBody({
               clearHref={boardHrefWithout(urlParams, ['pivot'], { pathname: '/dashboard/find-my-job', hash: 'job-recommendations' })}
             />
           )}
-          <ScopeToggle surface="find_my_job" current={scopeCtx.scope} />
+          <ScopeToggle
+            surface="find_my_job"
+            current={scopeCtx.scope}
+            needsStrategy={needsStrategy(profile.journeyDetails, readSearchExpansion(profile.searchExpansion), scopeCtx.options.filter((o) => o.on).length)}
+          />
           {prompts}
           <div id="job-recommendations" className="scroll-mt-4">
             <Suspense fallback={<JobRecommendationsSkeleton />}>

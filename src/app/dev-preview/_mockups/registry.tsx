@@ -28,6 +28,7 @@ import { CareerStoryShortMock, CareerStoryShortEmpty } from './career-story'
 import { PeopleNew, PeopleFull, MoveWithPlaces, MoveEmpty } from './people-move-short'
 import { StatsTabsMock } from './stats-tabs'
 import { SearchStrategySimple } from './strategy'
+import { WidenStrategyPreview } from './widen-strategy'
 import { CareerHighPointPreview } from './career-high-point'
 import { StrategyNegotiationLive, StrategyNegotiationEmptyLive } from './strategy-negotiation-live'
 import { SearchStrategyApplicationMatch, ApplicationMatchFew } from './application-match'
@@ -138,6 +139,7 @@ export const MOCKUPS: Mockup[] = [
   { path: 'jobs/mine/jobs-short', place: 'Jobs', title: 'My jobs: one list with the next step, tracker folded (sample data)', replaces: 'the tracker stats, trends, efficiency and conversion cards shown open under the list', Component: JobsMine },
   { path: 'jobs/market/intel', place: 'Jobs', title: 'Who is hiring and what it pays: one comp headline, company rows that say why (sample data)', replaces: '/dashboard/market-intelligence: the three icon cards, the 7-column table, the No data provider connected empty state, and the Insider network, Contact data and Board and advisory cards (now one line each in a fold)', Component: MarketIntelFull },
   { path: 'jobs/market/intel-locked', place: 'Jobs', title: 'Who is hiring and what it pays: lower access level (sample data)', replaces: 'three dashed Locked feature boxes inside cards; now three one-line rows', Component: MarketIntelLocked },
+  { path: 'jobs/find/widen', place: 'Jobs', title: 'Widen your search: where the jobs are, what else to look for, your skills for it (sample data)', replaces: 'new: the first Broader / Everything tap on the board opens this instead of only switching', Component: WidenStrategyPreview },
   { path: 'jobs/find/scope-narrow', place: 'Jobs', title: 'Find a job: search scope Narrow (home only)', replaces: 'the Narrow / Wide buttons (BreadthToggle) in Filters and views', Component: ScopeNarrow },
   { path: 'jobs/apply-helper', place: 'Jobs', title: 'Apply helper: install page', replaces: 'new (no install page today)', Component: ApplyHelperLive },
   { path: 'learn/funding-live', place: 'Learn', title: 'Funding you qualify for: the built page (sample data)', replaces: 'the code that ships, fed sample data', Component: FundingLive },

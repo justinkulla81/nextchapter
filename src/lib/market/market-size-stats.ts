@@ -5,6 +5,7 @@ import { isInternshipJob } from '@/lib/jobs/work-type'
 import { jobIndustryBucket } from '@/lib/profile/industry-reading'
 import { subFunctionFor } from '@/lib/jobs/sub-functions'
 import { aggregateStats, PRIOR_DAYS, RECENT_DAYS, type StatInput } from '@/lib/market/market-size'
+import { aggregateCityStats, cityOf, type CityStatInput } from '@/lib/market/city-stats'
 
 const PAGE = 10_000
 const WRITE_CHUNK = 2_000
@@ -14,10 +15,12 @@ const WRITE_CHUNK = 2_000
  * the trend windows, read in id-ordered pages of narrow columns, aggregated in memory, then
  * swapped in one transaction. Deterministic; no API call. Nightly (cron market-size).
  */
-export async function rebuildMarketTargetStats(now = new Date()): Promise<{ rowsRead: number; statsWritten: number; ms: number }> {
+export async function rebuildMarketTargetStats(now = new Date()): Promise<{ rowsRead: number; statsWritten: number; cityStatsWritten: number; ms: number }> {
   const started = Date.now()
   const since = new Date(now.getTime() - (RECENT_DAYS + PRIOR_DAYS) * 86_400_000)
   const inputs: StatInput[] = []
+  // Live jobs only, for the cities (city-stats.ts): same pass, one more narrow column.
+  const cityInputs: CityStatInput[] = []
   const buckets = new Map<string, string | null>()
   let lo = ''
   let read = 0
@@ -31,6 +34,7 @@ export async function rebuildMarketTargetStats(now = new Date()): Promise<{ rows
         level: string | null
         industry: string | null
         location: string | null
+        locationCity: string | null
         locationState: string | null
         workArrangement: string | null
         employmentType: string | null
@@ -40,7 +44,7 @@ export async function rebuildMarketTargetStats(now = new Date()): Promise<{ rows
         closeReason: string | null
       }[]
     >`
-      SELECT "id", "title", "targetFunction", "subFunction", "level", "industry", "location", "locationState",
+      SELECT "id", "title", "targetFunction", "subFunction", "level", "industry", "location", "locationCity", "locationState",
              "workArrangement", "employmentType", "postedAt", "createdAt", "archivedAt", "closeReason"
       FROM "ExclusiveJobPosting"
       WHERE "id" > ${lo} AND "status" = 'approved' AND "institutionScopeId" IS NULL
@@ -68,6 +72,7 @@ export async function rebuildMarketTargetStats(now = new Date()): Promise<{ rows
         archivedAt: r.archivedAt,
         closeReason: r.closeReason,
       })
+      if (!r.archivedAt) cityInputs.push({ fn, level: r.level, industryBucket: bucket && bucket !== 'Other' ? bucket : null, city: cityOf(r) })
     }
   }
   const stats = aggregateStats(inputs, now)
@@ -81,5 +86,22 @@ export async function rebuildMarketTargetStats(now = new Date()): Promise<{ rows
     },
     { timeout: 120_000 }
   )
-  return { rowsRead: read, statsWritten: stats.length, ms: Date.now() - started }
+  // Cities are written on their own, after: a failure here (say, before the table exists) never costs the counts above.
+  let cityStatsWritten = 0
+  try {
+    const cities = aggregateCityStats(cityInputs)
+    await prisma.$transaction(
+      async (tx) => {
+        await tx.marketCityStat.deleteMany({})
+        for (let i = 0; i < cities.length; i += WRITE_CHUNK) {
+          await tx.marketCityStat.createMany({ data: cities.slice(i, i + WRITE_CHUNK).map((c) => ({ ...c, computedAt })) })
+        }
+      },
+      { timeout: 120_000 }
+    )
+    cityStatsWritten = cities.length
+  } catch (error) {
+    console.error('Market city stats not written:', error)
+  }
+  return { rowsRead: read, statsWritten: stats.length, cityStatsWritten, ms: Date.now() - started }
 }
