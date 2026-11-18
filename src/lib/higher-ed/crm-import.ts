@@ -33,13 +33,23 @@ async function finishRun(runId: string, rowCount: number, errors: RowError[], fi
   })
 }
 
-export async function importRoster(args: { institutionId: string; csv: string; fileName: string; createdBy: string }): Promise<ImportResult> {
+export async function importRoster(args: { institutionId: string; csv: string; fileName: string; createdBy: string; units?: { school: string; department: string | null }[] | null }): Promise<ImportResult> {
   const { rows, errors, fileError } = parseRoster(args.csv)
   return importRosterRows({ ...args, rows, errors, fileError })
 }
 
+const same = (a: string | null | undefined, b: string | null | undefined) => (a ?? '').trim().toLowerCase() === (b ?? '').trim().toLowerCase()
+
+// A school or department's own roster (owner decision 2026-11-18): a row with no school takes the unit's (when the person
+// holds one unit); a row, or an existing member, from another school or department is skipped, so a unit can only load
+// and update its own alumni.
+function unitFor(units: { school: string; department: string | null }[], school: string | null | undefined, department: string | null | undefined) {
+  if (!school?.trim()) return units.length === 1 ? units[0] : null
+  return units.find((u) => same(u.school, school) && (!u.department || same(u.department, department))) ?? null
+}
+
 // Shared by the CSV upload and the census API (records already parsed).
-export async function importRosterRows(args: { institutionId: string; rows: RosterRow[]; errors: RowError[]; fileError?: string; fileName: string; createdBy: string }): Promise<ImportResult> {
+export async function importRosterRows(args: { institutionId: string; rows: RosterRow[]; errors: RowError[]; fileError?: string; fileName: string; createdBy: string; units?: { school: string; department: string | null }[] | null }): Promise<ImportResult> {
   const run = await startRun(args.institutionId, 'IMPORT_ROSTER', args.fileName, args.createdBy)
   const { rows, errors, fileError } = args
   let imported = 0
@@ -54,10 +64,24 @@ export async function importRosterRows(args: { institutionId: string; rows: Rost
   }
   if (!fileError) {
     for (const r of rows) {
+      const units = args.units ?? []
+      const unit = units.length ? unitFor(units, r.school, r.department) : null
+      if (units.length && !unit) {
+        errors.push({ row: r.row, column: 'school', message: r.school ? `${r.school} is not your school or department.` : 'Add the school column: you can load alumni for more than one school.' })
+        continue
+      }
+      if (unit) {
+        if (!r.school) r.school = unit.school
+        if (unit.department && !r.department) r.department = unit.department
+      }
       const existing = await prisma.institutionMember.findFirst({
         where: { institutionId: args.institutionId, OR: [{ externalId: r.externalId }, { email: r.email }] },
-        select: { id: true, externalId: true, email: true },
+        select: { id: true, externalId: true, email: true, school: true, department: true },
       })
+      if (unit && existing && !unitFor([unit], existing.school, existing.department)) {
+        errors.push({ row: r.row, column: 'email', message: `${r.email} is already on the roster under another school or department.` })
+        continue
+      }
       // An email already used by another external id in this roster is a
       // conflict in the college's data, not something to silently merge.
       if (existing && existing.externalId && existing.externalId !== r.externalId && existing.email === r.email) {

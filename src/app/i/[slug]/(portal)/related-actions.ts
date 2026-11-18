@@ -14,6 +14,7 @@ export type RelatedState = { ok?: boolean; message?: string; error?: string; inv
 // every link is an invitation to another organization (owner decision 2026-11-17).
 export async function addRelatedOrgAction(slug: string, crmOrgId: string, _prev: RelatedState): Promise<RelatedState> {
   const ctx = await requireWorkspace(slug, 'admin', { write: true })
+  if (ctx.units?.length) return { error: 'Only the whole institution’s administrator can change this. Ask them, or NextChapter.' }
   const inst = await prisma.institution.findUnique({ where: { id: ctx.institution.id }, select: { crmOrganizationId: true } })
   const r = await addRelatedOrg({ institutionId: ctx.institution.id, institutionCrmOrgId: inst?.crmOrganizationId ?? null, crmOrgId, createdBy: ctx.email ?? ctx.userId })
   if (!r.ok) return { error: r.error }
@@ -26,6 +27,7 @@ export async function addRelatedOrgAction(slug: string, crmOrgId: string, _prev:
 
 export async function removeRelatedOrgAction(slug: string, partnerId: string): Promise<{ error?: string }> {
   const ctx = await requireWorkspace(slug, 'admin', { write: true })
+  if (ctx.units?.length) return { error: 'Only the whole institution’s administrator can change this. Ask them, or NextChapter.' }
   if (!(await removeRelatedOrg(ctx.institution.id, partnerId))) return { error: 'That link was not found.' }
   captureServerEvent(ctx.userId, 'related_org_removed', { institutionId: ctx.institution.id, partnerId })
   revalidatePath(`/i/${slug}`, 'layout')

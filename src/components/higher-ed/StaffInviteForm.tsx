@@ -26,7 +26,7 @@ const VIEWER_WORKSPACES = [
 // keeps what was typed. `lockedRoles` = roles whose workspace the license
 // tier doesn't include (role → the tier that adds it), warned before sending.
 // `adminOnly` (the free plan) offers the administrator role alone.
-export function StaffInviteForm({ inviteAction, lockedRoles = {}, adminOnly = false, kind = 'college' }: { inviteAction: (prev: State, formData: FormData) => Promise<State>; lockedRoles?: Partial<Record<string, string>>; adminOnly?: boolean; kind?: OrgKind }) {
+export function StaffInviteForm({ inviteAction, lockedRoles = {}, adminOnly = false, kind = 'college', units = [], unitRequired = false }: { inviteAction: (prev: State, formData: FormData) => Promise<State>; lockedRoles?: Partial<Record<string, string>>; adminOnly?: boolean; kind?: OrgKind; /** Schools or departments a seat can be limited to (InstitutionUnit). */ units?: { id: string; name: string }[]; /** A unit's own staff invite only into their units. */ unitRequired?: boolean }) {
   const [state, action] = useActionState(inviteAction, undefined)
   const [email, setEmail] = useState('')
   const [fullName, setFullName] = useState('')
@@ -60,6 +60,19 @@ export function StaffInviteForm({ inviteAction, lockedRoles = {}, adminOnly = fa
           ))}
         </select>
       </div>
+      {units.length > (unitRequired ? 1 : 0) && (
+        <div className="space-y-1.5">
+          <Label htmlFor="invite-unit">For</Label>
+          <select id="invite-unit" name="unitId" defaultValue={unitRequired ? units[0].id : ''} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
+            {!unitRequired && <option value="">The whole institution</option>}
+            {units.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       {role === 'VIEWER' && (
         <div className="space-y-1.5">
           <Label htmlFor="invite-ws">Can see (read-only)</Label>

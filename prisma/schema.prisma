@@ -10730,6 +10730,9 @@ model OrgClaim {
   outcome           String?
   /// The related-organization link (EcosystemPartner.id) the claimant came from, when another organization invited them.
   referredByPartnerId String?
+  /// A college claim for one school or department (an InstitutionUnit) rather than the whole university.
+  unitSchool          String?
+  unitDepartment      String?
   /// A verified claim for a type with a free workspace waits for NextChapter to approve it (owner decision 2026-11-17).
   /// Applied by hand: prisma/manual/2026-11-17-org-claim-approval.sql.
   approvedAt        DateTime?
@@ -13106,6 +13109,7 @@ model Institution {
   updatedAt         DateTime           @updatedAt
 
   users             InstitutionUser[]
+  units             InstitutionUnit[]
   members           InstitutionMember[]
   layoffMatches     LayoffMatch[]
   outreachCampaigns OutreachCampaign[]
@@ -13164,6 +13168,9 @@ model InstitutionUser {
   invitedEmail  String
   fullName      String?
   role          InstitutionUserRole
+  /// A school or department of the university this seat is limited to (InstitutionUnit); null = the whole institution.
+  unitId        String?
+  unit          InstitutionUnit?    @relation(fields: [unitId], references: [id], onDelete: Cascade)
   // VIEWER only: the one workspace this read-only seat may open
   // ('alumni' | 'development' | 'career' | ...). Null for every other role.
   workspace     String?
@@ -18925,5 +18932,28 @@ model FundingPartnerCommitment {
   updatedAt     DateTime           @updatedAt
 
   @@index([applicationId])
+  @@index([institutionId])
+}
+
+/// A school or department of a university with its own account (owner decision 2026-11-18): a university can have the
+/// whole institution, one unit, or several. Each unit has its own plan and its own administrator. Its staff
+/// (InstitutionUser.unitId) see only the alumni whose roster school (and department, when set) match. Institution-level
+/// staff see everyone. Applied by hand: prisma/manual/2026-11-18-institution-units.sql.
+model InstitutionUnit {
+  id            String            @id @default(cuid())
+  institutionId String
+  institution   Institution       @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  name          String
+  /// Matched against InstitutionMember.school, ignoring case.
+  school        String
+  /// Matched against InstitutionMember.department when set; null = the whole school.
+  department    String?
+  /// FREE or PAID (src/lib/plans/entitlements.ts).
+  plan          String            @default("FREE")
+  createdBy     String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  staff         InstitutionUser[]
+
   @@index([institutionId])
 }

@@ -26,7 +26,7 @@ describe('approving a claim', () => {
   it('opens the free workspace with the claimant as administrator, then marks the claim approved', async () => {
     db.orgClaim.findUnique.mockResolvedValue(claim())
     expect(await approveOrgClaim('c1', 'owner@example.com')).toEqual({ ok: true, slug: 'kentuckiana-works' })
-    expect(provision.provisionFreeWorkspace).toHaveBeenCalledWith({ crmOrganizationId: 'o1', name: 'KentuckianaWorks', orgType: 'GOVERNMENT', claimantEmail: 'pat@board.gov' })
+    expect(provision.provisionFreeWorkspace).toHaveBeenCalledWith({ crmOrganizationId: 'o1', name: 'KentuckianaWorks', orgType: 'GOVERNMENT', claimantEmail: 'pat@board.gov', unit: null })
     expect(db.orgClaim.update.mock.calls[0][0]).toMatchObject({ where: { id: 'c1' }, data: { approvedBy: 'owner@example.com' } })
     expect(capture).toHaveBeenCalledWith('org-claim:o1', 'org_claim_approved', expect.objectContaining({ claimId: 'c1', orgType: 'GOVERNMENT' }))
   })
@@ -35,6 +35,11 @@ describe('approving a claim', () => {
     db.publicOrgPage.findMany.mockResolvedValueOnce([{ kind: 'ECON_DEV' }])
     expect((await approveOrgClaim('c1', 'a')).ok).toBe(true)
     expect(provision.provisionFreeWorkspace).toHaveBeenCalledWith(expect.objectContaining({ name: 'One Louisville', orgType: 'ECONOMIC_DEVELOPMENT' }))
+  })
+  it('a university claim for one school opens that unit, not the whole institution', async () => {
+    db.orgClaim.findUnique.mockResolvedValue(claim({ unitSchool: 'Tepper School of Business', unitDepartment: null, crmOrganization: { name: 'Carnegie Mellon University', orgTypes: ['UNIVERSITY'] } }))
+    expect((await approveOrgClaim('c1', 'a')).ok).toBe(true)
+    expect(provision.provisionFreeWorkspace.mock.calls[0][0]).toMatchObject({ orgType: 'UNIVERSITY', unit: { school: 'Tepper School of Business', department: null } })
   })
   it('leaves the claim open when the workspace could not be created, so it can be retried', async () => {
     db.orgClaim.findUnique.mockResolvedValue(claim())

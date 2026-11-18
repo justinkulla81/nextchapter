@@ -207,17 +207,22 @@ export async function inviteStaff(slug: string, _prev: FormState, formData: Form
   if (ctx.institution.isDemo) return { error: 'Invites are off on demo colleges: their staff are fictional.' }
   const role = String(formData.get('role') ?? '') as InstitutionUserRole
   if (!INVITABLE.includes(role)) return { error: 'Pick a role.' }
+  // Which school or department the seat is for (owner decision 2026-11-18): a unit's staff invite into their own unit;
+  // a whole-institution admin may pick one, or none for the whole institution. Limits follow that unit's plan.
+  const scope = await staffUnitFor(ctx, String(formData.get('unitId') ?? ''))
+  if ('error' in scope) return { error: scope.error }
+  const plan = scope.plan
   // The free plan has the administrator only; other staff roles are part of the paid plan.
-  if (role !== 'INSTITUTION_ADMIN' && !institutionEntitlements({ plan: ctx.institution.plan }).staffRoles) {
-    captureServerEvent(ctx.userId, 'entitlement_locked_attempted', { feature: 'staffRoles', plan: ctx.institution.plan, slug, role })
+  if (role !== 'INSTITUTION_ADMIN' && !institutionEntitlements({ plan }).staffRoles) {
+    captureServerEvent(ctx.userId, 'entitlement_locked_attempted', { feature: 'staffRoles', plan, slug, role })
     return { error: lockedReason('staffRoles') }
   }
-  // The free plan has one administrator (owner decision 2026-11-17): active or still invited.
-  const adminLimit = institutionEntitlements({ plan: ctx.institution.plan }).adminLimit
+  // The free plan has one administrator (owner decision 2026-11-17): active or still invited, per institution or unit.
+  const adminLimit = institutionEntitlements({ plan }).adminLimit
   if (role === 'INSTITUTION_ADMIN' && adminLimit !== null) {
-    const admins = await prisma.institutionUser.count({ where: { institutionId: ctx.institution.id, role: 'INSTITUTION_ADMIN', revokedAt: null } })
+    const admins = await prisma.institutionUser.count({ where: { institutionId: ctx.institution.id, role: 'INSTITUTION_ADMIN', revokedAt: null, unitId: scope.unitId } })
     if (admins >= adminLimit) {
-      captureServerEvent(ctx.userId, 'entitlement_locked_attempted', { feature: 'staffRoles', plan: ctx.institution.plan, slug, role, reason: 'admin_limit' })
+      captureServerEvent(ctx.userId, 'entitlement_locked_attempted', { feature: 'staffRoles', plan, slug, role, reason: 'admin_limit', unitId: scope.unitId })
       return { error: `The free plan has ${adminLimit === 1 ? 'one administrator' : `${adminLimit} administrators`}, and that place is taken. ${lockedReason('staffRoles')}` }
     }
   }
@@ -229,13 +234,36 @@ export async function inviteStaff(slug: string, _prev: FormState, formData: Form
     role,
     fullName: (formData.get('fullName') as string | null)?.trim() || null,
     workspace,
+    unitId: scope.unitId,
   })
   if (result.error) return { error: result.error }
-  captureServerEvent(ctx.userId, 'institution_staff_invited', { institutionId: ctx.institution.id, role, workspace })
+  captureServerEvent(ctx.userId, 'institution_staff_invited', { institutionId: ctx.institution.id, role, workspace, unitId: scope.unitId })
   await recordInstitutionAudit(ctx, 'team.invited', { type: 'staff', detail: { role } })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true, message: 'Invite sent.' }
 }
+
+// The unit a new seat belongs to, and the plan its limits follow.
+async function staffUnitFor(ctx: Awaited<ReturnType<typeof requireWorkspace>>, requested: string): Promise<{ unitId: string | null; plan: string } | { error: string }> {
+  if (ctx.units?.length) {
+    const id = requested || ctx.units[0].id
+    if (!ctx.units.some((u) => u.id === id)) return { error: 'You can invite people only to your own school or department.' }
+    const unit = await prisma.institutionUnit.findUnique({ where: { id }, select: { plan: true } })
+    return { unitId: id, plan: unit?.plan ?? 'FREE' }
+  }
+  if (!requested) return { unitId: null, plan: ctx.institution.plan }
+  const unit = await prisma.institutionUnit.findFirst({ where: { id: requested, institutionId: ctx.institution.id }, select: { id: true, plan: true } })
+  if (!unit) return { error: 'That school or department was not found.' }
+  return { unitId: unit.id, plan: unit.plan }
+}
+
+// Staff limited to units manage only their units' seats.
+function inScope(ctx: Awaited<ReturnType<typeof requireWorkspace>>, unitId: string | null) {
+  return !ctx.units?.length || (!!unitId && ctx.units.some((u) => u.id === unitId))
+}
+
+// Settings that belong to the whole institution, refused for staff of one school or department.
+const WHOLE_INSTITUTION_ONLY = 'Only the whole institution’s administrator can change this. Ask them, or NextChapter.'
 
 const VIEWER_WORKSPACES: WorkspaceKey[] = ['alumni', 'development', 'career', 'teaching', 'execed', 'academic', 'workforce', 'hub']
 
@@ -244,11 +272,12 @@ const VIEWER_WORKSPACES: WorkspaceKey[] = ['alumni', 'development', 'career', 't
 export async function removeStaff(slug: string, staffId: string): Promise<{ error?: string; message?: string }> {
   const ctx = await requireWorkspace(slug, 'admin', { write: true })
   if (ctx.institution.isDemo) return { error: 'Staff changes are off on demo colleges.' }
-  const row = await prisma.institutionUser.findFirst({ where: { id: staffId, institutionId: ctx.institution.id, revokedAt: null }, select: { role: true, userId: true } })
+  const row = await prisma.institutionUser.findFirst({ where: { id: staffId, institutionId: ctx.institution.id, revokedAt: null }, select: { role: true, userId: true, unitId: true } })
   if (!row) return { error: 'Already removed.' }
+  if (!inScope(ctx, row.unitId)) return { error: 'You can change only your own school or department’s team.' }
   if (row.userId === ctx.userId && row.role === 'INSTITUTION_ADMIN') return { error: 'You can’t remove your own admin seat. Ask another admin.' }
-  if (row.role === 'INSTITUTION_ADMIN' && (await prisma.institutionUser.count({ where: { institutionId: ctx.institution.id, role: 'INSTITUTION_ADMIN', revokedAt: null, acceptedAt: { not: null } } })) <= 1) {
-    return { error: 'This is the college’s only active admin. Invite another admin first.' }
+  if (row.role === 'INSTITUTION_ADMIN' && (await prisma.institutionUser.count({ where: { institutionId: ctx.institution.id, role: 'INSTITUTION_ADMIN', revokedAt: null, acceptedAt: { not: null }, unitId: row.unitId } })) <= 1) {
+    return { error: row.unitId ? 'This is the school or department’s only active admin. Invite another admin first.' : 'This is the college’s only active admin. Invite another admin first.' }
   }
   await prisma.institutionUser.update({ where: { id: staffId }, data: { revokedAt: new Date() } })
   captureServerEvent(ctx.userId, 'institution_staff_removed', { institutionId: ctx.institution.id, role: row.role })
@@ -260,10 +289,11 @@ export async function removeStaff(slug: string, staffId: string): Promise<{ erro
 export async function resendStaffInvite(slug: string, staffId: string): Promise<{ error?: string; message?: string }> {
   const ctx = await requireWorkspace(slug, 'admin', { write: true })
   if (ctx.institution.isDemo) return { error: 'Invites are off on demo colleges: their staff are fictional.' }
-  const row = await prisma.institutionUser.findFirst({ where: { id: staffId, institutionId: ctx.institution.id }, select: { invitedEmail: true, role: true, workspace: true, acceptedAt: true, revokedAt: true } })
+  const row = await prisma.institutionUser.findFirst({ where: { id: staffId, institutionId: ctx.institution.id }, select: { invitedEmail: true, role: true, workspace: true, acceptedAt: true, revokedAt: true, unitId: true } })
   if (!row) return { error: 'That invite is gone.' }
+  if (!inScope(ctx, row.unitId)) return { error: 'You can change only your own school or department’s team.' }
   if (row.acceptedAt && !row.revokedAt) return { error: 'They’ve already accepted.' }
-  const r = await inviteInstitutionUser({ institutionSlug: slug, email: row.invitedEmail, role: row.role, workspace: row.workspace })
+  const r = await inviteInstitutionUser({ institutionSlug: slug, email: row.invitedEmail, role: row.role, workspace: row.workspace, unitId: row.unitId })
   if (r.error) return { error: r.error }
   captureServerEvent(ctx.userId, 'institution_staff_invite_resent', { institutionId: ctx.institution.id, role: row.role })
   await recordInstitutionAudit(ctx, 'team.invite_resent', { type: 'staff', id: staffId, detail: { role: row.role } })
@@ -275,6 +305,7 @@ export async function resendStaffInvite(slug: string, staffId: string): Promise<
 // NextChapter admins set under Admin › Institutions).
 export async function saveBranding(slug: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const ctx = await requireWorkspace(slug, 'admin', { write: true })
+  if (ctx.units?.length) return { error: WHOLE_INSTITUTION_ONLY }
   const get = (k: string) => (formData.get(k) as string | null)?.trim() ?? ''
   const accent = get('accentColor')
   if (accent && !/^#[0-9a-fA-F]{6}$/.test(accent)) return { error: 'Use a six-digit color like #A93439.' }
@@ -319,8 +350,9 @@ async function runCrmImport(ctx: WorkspaceContext, kind: 'roster' | 'gifts', for
   const file = formData.get('file') as File | null
   if (!file || file.size === 0) return { error: 'Choose a CSV file.' }
   if (file.size > MAX_CSV_BYTES) return { error: 'That file is over 10MB. Split it and upload the parts.' }
-  const args = { institutionId: ctx.institution.id, csv: await file.text(), fileName: file.name, createdBy: ctx.email ?? ctx.userId }
-  const r = kind === 'roster' ? await importRoster(args) : await importGifts(args)
+  // Staff of a school or department load only their unit's alumni (crm-import.ts).
+  const args = { institutionId: ctx.institution.id, csv: await file.text(), fileName: file.name, createdBy: ctx.email ?? ctx.userId, units: ctx.units ?? null }
+  const r = kind === 'roster' ? await importRoster(args) : await importGifts({ institutionId: args.institutionId, csv: args.csv, fileName: args.fileName, createdBy: args.createdBy })
   if (r.capReached) return { error: `${r.capReached.message} Nothing was imported.` }
   captureServerEvent(ctx.userId, kind === 'roster' ? 'he_roster_imported' : 'he_gifts_imported', {
     institutionId: ctx.institution.id,
@@ -340,7 +372,7 @@ async function runCrmImport(ctx: WorkspaceContext, kind: 'roster' | 'gifts', for
 
 export async function sendInvitations(slug: string): Promise<{ error?: string; message?: string }> {
   const ctx = await requireWorkspace(slug, 'admin', { write: true })
-  const r = await sendJoinInvites({ institutionId: ctx.institution.id, createdBy: ctx.email ?? ctx.userId })
+  const r = await sendJoinInvites({ institutionId: ctx.institution.id, createdBy: ctx.email ?? ctx.userId, units: ctx.units ?? null })
   if (r.capReached) {
     revalidatePath(`/i/${slug}`, 'layout')
     return { error: `${r.sent ? `${r.sent} invitations sent. ` : ''}${r.capReached.message}` }
@@ -355,6 +387,7 @@ export async function sendInvitations(slug: string): Promise<{ error?: string; m
 
 export async function saveCollegeSettings(slug: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const ctx = await requireWorkspace(slug, 'admin', { write: true })
+  if (ctx.units?.length) return { error: WHOLE_INSTITUTION_ONLY }
   const graceDays = Number(formData.get('graceDays'))
   const fiscalYearStartMonth = Number(formData.get('fiscalYearStartMonth'))
   const givingUrl = String(formData.get('givingUrl') ?? '').trim() || null

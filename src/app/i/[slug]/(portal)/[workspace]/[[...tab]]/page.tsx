@@ -39,7 +39,7 @@ export default async function WorkspacePage({
   // frame of the real site each person uses (src/components/higher-ed/SiteFrames.tsx).
   const framed = kind === 'workforce' && ctx.workspaces.includes('hub') && (config.key === 'candidate' || config.key === 'employer')
   const tabs = tabsFor(ctx.tokens, config.key, await loadModules(ctx.institution.id), kind).filter(
-    (t) => (!t.demoOnly || ctx.institution.isDemo) && (!t.from || ctx.workspaces.includes(t.from.workspace)) && (t.key !== 'groups' || framed) && (!t.hideWhenWorkspace || !ctx.workspaces.includes(t.hideWhenWorkspace)),
+    (t) => (!t.demoOnly || ctx.institution.isDemo) && (!t.from || ctx.workspaces.includes(t.from.workspace)) && (t.key !== 'groups' || framed) && (!t.hideWhenWorkspace || !ctx.workspaces.includes(t.hideWhenWorkspace)) && (!t.institutionOnly || !ctx.units?.length),
   )
   const activeKey = tab?.[0] ?? tabs[0]?.key
   const active = tabs.find((t) => t.key === activeKey)

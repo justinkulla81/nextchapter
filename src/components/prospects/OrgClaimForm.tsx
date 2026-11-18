@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useEffect, useSyncExternalStore } from 'react'
+import { useActionState, useEffect, useState, useSyncExternalStore } from 'react'
 import { posthog } from '@/lib/posthog/client'
 import { requestClaimAction, type OrgClaimState } from '@/app/prepared/[slug]/org-actions'
 import { Input } from '@/components/ui/input'
@@ -14,7 +14,7 @@ function readVia(): string | null {
   return t && /^[A-Za-z0-9_-]{24,64}$/.test(t) ? t : null
 }
 
-export function OrgClaimForm({ slug, orgName, domain, sections = false }: { slug: string; orgName: string; domain: string | null; sections?: boolean }) {
+export function OrgClaimForm({ slug, orgName, domain, sections = false, units = false }: { slug: string; orgName: string; domain: string | null; sections?: boolean; /** A university: claim the whole institution, or one school or department (owner decision 2026-11-18). */ units?: boolean }) {
   // A related organization's invite arrives as ?via=<token>. Read in the browser so the claim page stays cached; the server
   // checks the token belongs to this organization before keeping it (related-orgs.ts).
   const via = useSyncExternalStore(noSubscribe, readVia, () => null)
@@ -22,6 +22,7 @@ export function OrgClaimForm({ slug, orgName, domain, sections = false }: { slug
     if (via) posthog.capture('related_org_invite_opened', { slug })
   }, [via, slug])
   const [state, action] = useActionState<OrgClaimState, FormData>(requestClaimAction.bind(null, slug), undefined)
+  const [scope, setScope] = useState<'institution' | 'unit'>('institution')
   if (state?.sent) {
     return (
       <div role="status" className="rounded-xl border border-border bg-white p-5">
@@ -53,6 +54,28 @@ export function OrgClaimForm({ slug, orgName, domain, sections = false }: { slug
               </label>
             ))}
           </div>
+        </fieldset>
+      )}
+      {units && (
+        <fieldset className="space-y-2">
+          <legend className="text-sm font-medium">What do you want to claim?</legend>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {([['institution', `All of ${orgName}`, 'For the whole institution: every school and department.'], ['unit', 'A school or department', 'Its own account, with only its own alumni.']] as const).map(([k, label, line]) => (
+              <label key={k} className="flex cursor-pointer flex-col gap-0.5 rounded-lg border border-border bg-white p-3 text-sm has-[:checked]:border-navy has-[:checked]:ring-1 has-[:checked]:ring-navy has-[:focus-visible]:ring-2">
+                <span className="flex items-center gap-2 font-medium">
+                  <input type="radio" name="scope" value={k} checked={scope === k} onChange={() => setScope(k)} />
+                  {label}
+                </span>
+                <span className="text-xs text-muted-foreground">{line}</span>
+              </label>
+            ))}
+          </div>
+          {scope === 'unit' && (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5"><Label htmlFor="claim-school">School</Label><Input id="claim-school" name="unitSchool" defaultValue={v?.unitSchool} placeholder="e.g. School of Business" required /></div>
+              <div className="space-y-1.5"><Label htmlFor="claim-dept">Department (optional)</Label><Input id="claim-dept" name="unitDepartment" defaultValue={v?.unitDepartment} placeholder="Leave empty for the whole school" /></div>
+            </div>
+          )}
         </fieldset>
       )}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

@@ -98,7 +98,7 @@ export default async function InstitutionPortalLayout({
     for (const key of ['hub', 'business', 'education', 'wfhub'] as const) {
       const item = railItems.find((r) => r.key === key)
       if (!item) continue
-      const tabs = tabsFor(access.tokens, key, modules, 'workforce').filter((t) => (!t.demoOnly || institution.isDemo) && (!t.from || access.workspaces.includes(t.from.workspace)) && (!t.hideWhenWorkspace || !access.workspaces.includes(t.hideWhenWorkspace)))
+      const tabs = tabsFor(access.tokens, key, modules, 'workforce').filter((t) => (!t.demoOnly || institution.isDemo) && (!t.from || access.workspaces.includes(t.from.workspace)) && (!t.hideWhenWorkspace || !access.workspaces.includes(t.hideWhenWorkspace)) && (!t.institutionOnly || !access.units?.length))
       const href = (k: string) => (k === tabs[0]?.key ? item.href : `${item.href}/${k}`)
       const groups = [...new Set(tabs.map((t) => t.group).filter((g): g is string => !!g))]
       item.children = groups.length
