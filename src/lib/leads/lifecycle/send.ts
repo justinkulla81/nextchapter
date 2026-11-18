@@ -11,6 +11,8 @@ import { journeyButtons } from './journey'
 import { leadEmailContent, leadEmailText, type LeadEmailContext, type LeadEmailJob } from './content'
 import { jobsForSearch, similarLeadJobs, type LeadJob } from './similar-jobs'
 import { latestReport } from '@/lib/reports'
+import { getPublicNotices } from '@/lib/warn/layoff-pages'
+import { buildLayoffWeekBrief } from '@/lib/newsletter/layoff-week'
 
 const appUrl = () => process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com'
 const FROM = 'NextChapter <support@launchyournextchapter.com>'
@@ -23,6 +25,19 @@ function profileUrl(email: string, variant: LeadVariant, step: LeadStep, journey
   const from = journey ? 'lead_email' : `lead_${variant}`
   const query = new URLSearchParams({ from, utm_source: 'lead_email', utm_campaign: `${variant}_${step}`, ...(journey ? { j: journey } : {}) })
   return `${appUrl()}/api/lead-profile/${makeUnsubscribeToken(email, null)}?${query}`
+}
+
+/** The job ids in the lifecycle emails already sent to this address (their tracked job links), so a reminder shows new ones. */
+async function jobsAlreadySent(email: string): Promise<Set<string>> {
+  // From the address's own (at most two) earlier emails, by their unique (type, sourceRef) key: a few rows, never a scan of the links.
+  const sent = await prisma.crmActivity
+    .findMany({
+      where: { type: 'EMAIL', sourceRef: { in: (['welcome', 'nudge1'] as const).map((s) => lifecycleRef(s, email)) } },
+      select: { outreachTracking: { select: { links: { select: { originalUrl: true } } } } },
+    })
+    .catch(() => [])
+  const urls = sent.flatMap((a) => a.outreachTracking?.links.map((l) => l.originalUrl) ?? [])
+  return new Set(urls.map((u) => /\/api\/lead-job\/[^?]+\?(?:.*&)?job=([a-z0-9]+)/i.exec(u)?.[1]).filter((id): id is string => !!id))
 }
 
 export interface LifecycleSend {
@@ -51,14 +66,17 @@ export async function sendLifecycleEmail(input: LifecycleSend): Promise<boolean>
   const email = input.email.trim().toLowerCase()
   if (isUndeliverableAddress(email)) return false
 
-  // The application and saved-job welcomes lead with three open jobs like that job, the job-alert welcome with three its search finds
-  // now (job links are made tracked below).
+  // The application and saved-job emails lead with three open jobs like that job, the job-alert emails with three its search finds
+  // now (job links are made tracked below). A reminder leaves out the jobs an earlier email already sent this address.
   const token = makeUnsubscribeToken(email, null)
   const welcome = input.step === 'welcome'
-  const found: LeadJob[] =
-    welcome && (input.variant === 'applied_job' || input.variant === 'saved_job') ? await similarLeadJobs(input.jobId)
-    : welcome && input.variant === 'job_alert' ? await jobsForSearch(input.search)
-    : []
+  const wantsJobs = (input.variant === 'applied_job' && input.step !== 'nudge2') || input.variant === 'saved_job' || input.variant === 'job_alert'
+  const already = wantsJobs && !welcome && !input.test ? await jobsAlreadySent(email) : new Set<string>()
+  const pool: LeadJob[] =
+    !wantsJobs ? []
+    : input.variant === 'job_alert' ? await jobsForSearch(input.search, 3 + already.size)
+    : await similarLeadJobs(input.jobId, 3 + already.size)
+  const found = pool.filter((j) => !already.has(j.id)).slice(0, 3)
   const jobs: LeadEmailJob[] = found.map((j, i) => ({
     title: j.title,
     company: j.company,
@@ -68,8 +86,11 @@ export async function sendLifecycleEmail(input: LifecycleSend): Promise<boolean>
   // The newsletter welcome leads with the latest report (its link counts the click, then opens the report).
   const edition = input.variant === 'newsletter' && welcome ? latestReport() : null
   const report = edition ? { month: edition.month, title: edition.title, dek: edition.dek, url: `${appUrl()}/api/lead-report/${token}?r=${edition.slug}&step=${input.step}` } : null
-  const choices = report || input.context.journey || input.variant === 'waitlist_b2b' || jobs.length >= 3 ? [] : journeyButtons(email, input.step, input.context.detail)
-  const content = leadEmailContent(input.variant, input.step, { ...input.context, choices, jobs, report })
+  // The newsletter reminder leads with the week's layoff notices (the shared, cached copy the layoff pages read; a failed read: none).
+  const week = input.variant === 'newsletter' && input.step === 'nudge1' && !input.context.journey ? buildLayoffWeekBrief(await getPublicNotices().catch(() => [])) : null
+  const layoffs = week ? { ...week, url: `${appUrl()}/api/lead-report/${token}?r=layoffs-this-week&step=${input.step}` } : null
+  const choices = report || layoffs || input.context.journey || input.variant === 'waitlist_b2b' || jobs.length >= 3 ? [] : journeyButtons(email, input.step, input.context.detail)
+  const content = leadEmailContent(input.variant, input.step, { ...input.context, choices, jobs, report, layoffs })
   const settings = await getMailingSettings()
   const unsubscribeUrl = `${appUrl()}/updates/unsubscribe/${makeUnsubscribeToken(email, null)}`
   const directCta = profileUrl(email, input.variant, input.step, input.context.journey)
@@ -133,6 +154,6 @@ export async function sendLifecycleEmail(input: LifecycleSend): Promise<boolean>
     return false
   }
 
-  if (!input.test) captureServerEvent(email, 'lead_email_sent', { variant: input.variant, step: input.step, journey: input.context.journey ?? null, journey_choices_shown: !!content.choices?.length, similar_jobs_shown: content.jobs?.length ?? 0, report_shown: content.feature ? edition?.slug ?? null : null, jobId: input.jobId ?? null })
+  if (!input.test) captureServerEvent(email, 'lead_email_sent', { variant: input.variant, step: input.step, journey: input.context.journey ?? null, journey_choices_shown: !!content.choices?.length, similar_jobs_shown: content.jobs?.length ?? 0, report_shown: content.feature ? (edition?.slug ?? (layoffs ? 'layoffs-this-week' : null)) : null, jobId: input.jobId ?? null })
   return true
 }

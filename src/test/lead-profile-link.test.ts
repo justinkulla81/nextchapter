@@ -87,5 +87,8 @@ describe('GET /api/lead-report/<token>', () => {
     expect(to.searchParams.get('utm_content')).toBe('report')
     expect(res.cookies.get(LEAD_COOKIE)?.value).toBe(token)
     expect(new URL((await go('?r=https://evil.example')).headers.get('location')!).pathname).toBe(`/reports/${latestReport()!.slug}`)
+    const week = new URL((await go('?r=layoffs-this-week&step=nudge1')).headers.get('location')!)
+    expect(week.pathname).toBe('/layoffs/this-week')
+    expect(week.searchParams.get('utm_campaign')).toBe('newsletter_nudge1')
   })
 })

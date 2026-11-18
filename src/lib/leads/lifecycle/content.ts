@@ -33,6 +33,8 @@ export interface LeadEmailContext {
   jobs?: LeadEmailJob[]
   /** The latest jobs report, for the newsletter welcome: its month, headline, summary and (tracked) link. */
   report?: { month: string; title: string; dek: string; url: string } | null
+  /** The last seven days of layoff notices, for the newsletter reminder, with the (tracked) link to the week's page. */
+  layoffs?: { notices: number; workers: number; states: number; top: { name: string; workers: number; state: string | null }[]; url: string } | null
 }
 
 export interface LeadEmailJob {
@@ -107,6 +109,70 @@ export function leadEmailContent(variant: LeadVariant, step: LeadStep, c: LeadEm
       benefits: [],
       ctaLabel: 'Create my free profile',
       afterJobs: 'If you are job hunting yourself, a free profile tailors all of this to you: every job on the site ranked by how well you fit. No résumé needed to start.',
+    }
+  }
+
+  // The newsletter reminder (a week after the welcome, which showed the report) leads with something new: who filed layoffs in the
+  // last seven days, the "who is cutting" the welcome promised. A quiet week falls through to the reminder as it was.
+  if (variant === 'newsletter' && step === 'nudge1' && !persona && c.layoffs && c.layoffs.top.length > 0) {
+    const n = (x: number) => x.toLocaleString('en-US')
+    const l = c.layoffs
+    const top = l.top.slice(0, 3).map((t) => `${t.name} (${n(t.workers)}${t.state ? `, ${t.state}` : ''})`)
+    return {
+      ...base,
+      subject: `Layoffs this week: ${n(l.workers)} workers`,
+      headline: 'Who is cutting this week',
+      paragraphs: [hello(c), 'A week ago you subscribed to our read on the white-collar job market. Here is who filed layoff notices in the last seven days.'],
+      feature: {
+        kicker: 'Layoffs this week',
+        title: `${n(l.notices)} notices, ${n(l.workers)} workers, ${n(l.states)} ${l.states === 1 ? 'state' : 'states'}`,
+        body: `The largest: ${top.join('; ')}.`,
+        linkLabel: 'See every layoff filed this week',
+        url: l.url,
+      },
+      benefits: [],
+      ctaLabel: 'Create my free profile',
+      afterJobs: 'If you are job hunting yourself, a free profile turns this into your own plan: every job on the site ranked by how well you fit. No résumé needed to start.',
+    }
+  }
+
+  // The reminders lead with jobs too: three not sent before (send.ts leaves out the ones already in an earlier email). The
+  // application follow-up keeps its advice and swaps the benefits list for the jobs; someone who picked a situation keeps the
+  // first-week plan and the last "where you stand" note, which are already about them.
+  const fresh = (c.jobs?.length ?? 0) >= 3 ? c.jobs!.slice(0, 3) : null
+  const last = step === 'nudge2'
+  const lastNote = last ? { footerNote: 'This is the last reminder.' } : {}
+  if (fresh && followUp) {
+    return {
+      ...base,
+      paragraphs: [...base.paragraphs.slice(0, 3), 'While you wait, three more like it are open now:'],
+      jobs: fresh,
+      benefits: [],
+      afterJobs: 'Make a free profile and we send you jobs like these, ranked by how well you fit. No résumé needed to start.',
+    }
+  }
+  if (fresh && !persona && step !== 'welcome' && (variant === 'saved_job' || variant === 'job_alert')) {
+    const saved = variant === 'saved_job'
+    const what = saved
+      ? c.detail ? `You saved ${c.detail}. Three more like it are open now:` : 'Three more jobs like the one you saved are open now:'
+      : c.detail ? `New for your alert, ${c.detail}:` : 'New for your job alert:'
+    return {
+      ...base,
+      subject: saved ? (c.detail ? `Three more like ${c.detail}` : 'Three more jobs like the one you saved') : c.detail ? `Three new jobs: ${c.detail}` : 'Three new jobs for your alert',
+      headline: saved ? 'Three more like the one you saved' : 'Three new jobs for your alert',
+      paragraphs: [hello(c), what],
+      jobs: fresh,
+      benefits: [],
+      choices: undefined,
+      choicesPrompt: undefined,
+      ctaLabel: 'Create my free profile',
+      afterJobs: [
+        saved
+          ? 'A free profile shows how well you fit each of these, and what is missing. No résumé needed to start.'
+          : 'Right now your alert matches the words you searched. A free profile makes it match you, ranked by how well you fit. No résumé needed to start.',
+        last ? 'This is our last note.' : '',
+      ].filter(Boolean).join(' '),
+      ...lastNote,
     }
   }
 

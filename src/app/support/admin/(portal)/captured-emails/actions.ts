@@ -22,6 +22,7 @@ const TESTS: { variant: LeadVariant; step: LeadStep; detail: string | null }[] =
   { variant: 'applied_job', step: 'welcome', detail: 'Senior Product Manager at Example Co' },
   { variant: 'applied_job', step: 'nudge1', detail: 'Senior Product Manager at Example Co' },
   { variant: 'saved_job', step: 'nudge2', detail: 'Senior Product Manager at Example Co' },
+  { variant: 'job_alert', step: 'nudge1', detail: 'product manager in Denver' },
 ]
 
 export async function sendLifecycleTests() {
@@ -29,17 +30,17 @@ export async function sendLifecycleTests() {
   const to = getAccountActivityAdminEmail()
   let sent = 0
   if (to) {
-    // The application and saved-job welcomes show three jobs like that job, so their tests use the latest real application's job.
+    // The application and saved-job emails show three jobs like that job, so their tests use the latest real application's job.
     const latest = await prisma.homepageLead
       .findFirst({ where: { kind: 'apply_save', followup: { in: ['apply_click', 'apply_gate'] }, searchQ: { not: '' } }, orderBy: { createdAt: 'desc' }, select: { searchQ: true } })
       .catch(() => null)
     const jobId = latest?.searchQ ?? null
     const label = jobId ? (await publicJobLabels([jobId]).catch(() => new Map<string, string>())).get(jobId) ?? null : null
     for (const t of TESTS) {
-      const applied = (t.variant === 'applied_job' || t.variant === 'saved_job') && t.step === 'welcome' && jobId
+      const applied = (t.variant === 'applied_job' || t.variant === 'saved_job') && jobId
       const detail = applied && label ? label : t.detail
-      // The job-alert welcome's test runs the sample search for real, so it shows the jobs it would find today.
-      const search = t.variant === 'job_alert' && t.step === 'welcome' ? { q: 'product manager', loc: 'Denver', remote: false } : null
+      // The job-alert tests run the sample search for real, so they show the jobs it would find today.
+      const search = t.variant === 'job_alert' ? { q: 'product manager', loc: 'Denver', remote: false } : null
       if (await sendLifecycleEmail({ email: to, variant: t.variant, step: t.step, context: { firstName: 'Justin', detail }, jobId: applied ? jobId : null, search, test: true })) sent++
     }
   }
