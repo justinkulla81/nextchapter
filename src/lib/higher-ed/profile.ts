@@ -55,6 +55,8 @@ export type InstitutionProfile = {
     careerLinks?: Sourced<{ name: string; address?: string | null; phone?: string | null; website?: string | null }>[]
   }
   news?: { headline: string; outlet: string; date: string; url: string; summary: string }[]
+  // Academic Affairs › Peers: the colleges (IPEDS unit ids) its team chose to be compared with; empty = suggested peers.
+  peerUnitids?: string[]
 }
 
 export function readProfile(json: unknown): InstitutionProfile {

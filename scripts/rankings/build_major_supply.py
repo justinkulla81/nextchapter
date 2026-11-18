@@ -5,7 +5,8 @@ Completions survey, for the supply side of the degree lists and the major pages.
 Inputs (free, nces.ed.gov/ipeds/datacenter/data/<name>.zip), unzipped into one folder passed as the first argument:
   C2024_a.csv  completions, July 2023 to June 2024 (latest)
   c2021_a.csv  completions, July 2020 to June 2021 (base for the three-year change; same CIP 2020 codes)
-  HD2024.csv   institution directory (name, state)
+  HD2024.csv   institution directory (name, state, control, Carnegie classification)
+  adm2023.csv  admissions, fall 2023 (applicants and admitted), for each college's admission rate
   CIPCode2020.csv  (nces.ed.gov/ipeds/cipcode/Files/CIPCode2020.csv) program titles
 
 Counts first majors only (MAJORNUM 1), so a double major is one degree, and only degrees at bachelor's level and above
@@ -13,7 +14,8 @@ Counts first majors only (MAJORNUM 1), so a double major is one degree, and only
 Also writes src/lib/rankings/data/college-majors/<ST>.json: each college's majors (up to 40, most degrees first) as
 [cip series, bachelor's, master's, doctoral, bachelor's and above in the base year], for the college pages and the portal's
 Academic Affairs workspace; and src/lib/rankings/data/college-index.json: every college with degrees at bachelor's level and
-above as [name, state, control, degrees, base-year degrees, {degree field: degrees}, 2021 Carnegie basic classification],
+above as [name, state, control, degrees, base-year degrees, {degree field: degrees}, 2021 Carnegie basic classification,
+admission rate % (IPEDS ADM2023, adm2023.csv; null for open admission or no report)],
 for its state's supply and its peers.
 Run: python3 -I scripts/rankings/build_major_supply.py <folder>
 """
@@ -79,6 +81,10 @@ for r in rows('CIPCode2020.csv'):
 
 hd = {r['UNITID']: (r['INSTNM'].strip(), r['STABBR'].strip()) for r in rows('HD2024.csv')}
 carnegie = {r['UNITID']: int(r['C21BASIC']) if r.get('C21BASIC', '').strip().lstrip('-').isdigit() and int(r['C21BASIC']) > 0 else None for r in rows('HD2024.csv')}
+def admit_rate(r):
+    a, b = n(r.get('APPLCN')), n(r.get('ADMSSN'))
+    return round(b / a * 100, 1) if a >= 100 and b > 0 else None
+admit = {r['UNITID']: admit_rate(r) for r in rows('adm2023.csv')} if os.path.exists(os.path.join(D, 'adm2023.csv')) else {}
 control = {r['UNITID']: {'1': 'Public', '2': 'Private nonprofit', '3': 'Private for-profit'}.get(r['CONTROL'].strip()) for r in rows('HD2024.csv')}
 
 
@@ -160,7 +166,7 @@ for u, ms in per_college.items():
         f = majors.get(s_, {}).get('fld')
         if f:
             mix[f] += c['b'] + c['m'] + c['d']
-    index[u] = [hd[u][0], hd[u][1], control.get(u), tot, tot0, dict(mix), carnegie.get(u)]
+    index[u] = [hd[u][0], hd[u][1], control.get(u), tot, tot0, dict(mix), carnegie.get(u), admit.get(u)]
 with open(os.path.join(os.path.dirname(OUT), 'college-index.json'), 'w') as f:
     json.dump(index, f, separators=(',', ':'), ensure_ascii=False)
 print('college index', len(index), 'bytes', os.path.getsize(os.path.join(os.path.dirname(OUT), 'college-index.json')))
