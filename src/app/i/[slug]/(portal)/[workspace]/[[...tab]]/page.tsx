@@ -12,6 +12,8 @@ import { COMING_DESCRIPTIONS, WORKSPACE_SCREENS, type ScreenSearchParams } from 
 import { EmployerSiteFrame, ParticipantSiteFrame } from '@/components/higher-ed/SiteFrames'
 import { memberCompanyFor } from '@/lib/workforce/company-portal'
 import { prisma } from '@/lib/prisma'
+import { HubBanner } from '@/components/higher-ed/HubBanner'
+import { readProfile } from '@/lib/higher-ed/profile'
 
 // Every workspace under /i/[slug]/<workspace>/<tab> (spec §4). One route,
 // driven by the WORKSPACES config, so a new workspace is config plus a
@@ -39,7 +41,9 @@ export default async function WorkspacePage({
   // frame of the real site each person uses (src/components/higher-ed/SiteFrames.tsx).
   const framed = kind === 'workforce' && ctx.workspaces.includes('hub') && (config.key === 'candidate' || config.key === 'employer')
   // The college's own name for this office (Admin › Branding), one small read.
-  const officeNames = officeNamesOf((await prisma.institution.findUnique({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } }))?.enabledFeatures)
+  const instRow = await prisma.institution.findUnique({ where: { id: ctx.institution.id }, select: { enabledFeatures: true, profile: true } })
+  const officeNames = officeNamesOf(instRow?.enabledFeatures)
+  const hubHero = readProfile(instRow?.profile).hubHeroes?.[config.key]
   const tabs = tabsFor(ctx.tokens, config.key, await loadModules(ctx.institution.id), kind).filter(
     (t) => (!t.demoOnly || ctx.institution.isDemo) && (!t.from || ctx.workspaces.includes(t.from.workspace)) && (t.key !== 'groups' || framed) && (!t.hideWhenWorkspace || !ctx.workspaces.includes(t.hideWhenWorkspace)) && (!t.institutionOnly || !ctx.units?.length),
   )
@@ -106,6 +110,7 @@ export default async function WorkspacePage({
 
   return (
     <div className="space-y-6">
+      {kind === 'workforce' && ['wfhub', 'business', 'education', 'partnerhub'].includes(config.key) && <HubBanner hub={config.key} title={officeLabel(config, kind, officeNames)} hero={hubHero} />}
       {header}
 
       {tabs.length > 1 && (() => {

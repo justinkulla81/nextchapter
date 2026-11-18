@@ -323,6 +323,33 @@ export const WORKSPACES: WorkspaceConfig[] = [
     ],
   },
   {
+    key: 'wfhub',
+    label: 'Workforce Hub',
+    icon: 'HandCoins',
+    release: 'V1',
+    // CAREER_SERVICES, EMPLOYER_RELATIONS and VIEWER:hub opened the funding and partner pages when they were Talent Hub tabs (moved
+    // here 2026-11-18); the Workforce Hub's own pages stay with the roles they had.
+    requiredRoles: ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'CAREER_SERVICES', 'EMPLOYER_RELATIONS', 'VIEWER:wfhub', 'VIEWER:hub'],
+    homePath: 'workforce-hub',
+    orgKind: 'workforce',
+    tabs: [
+      // Home is the operator's dashboard (owner, 2026-11-18): what needs doing, layoffs, funding and trainings in progress, news.
+      { key: 'home', label: 'Home', comingIn: null, group: 'Home' },
+      // "Grants and funding" replaces the empty Funding page (owner, 2026-11-18): the page with the grants on it comes first.
+      { key: 'opportunities', label: 'Grants and funding', comingIn: null, demoOnly: true, group: 'Funding' },
+      // Moved from Talent Hub (owner, 2026-11-18): funding serves every hub, not only Talent Hub.
+      { key: 'applications', label: 'Applications', comingIn: null, group: 'Funding' },
+      { key: 'grantlist', label: 'Grants to apply for', comingIn: null, group: 'Funding' },
+      { key: 'grants', label: 'Grant reporting', comingIn: null, demoOnly: true, group: 'Funding' },
+      // Public pages (owner, 2026-11-18): the organization's public presence, its page and its branding, from Talent Hub and Admin.
+      // The Admin pages keep their roles and locks through `from` (admins only; the public page and board report are paid features).
+      { key: 'public', label: 'Public pages and previews', comingIn: null, group: 'Public pages' },
+      { key: 'publicpage', label: 'Public page', comingIn: null, group: 'Public pages', from: { workspace: 'admin', tab: 'publicpage' } },
+      { key: 'branding', label: 'Branding', comingIn: null, group: 'Public pages', from: { workspace: 'admin', tab: 'branding' } },
+      { key: 'board', label: 'Board report', comingIn: null, group: 'Board', from: { workspace: 'admin', tab: 'board' } },
+    ],
+  },
+  {
     // A workforce customer's own work: the companies it serves, the people
     // it's helping, layoffs in its region, and how many it kept local.
     key: 'hub',
@@ -379,31 +406,6 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'incentives', label: 'Incentives and costs', comingIn: null },
       { key: 'employers', label: 'Big employers', comingIn: null },
       { key: 'small', label: 'Startups and small business', comingIn: null },
-    ],
-  },
-  {
-    key: 'wfhub',
-    label: 'Workforce Hub',
-    icon: 'HandCoins',
-    release: 'V1',
-    // CAREER_SERVICES, EMPLOYER_RELATIONS and VIEWER:hub opened the funding and partner pages when they were Talent Hub tabs (moved
-    // here 2026-11-18); the Workforce Hub's own pages stay with the roles they had.
-    requiredRoles: ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'CAREER_SERVICES', 'EMPLOYER_RELATIONS', 'VIEWER:wfhub', 'VIEWER:hub'],
-    homePath: 'workforce-hub',
-    orgKind: 'workforce',
-    tabs: [
-      { key: 'funding', label: 'Funding', comingIn: null, group: 'Funding', requiredRoles: WFHUB_OWN },
-      // Moved from Talent Hub (owner, 2026-11-18): funding serves every hub, not only Talent Hub.
-      { key: 'applications', label: 'Applications', comingIn: null, group: 'Funding' },
-      { key: 'grantlist', label: 'Grants to apply for', comingIn: null, group: 'Funding' },
-      { key: 'opportunities', label: 'Grants and funding', comingIn: null, demoOnly: true, group: 'Funding' },
-      { key: 'grants', label: 'Grant reporting', comingIn: null, demoOnly: true, group: 'Funding' },
-      // Public pages (owner, 2026-11-18): the organization's public presence, its page and its branding, from Talent Hub and Admin.
-      // The Admin pages keep their roles and locks through `from` (admins only; the public page and board report are paid features).
-      { key: 'public', label: 'Public pages and previews', comingIn: null, group: 'Public pages' },
-      { key: 'publicpage', label: 'Public page', comingIn: null, group: 'Public pages', from: { workspace: 'admin', tab: 'publicpage' } },
-      { key: 'branding', label: 'Branding', comingIn: null, group: 'Public pages', from: { workspace: 'admin', tab: 'branding' } },
-      { key: 'board', label: 'Board report', comingIn: null, group: 'Board', from: { workspace: 'admin', tab: 'board' } },
     ],
   },
   {

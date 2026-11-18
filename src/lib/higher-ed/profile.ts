@@ -9,9 +9,13 @@ export type Sourced<T> = T & { source: string; sourceUrl?: string | null; asOf?:
 
 export type InstitutionPhoto = { url: string; alt: string; credit?: string | null; pageUrl?: string | null; license?: string | null }
 
+/** A hub's own splash picture (Workforce, Business, Education and Partner Hub each have one; none repeats another's). */
+export type HubHero = { url: string; credit?: string | null; sourceUrl?: string | null }
+
 export type InstitutionProfile = {
   // Set from NextChapter admin › Institutions (src/lib/institution/admin.ts).
   heroImageUrl?: string
+  hubHeroes?: Record<string, HubHero>
   tagline?: string
   college?: {
     // The federal IPEDS unit id: links the college to its CollegeProfile
