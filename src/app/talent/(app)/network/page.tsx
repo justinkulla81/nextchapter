@@ -7,14 +7,18 @@ import { Squiggle } from '@/components/ui/squiggle'
 import { NetworkPicker } from '@/components/higher-ed/HubNetworkForms'
 import { RelatedInvite } from '@/components/higher-ed/RelatedOrgForms'
 import { linkEmployerSuggested } from './actions'
+import { connectionsFor } from '@/lib/connections/connections'
+import { ConnectionsPanel } from '@/components/connections/ConnectionsPanel'
+import { decideEmployerConnection, endEmployerConnection, requestEmployerConnection, setEmployerShares } from './connection-actions'
 
 const STATE_LABEL = { invited: 'Invited', claimed: 'Claimed its page, waiting for approval', connected: 'Has its own portal' } as const
 
 // Hiring portal › Your network: who we think you know near your headquarters, tick the ones to invite, and each link is an
 // invitation to claim a free page of its own. Linked organizations show where each stands.
-export default async function TalentNetworkPage() {
+export default async function TalentNetworkPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const employer = await getTalentDashboardData()
-  const [{ place, items }, linked] = await Promise.all([suggestForEmployer(employer.id).catch(() => ({ place: null, items: [] })), employerRelated(employer.id)])
+  const q = (await searchParams).q?.trim() ?? ''
+  const [{ place, items }, linked, connections] = await Promise.all([suggestForEmployer(employer.id).catch(() => ({ place: null, items: [] })), employerRelated(employer.id), connectionsFor({ kind: 'EMPLOYER', id: employer.id }, q).catch(() => null)])
   const groups = byGroup(items, 'employer')
   const connected = linked.filter((l) => l.state === 'connected').length
   return (
@@ -66,6 +70,18 @@ export default async function TalentNetworkPage() {
               </li>
             ))}
           </ul>
+        </section>
+      )}
+
+      {connections && (
+        <section className="space-y-3 border-t border-border pt-8" aria-labelledby="net-conn">
+          <h2 id="net-conn" className="text-lg font-semibold">Connected portals</h2>
+          <ConnectionsPanel
+            data={connections}
+            q={q}
+            canEdit
+            actions={{ request: requestEmployerConnection, decide: decideEmployerConnection, shares: setEmployerShares, end: endEmployerConnection }}
+          />
         </section>
       )}
     </div>

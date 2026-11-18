@@ -18857,6 +18857,51 @@ model TrainingOffering {
   @@index([institutionId, status])
 }
 
+/// Connected portals (owner decisions 2026-11-17, 2026-11-18): two organizations' portals agree to share chosen things. A party is an
+/// Institution (any orgType) or an employer (EmployerProfile). One row per pair: the side that asked is the requester. Each side's shares
+/// are what it shows the other (JOBS, EVENTS, LAYOFFS); changes are logged in PortalConnectionEvent. People are never moved by a connection.
+model PortalConnection {
+  id              String                  @id @default(cuid())
+  /// INSTITUTION | EMPLOYER
+  requesterKind   String
+  requesterId     String
+  targetKind      String
+  targetId        String
+  /// REQUESTED | ACTIVE | DECLINED | ENDED
+  status          String                  @default("REQUESTED")
+  requesterShares String[]                @default([])
+  targetShares    String[]                @default([])
+  requestedBy     String
+  requestedAt     DateTime                @default(now())
+  respondedBy     String?
+  respondedAt     DateTime?
+  endedBy         String?
+  endedAt         DateTime?
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  events          PortalConnectionEvent[]
+
+  @@unique([requesterKind, requesterId, targetKind, targetId])
+  @@index([targetKind, targetId, status])
+  @@index([requesterKind, requesterId, status])
+}
+
+/// Every change to a connection: requested, accepted, declined, shares changed, ended. side is the party that acted.
+model PortalConnectionEvent {
+  id           String           @id @default(cuid())
+  connectionId String
+  connection   PortalConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  /// requester | target
+  side         String
+  actor        String
+  /// REQUESTED | ACCEPTED | DECLINED | SHARES_CHANGED | ENDED
+  action       String
+  shares       String[]         @default([])
+  createdAt    DateTime         @default(now())
+
+  @@index([connectionId, createdAt])
+}
+
 // Workforce Hub: a partner's part in one funding application. role: LEAD | PARTNER | MATCH | EVIDENCE; status: ASKED | COMMITTED | DECLINED;
 // amount is the match in dollars (MATCH role). partnerId is the EcosystemPartner when it is one of the organization's partners.
 model FundingPartnerCommitment {
