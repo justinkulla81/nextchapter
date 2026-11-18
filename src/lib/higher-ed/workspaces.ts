@@ -71,6 +71,8 @@ export type WorkspaceTab = {
   // Hidden when the person can open this workspace, which already holds the same screen (a free college's Admin ›
   // Grants, which Development holds on the paid tiers).
   hideWhenWorkspace?: WorkspaceKey
+  // A setting of the whole institution: hidden from staff of one school or department (InstitutionUnit).
+  institutionOnly?: boolean
   // The section of a long tab list it sits under (a second row of navigation).
   group?: string
   // The screen belongs to another workspace and is shown here too (a workforce customer's Program holds what Exec Ed and the
@@ -470,17 +472,18 @@ export const WORKSPACES: WorkspaceConfig[] = [
     homePath: 'admin',
     tabs: [
       { key: 'home', label: 'Overview', comingIn: null },
-      { key: 'services', label: 'Services', comingIn: null },
+      { key: 'services', label: 'Services', comingIn: null, institutionOnly: true },
       { key: 'users', label: 'Staff', comingIn: null },
-      { key: 'activity', label: 'Activity', comingIn: null },
-      { key: 'branding', label: 'Branding', comingIn: null, orgKind: 'college' },
+      { key: 'activity', label: 'Activity', comingIn: null, institutionOnly: true },
+      { key: 'branding', label: 'Branding', comingIn: null, orgKind: 'college', institutionOnly: true },
       { key: 'grants', label: 'Grants', comingIn: null, orgKind: 'college', hideWhenWorkspace: 'development' },
-      { key: 'related', label: 'Related organizations', comingIn: null, orgKind: 'college' },
-      { key: 'connections', label: 'Connected organizations', comingIn: null },
-      { key: 'publicpage', label: 'Public page', comingIn: null, orgKind: 'college' },
+      { key: 'related', label: 'Related organizations', comingIn: null, orgKind: 'college', institutionOnly: true },
+      { key: 'connections', label: 'Connected organizations', comingIn: null, institutionOnly: true },
+      { key: 'publicpage', label: 'Public page', comingIn: null, orgKind: 'college', institutionOnly: true },
+      { key: 'units', label: 'Schools and departments', comingIn: null, orgKind: 'college', institutionOnly: true },
       { key: 'roster', label: 'Roster', comingIn: null },
-      { key: 'board', label: 'Board report', comingIn: null, orgKind: 'college' },
-      { key: 'privacy', label: 'Privacy requests', comingIn: null },
+      { key: 'board', label: 'Board report', comingIn: null, orgKind: 'college', institutionOnly: true },
+      { key: 'privacy', label: 'Privacy requests', comingIn: null, institutionOnly: true },
     ],
   },
   {

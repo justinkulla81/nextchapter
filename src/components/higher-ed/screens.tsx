@@ -41,6 +41,7 @@ import { OFFICE_NAME_MAX, RENAMABLE_OFFICES, STAFF_ROLE_LABELS, labelFor, office
 import { OrgHomeHero } from '@/components/partners/OrgHomeHero'
 import { HiddenMembersNote } from '@/components/plans/HiddenMembersNote'
 import { AdminRelatedOrgs } from './screens-related'
+import { AdminUnits } from './screens-units'
 import { AdminConnections } from './screens-connections'
 import { AdminPublicPage } from '@/components/public-page/screens-public-page'
 import { listPartnerAudit } from '@/lib/partners/audit'
@@ -1560,15 +1561,21 @@ async function AdminActivity({ ctx }: ScreenProps) {
 }
 
 async function SettingsStaff({ ctx }: ScreenProps) {
-  const staff = await prisma.institutionUser.findMany({
-    where: { institutionId: ctx.institution.id },
-    orderBy: [{ revokedAt: { sort: 'asc', nulls: 'first' } }, { fullName: 'asc' }],
-    select: { id: true, fullName: true, invitedEmail: true, role: true, workspace: true, acceptedAt: true, revokedAt: true },
-  })
+  // Staff of a school or department see and manage only their unit's team (owner decision 2026-11-18).
+  const unitIds = ctx.units?.map((u) => u.id) ?? null
+  const [staff, units] = await Promise.all([
+    prisma.institutionUser.findMany({
+      where: { institutionId: ctx.institution.id, ...(unitIds ? { unitId: { in: unitIds } } : {}) },
+      orderBy: [{ revokedAt: { sort: 'asc', nulls: 'first' } }, { fullName: 'asc' }],
+      select: { id: true, fullName: true, invitedEmail: true, role: true, workspace: true, acceptedAt: true, revokedAt: true, unitId: true, unit: { select: { name: true } } },
+    }),
+    unitIds ? Promise.resolve([]) : prisma.institutionUnit.findMany({ where: { institutionId: ctx.institution.id }, orderBy: { name: 'asc' }, select: { id: true, name: true } }),
+  ])
   const canManage = ctx.tokens.has('INSTITUTION_ADMIN') && !ctx.readOnly && !ctx.institution.isDemo
-  // The free plan has one administrator (owner decision 2026-11-17), so the invite form goes once that place is taken.
+  // The free plan has one administrator (owner decision 2026-11-17), so the invite form goes once that place is taken: the
+  // institution's own administrator, or a unit's for a unit's staff.
   const adminLimit = institutionEntitlements({ plan: ctx.institution.plan }).adminLimit
-  const adminSeatTaken = adminLimit !== null && staff.filter((s) => s.role === 'INSTITUTION_ADMIN' && !s.revokedAt).length >= adminLimit
+  const adminSeatTaken = adminLimit !== null && staff.filter((s) => s.role === 'INSTITUTION_ADMIN' && !s.revokedAt && (unitIds ? true : !s.unitId)).length >= adminLimit
   // A role is "locked" when every workspace it would open needs a higher tier.
   const tier = (await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { tier: true } })).tier
   const lockedRoles: Record<string, string> = {}
@@ -1587,6 +1594,7 @@ async function SettingsStaff({ ctx }: ScreenProps) {
             <td className="px-4 py-2">
               {staffRoleLabel(s.role, orgKindOf(ctx.institution.orgType))}
               {s.workspace ? ` (${getWorkspace(s.workspace)?.label ?? s.workspace}, read-only)` : ''}
+              {s.unit && <span className="block text-xs text-muted-foreground">{s.unit.name}</span>}
             </td>
             <td className="px-4 py-2">{s.revokedAt ? 'Removed' : s.acceptedAt ? 'Active' : 'Invited'}</td>
             <td className="px-4 py-2">
@@ -1610,7 +1618,7 @@ async function SettingsStaff({ ctx }: ScreenProps) {
       ) : adminSeatTaken ? (
         <p className="text-sm text-muted-foreground">The free plan has one administrator, and that place is taken.</p>
       ) : (
-        <StaffInviteForm inviteAction={inviteStaff.bind(null, ctx.institution.slug)} lockedRoles={lockedRoles} adminOnly={!institutionEntitlements({ plan: ctx.institution.plan }).staffRoles} kind={orgKindOf(ctx.institution.orgType)} />
+        <StaffInviteForm inviteAction={inviteStaff.bind(null, ctx.institution.slug)} lockedRoles={lockedRoles} adminOnly={!institutionEntitlements({ plan: ctx.institution.plan }).staffRoles} kind={orgKindOf(ctx.institution.orgType)} units={ctx.units?.length ? ctx.units.map((u) => ({ id: u.id, name: u.name })) : units} unitRequired={!!ctx.units?.length} />
       )}
       {!institutionEntitlements({ plan: ctx.institution.plan }).staffRoles && <LockedFeature feature="staffRoles" slug={ctx.institution.slug} plan={ctx.institution.plan} trial={trialForLock(ctx.institution)} compact />}
     </div>
@@ -1794,6 +1802,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'development:grants': DevelopmentGrants,
   'admin:grants': DevelopmentGrants,
   'admin:related': AdminRelatedOrgs,
+  'admin:units': AdminUnits,
   'admin:connections': AdminConnections,
   'admin:publicpage': AdminPublicPage,
   // A workforce organization's Admin pages that moved (owner, 2026-11-18); a college keeps them in Admin.

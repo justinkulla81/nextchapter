@@ -4,6 +4,8 @@ import { accountsOverview, type AccountKind } from '@/lib/admin/accounts-overvie
 import { SITE_URL } from '@/lib/org-claims/urls'
 import { orgBasePath } from '@/lib/higher-ed/workspaces'
 import type { InstitutionOrgType } from '@prisma/client'
+import { ConfirmForm } from '@/components/admin/ConfirmForm'
+import { setUnitPlanAction } from './actions'
 
 export const metadata = { title: 'Accounts' }
 export const dynamic = 'force-dynamic'
@@ -105,6 +107,25 @@ export default async function AccountsPage({ searchParams }: { searchParams: Pro
                         {i.name}
                       </a>
                       <span className="block text-xs text-muted-foreground">{TYPE[i.type] ?? i.type}</span>
+                      {i.units.length > 0 && (
+                        <ul className="mt-2 space-y-1">
+                          {i.units.map((u) => (
+                            <li key={u.id} className="flex flex-wrap items-center gap-2 text-xs">
+                              <span>{u.name}</span>
+                              <Badge kind={u.plan === 'PAID' ? 'paid' : 'free'} />
+                              <span className="text-muted-foreground">{u.staff} staff</span>
+                              <ConfirmForm
+                                action={setUnitPlanAction.bind(null, u.id, u.plan === 'PAID' ? 'FREE' : 'PAID')}
+                                confirmMessage={u.plan === 'PAID' ? `Switch ${u.name} back to the free plan? Its staff will see only 5 of its alumni.` : `Switch ${u.name} to the paid plan?`}
+                              >
+                                <button type="submit" className="rounded-full border border-border px-2 py-0.5 hover:bg-muted">
+                                  {u.plan === 'PAID' ? 'Switch to free' : 'Switch to paid'}
+                                </button>
+                              </ConfirmForm>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </td>
                     <td className={TD}>
                       <Badge kind={i.account} extra={i.account === 'free' ? undefined : TIER[i.tier]} />

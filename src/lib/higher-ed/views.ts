@@ -13,10 +13,10 @@ import { effectiveJourney, JOURNEYS, type JourneyStage, type JourneyType } from 
 import { holds, WorkspaceAccessError, type InstitutionAccess } from './resolve'
 import type { AccessToken } from './workspaces'
 import { logMemberView } from './audit'
-import { visibleMemberSql } from '@/lib/plans/visible-members'
+import { unitMemberWhere, visibleMemberSql } from '@/lib/plans/visible-members'
 
 type Db = PrismaClient | Prisma.TransactionClient
-type Ctx = Pick<InstitutionAccess, 'tokens' | 'institution' | 'staffUsers' | 'mode' | 'email' | 'userId'> & { workspace?: string }
+type Ctx = Pick<InstitutionAccess, 'tokens' | 'institution' | 'staffUsers' | 'mode' | 'email' | 'userId' | 'units'> & { workspace?: string }
 
 const ANY_STAFF: AccessToken[] = [
   'INSTITUTION_ADMIN',
@@ -328,10 +328,12 @@ export type AlumniHomeCounts = { members: number; claimed: number; activeSeats: 
 export async function getAlumniHomeCounts(ctx: Ctx, db: Db = prisma): Promise<AlumniHomeCounts> {
   assertHolds(ctx, TRANSITION_ROLES, 'Alumni Relations counts')
   const institutionId = ctx.institution.id
+  // Staff of a school or department count only their unit's alumni (InstitutionUnit).
+  const unit = unitMemberWhere(ctx.units)
   const [members, claimed, activeSeats, inTransition] = await Promise.all([
-    db.institutionMember.count({ where: { institutionId } }),
-    db.institutionMember.count({ where: { institutionId, status: { in: ['CLAIMED', 'ACTIVE'] } } }),
-    db.institutionMember.count({ where: { institutionId, isActiveSeat: true } }),
+    db.institutionMember.count({ where: { institutionId, ...unit } }),
+    db.institutionMember.count({ where: { institutionId, status: { in: ['CLAIMED', 'ACTIVE'] }, ...unit } }),
+    db.institutionMember.count({ where: { institutionId, isActiveSeat: true, ...unit } }),
     db.$queryRaw<{ n: number }[]>`select count(*)::int as n from private.v_member_transition where "institutionId" = ${institutionId}`,
   ])
   return { members, claimed, activeSeats, inTransition: inTransition[0]?.n ?? 0 }

@@ -5,6 +5,7 @@
 // (nc_admin only, logged with a reason). Each re-resolves access on the
 // server; the buttons being hidden is not the protection.
 
+import { WorkspaceAccessError } from '@/lib/higher-ed/resolve'
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
@@ -92,6 +93,8 @@ export async function startViewAs(slug: string, _prev: { error?: string } | null
 
 async function updateEnabledFeatures(slug: string, patch: (current: Record<string, unknown>) => Record<string, unknown>) {
   const ctx = await requireWorkspace(slug, 'admin', { write: true })
+  // Services and settings belong to the whole institution, not one school or department.
+  if (ctx.units?.length) throw new WorkspaceAccessError(`Whole-institution setting at ${slug}`)
   const row = await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } })
   const current = (row.enabledFeatures ?? {}) as Record<string, unknown>
   await prisma.institution.update({

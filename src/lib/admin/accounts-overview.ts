@@ -12,6 +12,8 @@ export type InstitutionAccount = {
   id: string; name: string; slug: string; type: string; account: AccountKind; tier: string; createdAt: Date
   demoRequestedBy: string | null; demoExpiresAt: string | null
   staffActive: number; staffInvited: number; members: number; joined: number; joined30: number; actions30: number; lastActivity: Date | null
+  // Schools and departments with their own account (InstitutionUnit).
+  units: { id: string; name: string; plan: string; staff: number }[]
 }
 export type HiringAccount = { id: string; company: string; account: AccountKind; createdAt: Date; activeRoles: number; views30: number; lastView: Date | null }
 export type OutplacementAccount = { id: string; name: string; account: AccountKind; createdAt: Date; contracts: number; seats: number; activated: number; views30: number; lastView: Date | null }
@@ -28,6 +30,9 @@ export async function accountsOverview(now = new Date()) {
     select: { id: true, name: true, slug: true, orgType: true, plan: true, tier: true, isDemo: true, createdAt: true, enabledFeatures: true },
   })
   const ids = insts.map((i) => i.id)
+  const unitRows = ids.length
+    ? await prisma.institutionUnit.findMany({ where: { institutionId: { in: ids } }, orderBy: { name: 'asc' }, select: { id: true, institutionId: true, name: true, plan: true, _count: { select: { staff: { where: { revokedAt: null } } } } } })
+    : []
   const [staff, members, joined, joined30, lastJoin, actions, lastAction] = ids.length
     ? await Promise.all([
         prisma.institutionUser.groupBy({ by: ['institutionId', 'acceptedAt'], where: { institutionId: { in: ids }, revokedAt: null }, _count: { _all: true } }),
@@ -57,6 +62,7 @@ export async function accountsOverview(now = new Date()) {
       staffInvited: s.filter((r) => !r.acceptedAt).reduce((n, r) => n + r._count._all, 0),
       members: memberN.get(i.id) ?? 0, joined: joinedN.get(i.id) ?? 0, joined30: joined30N.get(i.id) ?? 0, actions30: actionsN.get(i.id) ?? 0,
       lastActivity: latest(lastJoinAt.get(i.id), lastActionAt.get(i.id)),
+      units: unitRows.filter((u) => u.institutionId === i.id).map((u) => ({ id: u.id, name: u.name, plan: u.plan, staff: u._count.staff })),
     }
   })
 

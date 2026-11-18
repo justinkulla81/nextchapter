@@ -28,6 +28,9 @@ export interface RequestClaimInput {
   section?: string | null
   /** The related-organization invite token the claimant arrived with (/prepared/<slug>?via=...). */
   via?: string | null
+  /** A university claim for one school or department rather than the whole institution. */
+  unitSchool?: string | null
+  unitDepartment?: string | null
 }
 export type RequestClaimResult = { ok: true; email: string; needsReview: boolean } | { ok: false; error: string }
 
@@ -68,9 +71,12 @@ export async function requestOrgClaim(input: RequestClaimInput): Promise<Request
   const { token, tokenHash, expiresAt } = newClaimToken()
   // An older unconfirmed link for the same person and organization stops working; the newest one is the only live link.
   await prisma.orgClaim.updateMany({ where: { crmOrganizationId: org.id, email: check.email, verifiedAt: null, expiresAt: { gt: new Date() } }, data: { expiresAt: new Date() } })
+  // One school or department of a university (owner decision 2026-11-18): approval opens that unit's account.
+  const unitSchool = org.orgTypes.includes('UNIVERSITY') ? (input.unitSchool ?? '').replace(/\s+/g, ' ').trim().slice(0, 120) : ''
+  const unitFields = unitSchool ? { unitSchool, unitDepartment: (input.unitDepartment ?? '').replace(/\s+/g, ' ').trim().slice(0, 120) || null } : {}
   // Invited by a related organization: kept on the claim so approval connects the two (related-orgs.ts).
   const referral = await referralFor(input.via, org.id).catch(() => null)
-  const base = { crmOrganizationId: org.id, name, title, email: check.email, emailDomain: check.domain, tokenHash, expiresAt, needsReview: check.needsReview, ipHash, ...(referral ? { referredByPartnerId: referral.partnerId } : {}) }
+  const base = { crmOrganizationId: org.id, name, title, email: check.email, emailDomain: check.domain, tokenHash, expiresAt, needsReview: check.needsReview, ipHash, ...(referral ? { referredByPartnerId: referral.partnerId } : {}), ...unitFields }
   let claim: { id: string }
   let sectionSaved = !!section
   try {

@@ -3,7 +3,7 @@
 import { getClientIp } from '@/lib/http/client-ip'
 import { confirmOrgClaim, requestOrgClaim, type ConfirmResult } from '@/lib/org-claims/claim'
 
-export type OrgClaimState = { sent?: { email: string; needsReview: boolean }; error?: string; values?: { name: string; title: string; email: string; section?: string } } | undefined
+export type OrgClaimState = { sent?: { email: string; needsReview: boolean }; error?: string; values?: { name: string; title: string; email: string; section?: string; unitSchool?: string; unitDepartment?: string } } | undefined
 
 const text = (f: FormData, k: string) => ((f.get(k) as string | null) ?? '').trim()
 
@@ -12,8 +12,12 @@ export async function requestClaimAction(slug: string, _prev: OrgClaimState, for
   if (text(formData, 'website')) return { sent: { email: text(formData, 'email'), needsReview: false } } // bots fill the hidden field
   const section = text(formData, 'section')
   const via = text(formData, 'via') || null
-  const values = { name: text(formData, 'name'), title: text(formData, 'title'), email: text(formData, 'email'), ...(section ? { section } : {}) }
+  // A university claim for one school or department (owner decision 2026-11-18).
+  const unit = text(formData, 'scope') === 'unit'
+  const unitValues = unit ? { unitSchool: text(formData, 'unitSchool'), unitDepartment: text(formData, 'unitDepartment') } : {}
+  const values = { name: text(formData, 'name'), title: text(formData, 'title'), email: text(formData, 'email'), ...(section ? { section } : {}), ...unitValues }
   try {
+    if (unit && (values.unitSchool ?? '').length < 2) return { error: 'Enter the school’s name.', values }
     const r = await requestOrgClaim({ slug, ...values, via, ip: await getClientIp() })
     return r.ok ? { sent: { email: r.email, needsReview: r.needsReview } } : { error: r.error, values }
   } catch (e) {
