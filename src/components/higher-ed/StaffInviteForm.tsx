@@ -9,7 +9,7 @@ import { staffRoleLabel, WORKFORCE_STAFF_ROLES, type OrgKind } from '@/lib/highe
 
 type State = { error?: string; ok?: boolean; message?: string } | undefined
 
-const ROLES = ['CAREER_SERVICES', 'ALUMNI_RELATIONS', 'DEVELOPMENT', 'EMPLOYER_RELATIONS', 'COACH', 'FACULTY', 'EXEC_ED', 'ACADEMIC_AFFAIRS', 'WORKFORCE_PARTNER', 'VIEWER', 'INSTITUTION_ADMIN'] as const
+const ROLES = ['CAREER_SERVICES', 'ALUMNI_RELATIONS', 'DEVELOPMENT', 'EMPLOYER_RELATIONS', 'COACH', 'FACULTY', 'EXEC_ED', 'ACADEMIC_AFFAIRS', 'ENTREPRENEURSHIP', 'WORKFORCE_PARTNER', 'VIEWER', 'INSTITUTION_ADMIN'] as const
 
 const VIEWER_WORKSPACES = [
   { key: 'alumni', label: 'Alumni Relations' },
@@ -18,6 +18,7 @@ const VIEWER_WORKSPACES = [
   { key: 'teaching', label: 'Teaching' },
   { key: 'execed', label: 'Exec Ed' },
   { key: 'academic', label: 'Academic Affairs' },
+  { key: 'ventures', label: 'Entrepreneurship' },
   { key: 'workforce', label: 'Workforce board' },
 ] as const
 

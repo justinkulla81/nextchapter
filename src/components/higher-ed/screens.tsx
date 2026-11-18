@@ -77,6 +77,7 @@ import { AlumniData } from './screens-alumni-data'
 import { DevelopmentGrants } from './screens-grants'
 import { SkillsBridgeSection, StaffSkillsBridge } from './screens-bridge'
 import { AlumniInNews, ResearchAndPatents, TeachingGroups } from './screens-campus'
+import { VentureShareCard, VenturesFounders } from './screens-ventures'
 import { InternshipsScreen } from './screens-internships'
 import { AlumniMentors, CandidateJobs, CareerEmployers, CareerStudents, EmployerDossiersWithIntros, EmployerPage, IntroRequestsCard } from './screens-network'
 import { counselors, searchRoster } from '@/lib/higher-ed/caseload'
@@ -305,6 +306,7 @@ async function CandidateHome({ ctx, base }: ScreenProps) {
       </div>
       <CareerStatusCard slug={ctx.institution.slug} collegeName={ctx.institution.name} flag={openFlag?.state === 'CLEARED' ? null : (openFlag?.state ?? null)} />
       <IntroRequestsCard ctx={ctx} />
+      {kind === 'college' && <VentureShareCard ctx={ctx} base={base} />}
       <MyProgramCard ctx={ctx} />
       <NewsCard ctx={ctx} />
       <StagePanel ctx={ctx} />
@@ -1057,6 +1059,8 @@ const CONSENT_COPY: Record<string, { label: (c: string) => string; help: string 
   SHARE_ENGAGEMENT: { label: (c) => `Count my activity toward ${c}'s alumni engagement`, help: 'That you used the tools and took calls, as totals. Never what you did in them.' },
   SHARE_DOSSIER_WITH_EMPLOYERS: { label: (c) => `Show my Dossier to employers ${c} approves`, help: 'Employers that hire through your college can see your Dossier and ask for an introduction. You say yes or no each time.' },
   // Workforce programs only: they match people to benefits (Program › People, src/lib/workforce/people-crm.ts).
+  // Colleges only: the entrepreneurship center (src/lib/higher-ed/ventures.ts). Off by default; a launched venture is shared as an outcome.
+  SHARE_VENTURE: { label: (c) => `Tell ${c}'s entrepreneurship center I'm building or buying a business`, help: 'Its name, stage, kind, customers, team and funding, so the center can offer office hours, programs, investors and alumni customers. Never runway, hours or money. Once it launches, its name is shared with your outcome.' },
   SHARE_NEEDS: { label: (c) => `Let ${c} see why I joined and the help I need`, help: 'Whether you are moving here, changing fields or starting out, and the money pressures and barriers you told NextChapter about, like childcare, rent or health coverage, so they can match you to local programs. Never amounts or messages.' },
 }
 
@@ -1083,10 +1087,13 @@ async function CandidatePrivacy({ ctx }: ScreenProps) {
   if (workforce) {
     const needs = await prisma.institutionConsent.findFirst({ where: { memberId: ctx.memberId, scope: 'SHARE_NEEDS' }, orderBy: { changedAt: 'desc' }, select: { granted: true } })
     granted.SHARE_NEEDS = needs?.granted ?? false
+  } else {
+    const venture = await prisma.institutionConsent.findFirst({ where: { memberId: ctx.memberId, scope: 'SHARE_VENTURE' }, orderBy: { changedAt: 'desc' }, select: { granted: true } })
+    granted.SHARE_VENTURE = venture?.granted ?? false
   }
   const views = await listProfileViews(ctx.memberId)
   const rows = Object.entries(CONSENT_COPY)
-    .filter(([scope]) => workforce || scope !== 'SHARE_NEEDS')
+    .filter(([scope]) => (workforce ? scope !== 'SHARE_VENTURE' : scope !== 'SHARE_NEEDS'))
     .map(([scope, c]) => (workforce && WORKFORCE_CONSENT_COPY[scope] ? [scope, WORKFORCE_CONSENT_COPY[scope]] as const : [scope, c] as const))
     .map(([scope, c]) => ({ scope, label: c.label(ctx.institution.name), help: c.help, granted: granted[scope] }))
   return (
@@ -1746,6 +1753,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'career:recruiting': RecruitingScreen,
   'candidate:coaching': CandidateCoaching,
   'career:coaching': CareerCoaching,
+  'ventures:home': VenturesFounders,
   'teaching:home': TeachingCourses,
   'teaching:faculty': TeachingFaculty,
   'execed:home': ExecEdPrograms,

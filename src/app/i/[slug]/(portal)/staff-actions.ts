@@ -196,6 +196,7 @@ const INVITABLE: InstitutionUserRole[] = [
   'FACULTY',
   'EXEC_ED',
   'ACADEMIC_AFFAIRS',
+  'ENTREPRENEURSHIP',
   'WORKFORCE_PARTNER',
   'VIEWER',
 ]

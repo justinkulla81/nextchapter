@@ -9,6 +9,7 @@
 // "Has anything changed?" with four one-click answers; the answer page
 // confirms before recording, so link scanners can't answer for anyone.
 
+import { flagFromCheckIn } from './ventures'
 import 'server-only'
 import { visibleIdsForInstitution, visibleMemberSqlFor } from '@/lib/plans/visible-members'
 import { Prisma, type CheckInKind } from '@prisma/client'
@@ -233,6 +234,8 @@ export async function answerCheckIn(args: { checkInId: string; memberId: string;
   if (args.answer === 'laid_off' || (args.answer === 'looking' && earlyCareer)) await openTransitionFlag(c.member.id, 'CHECK_IN')
   // Anyone asking for help lands on a counselor's caseload.
   const counselorId = args.answer === 'laid_off' || args.answer === 'looking' ? await autoAssign(c.member.institutionId, c.member.id) : null
+  // "I'm starting a company" goes to the entrepreneurship center: the alum told the college (src/lib/higher-ed/ventures.ts).
+  if (args.answer === 'starting_company') await flagFromCheckIn(c.member.id, c.member.institutionId, now)
   if (args.answer === 'new_job') await placeOpenFlag(c.member.id, graceDaysFrom(c.member.institution.enabledFeatures), now)
   if (joined) {
     const change =

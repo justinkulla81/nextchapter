@@ -391,6 +391,23 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
       .map((m) => ({ memberId: m.id!, kind: 'CUSTOM' as const, dueAt: annualDue, isSampleData: true })),
   })
 
+  // ── Founders for the entrepreneurship center (src/lib/higher-ed/ventures.ts): fictional ventures, each from one of the three ways
+  // an alum reaches the list. The nightly sync leaves sample rows alone because demo colleges are skipped.
+  const founders = memberRows.filter((m, i) => m.affiliation === 'ALUM' && !dnc(i) && (m.classYear ?? 0) < now.getUTCFullYear() - 6 && i % 7 === 3).slice(0, 4)
+  const VENTURES = [
+    { status: 'STARTED', source: 'SHARED', ventureName: 'Allegheny Grid Analytics', ventureStage: 'grow', days: 40 },
+    { status: 'STARTED', source: 'OUTCOME', ventureName: 'Northside Learning Co.', ventureStage: null, days: 12 },
+    { status: 'CONSIDERING', source: 'SHARED', ventureName: 'Riverfront Robotics Supply', ventureStage: 'validate', days: 20 },
+    { status: 'CONSIDERING', source: 'CHECK_IN', ventureName: null, ventureStage: null, days: 5 },
+  ] as const
+  await db.ventureFlag.createMany({
+    data: founders.map((m, k) => {
+      const v = VENTURES[k]
+      const at = new Date(now.getTime() - v.days * DAY)
+      return { institutionId, memberId: m.id!, status: v.status, source: v.source, ventureName: v.ventureName, ventureStage: v.ventureStage, firstFlaggedAt: at, startedAt: v.status === 'STARTED' ? at : null, isSampleData: true }
+    }),
+  })
+
   // ── Layoff matches (the hero and two classmates) ─────────────────────────
   if (notice) {
     await db.layoffMatch.createMany({
