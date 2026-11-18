@@ -521,6 +521,12 @@ export function getWorkspace(key: string): WorkspaceConfig | undefined {
   return WORKSPACES.find((w) => w.key === key)
 }
 
+// The workspace a web address names. The address is the workspace's homePath, which is not always its key (the Workforce Hub is
+// key 'wfhub', address 'workforce-hub'; the Partner Hub is 'partnerhub', 'partner-hub'): both open it, so a link from the rail never 404s.
+export function getWorkspaceByPath(segment: string): WorkspaceConfig | undefined {
+  return WORKSPACES.find((w) => w.homePath === segment) ?? getWorkspace(segment)
+}
+
 function holdsAny(tokens: ReadonlySet<AccessToken>, required: AccessToken[]): boolean {
   return required.some((r) => tokens.has(r))
 }
