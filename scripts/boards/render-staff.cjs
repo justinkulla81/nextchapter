@@ -5,7 +5,7 @@
  * (text via pdftotext), and writes {host, orgs, pages:[{url, html}]} for scripts/boards/read-rendered.py to read people off.
  * Polite: robots.txt honoured, one page at a time per host, 1 second apart, at most 6 pages per host.
  *
- *   node scripts/boards/render-staff.js sites.tsv out.json
+ *   node scripts/boards/render-staff.cjs sites.tsv out.json
  */
 const { chromium } = require('playwright')
 const fs = require('fs'), cp = require('child_process')
