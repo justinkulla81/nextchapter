@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { sweepGmail, sweepCalendar, calendarLookbackDays } from '@/lib/crm/sync'
 import { isSweepHours } from '@/lib/crm/business-hours'
 import { withCronRun } from '@/lib/cron/run'
+import { scheduledGmailWindowDays } from '@/lib/crm/sync-window'
 
 export const maxDuration = 300
 
@@ -65,8 +66,9 @@ export const GET = withCronRun('crm-sync', async (request: NextRequest) => {
     orderBy: { startedAt: 'desc' },
     select: { startedAt: true },
   })
-  const sinceOkDays = lastOk ? Math.ceil((Date.now() - lastOk.startedAt.getTime()) / 86_400_000) + 1 : 14
-  const days = Number(request.nextUrl.searchParams.get('days') ?? String(Math.min(14, Math.max(2, Math.ceil(intervalHours / 24) + 1, sinceOkDays))))
+  // From the last clean sweep plus a margin (sync-window.ts), not a fixed two days: hourly sweeps of two days re-read every message
+  // ~48 times and ran past the time limit once the mailbox got busy.
+  const days = Number(request.nextUrl.searchParams.get('days') ?? String(scheduledGmailWindowDays(intervalHours, lastOk?.startedAt ?? null)))
   // Calendar's forward window is deliberately much wider than the backward
   // one: a meeting invite sent today for a date a month out should propose
   // its attendee well before the meeting, not the day before it — sweeping

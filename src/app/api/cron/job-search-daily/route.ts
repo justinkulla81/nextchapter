@@ -11,7 +11,8 @@ import { sendsToday } from '@/lib/email/send-days'
 import { warmSharedBoard } from '@/lib/jobs/board-shortlist'
 import { finishesWithin, runStatus } from '@/lib/job-search-daily/run-outcome'
 
-export const maxDuration = 300
+// 360 s when run on its own (Run now); in the 12:00 bundle the bundle's 800 s applies.
+export const maxDuration = 360
 
 const BREAK_ANSWER_WINDOW_DAYS = 30
 // Building one candidate's email is several queries plus a send, so a serial
@@ -24,13 +25,15 @@ const CONCURRENCY = 2
 // DEADLINE_MS after the ~50 s board load.
 // Stop starting new candidates here so the run finishes cleanly (and records
 // its result) instead of being killed at the limit.
-const DEADLINE_MS = 240_000
+// 300 s, not 240: on 2026-11-18 31 members left one not started at 240 s. The 12:00 bundle's other jobs took at most ~420 s that week
+// (board-warm 200, employer-brand-scan 182, the rest under 40), so 330 s here still ends the bundle inside its 800 s.
+const DEADLINE_MS = 300_000
 // One candidate that hangs (an outside call that never answers) must not hold a worker until the function is killed
 // (it did on 2026-11-04). Past this the candidate counts as failed and the worker moves on; the send claim makes a
 // re-run safe.
 const PER_CANDIDATE_MS = 45_000
 // The run answers by here even if something is still in flight (see the hard stop below).
-const HARD_STOP_MS = 270_000
+const HARD_STOP_MS = 330_000
 // Every member's email ranks jobs against the shared board, which a cold instance reads from the database before the first member
 // can be built. On 2026-11-09 that load outlasted the per-member cap, so every member timed out behind it (one email went out eight
 // minutes later, from the background). The board is loaded once here, outside the cap; if it is not there in this time the run

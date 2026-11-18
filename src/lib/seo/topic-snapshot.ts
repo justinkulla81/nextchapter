@@ -115,7 +115,7 @@ export async function topicsWithSnapshot(): Promise<Set<string>> {
  * Refreshes the stalest snapshots, one topic at a time, until the time budget runs out. Called by the cron; a topic takes
  * up to about 40 seconds, so each run leaves a margin before the function limit.
  */
-export async function refreshTopicSnapshots(budgetMs: number, opts: { manual?: boolean } = {}): Promise<{ refreshed: string[]; skipped: number }> {
+export async function refreshTopicSnapshots(budgetMs: number, opts: { manual?: boolean } = {}): Promise<{ refreshed: string[]; failed: string[]; skipped: number }> {
   const { computeTopicJobs, computeJobStats } = await import('@/lib/seo/topic-data')
   const existing = new Map((await prisma.topicSnapshot.findMany({ select: { key: true, updatedAt: true } })).map((r) => [r.key, r.updatedAt.getTime()]))
   const now = Date.now()
@@ -127,13 +127,25 @@ export async function refreshTopicSnapshots(budgetMs: number, opts: { manual?: b
   )
   const started = Date.now()
   const refreshed: string[] = []
+  const failed: string[] = []
+  let lastError: unknown = null
   for (const t of due) {
     if (Date.now() - started > budgetMs) break
-    const jobs = await computeTopicJobs(t.f)
-    const stats = await computeJobStats(t.f)
-    await prisma.topicSnapshot.upsert({ where: { key: `jobs:${t.key}` }, create: { key: `jobs:${t.key}`, data: jobs as object }, update: { data: jobs as object, updatedAt: new Date() } })
-    if (stats) await prisma.topicSnapshot.upsert({ where: { key: `stats:${t.key}` }, create: { key: `stats:${t.key}`, data: stats as object }, update: { data: stats as object, updatedAt: new Date() } })
-    refreshed.push(t.key.slice(0, 60))
+    // One topic whose scan times out keeps its previous snapshot and the run moves on to the next. It used to end the run, so on
+    // 2026-11-18 (05:41 and 06:41 UTC) no topic was refreshed and the job alerted.
+    try {
+      const jobs = await computeTopicJobs(t.f)
+      const stats = await computeJobStats(t.f)
+      await prisma.topicSnapshot.upsert({ where: { key: `jobs:${t.key}` }, create: { key: `jobs:${t.key}`, data: jobs as object }, update: { data: jobs as object, updatedAt: new Date() } })
+      if (stats) await prisma.topicSnapshot.upsert({ where: { key: `stats:${t.key}` }, create: { key: `stats:${t.key}`, data: stats as object }, update: { data: stats as object, updatedAt: new Date() } })
+      refreshed.push(t.key.slice(0, 60))
+    } catch (error) {
+      console.error('Topic snapshot failed', t.key, error)
+      failed.push(t.key.slice(0, 60))
+      lastError = error
+    }
   }
-  return { refreshed, skipped: due.length - refreshed.length }
+  // Every topic tried failing is the run failing (the database is in trouble), so the watchdog still hears about it.
+  if (failed.length > 0 && refreshed.length === 0) throw lastError
+  return { refreshed, failed, skipped: due.length - refreshed.length - failed.length }
 }
