@@ -213,6 +213,8 @@ export async function resolveInstitutionAccess(
     const rows = await db.institutionUnit.findMany({ where: { id: { in: staffUsers.map((s) => s.unitId!) }, institutionId: institution.id }, select: { id: true, name: true, school: true, department: true, plan: true } })
     units = rows.map(({ plan: _p, ...u }) => u)
     institution.plan = rows.some((r) => r.plan === 'PAID') ? 'PAID' : 'FREE'
+    // A paid unit also opens Development (owner decision 2026-11-18): at least the Advancement tier, scoped to its alumni.
+    if (institution.plan === 'PAID' && institution.tier === 'CAREER') institution.tier = 'ADVANCEMENT'
   }
 
   return {

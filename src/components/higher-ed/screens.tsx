@@ -1578,7 +1578,8 @@ async function SettingsStaff({ ctx }: ScreenProps) {
   const adminLimit = institutionEntitlements({ plan: ctx.institution.plan }).adminLimit
   const adminSeatTaken = adminLimit !== null && staff.filter((s) => s.role === 'INSTITUTION_ADMIN' && !s.revokedAt && (unitIds ? true : !s.unitId)).length >= adminLimit
   // A role is "locked" when every workspace it would open needs a higher tier.
-  const tier = (await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { tier: true } })).tier
+  // The tier this person works under: a paid school or department opens Development even on a Career-tier university.
+  const tier = ctx.institution.tier
   const lockedRoles: Record<string, string> = {}
   for (const role of Object.keys(STAFF_ROLE_LABELS)) {
     const opens = WORKSPACES.filter((w) => w.release === 'V1' && w.key !== 'candidate' && w.key !== 'employer' && w.requiredRoles.includes(role as never))

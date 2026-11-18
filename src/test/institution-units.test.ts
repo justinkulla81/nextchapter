@@ -5,7 +5,8 @@ vi.mock('server-only', () => ({}))
 vi.mock('react', async (orig) => ({ ...(await orig<typeof import('react')>()), cache: <T,>(fn: T) => fn }))
 vi.mock('@/lib/prisma', () => ({ prisma: db }))
 
-import { hiddenMemberCount, unitMemberWhere, visibleIdsFor } from '@/lib/plans/visible-members'
+import { Prisma } from '@prisma/client'
+import { hiddenMemberCount, unitMemberSql, unitMemberWhere, visibleIdsFor } from '@/lib/plans/visible-members'
 
 const tepper = { school: 'Tepper School of Business', department: null }
 const heinzPolicy = { school: 'Heinz College', department: 'Public Policy' }
@@ -38,5 +39,12 @@ describe('schools and departments (InstitutionUnit)', () => {
   it('counts the hidden people within the unit only', async () => {
     expect(await hiddenMemberCount({ institution: { id: 'i1', plan: 'FREE' }, units: [tepper] })).toBe(7)
     expect(db.institutionMember.count.mock.calls[0][0].where).toMatchObject({ institutionId: 'i1', OR: [{ school: { equals: 'Tepper School of Business' } }] })
+  })
+  it('scopes raw SQL (the Development ROI) to the unit, and leaves the whole institution alone', () => {
+    expect(unitMemberSql(null, Prisma.sql`m`).sql).toBe('')
+    const q = unitMemberSql([tepper, heinzPolicy], Prisma.sql`m`)
+    expect(q.sql).toContain('lower(m."school") = lower(')
+    expect(q.sql).toContain('lower(m."department") = lower(')
+    expect(q.values).toEqual(['Tepper School of Business', 'Heinz College', 'Public Policy'])
   })
 })
