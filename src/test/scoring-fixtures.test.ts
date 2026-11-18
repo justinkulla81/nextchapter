@@ -6,7 +6,7 @@
 // which of the 19 gates are covered here and why the rest are deferred.
 //
 // computeResumePrestige is the one function in this layer that still hits
-// Prisma (EliteInstitution/PrestigeEmployer lookups) — vitest.config.ts
+// Prisma (EliteInstitution/PrestigeEmployer lookups) — vitest.config.mts
 // loads no DATABASE_URL, so a real call would throw, and this repo has no
 // test-database precedent to call it against safely. It's mocked here,
 // nothing else — the mock returns a small, fully-controlled set of

@@ -1,4 +1,4 @@
-// Stand-in for `next/cache` in unit tests (aliased in vitest.config.ts).
+// Stand-in for `next/cache` in unit tests (aliased in vitest.config.mts).
 // The real module needs a Next.js request/incremental-cache context, and a
 // hand-written `vi.mock('next/cache', () => ({ revalidatePath }))` factory
 // breaks every suite the moment any module it imports starts calling
