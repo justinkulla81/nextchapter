@@ -8,6 +8,7 @@
 // companies, participants, their searches and hires. Demo orgs never email
 // anyone (sendCampaign skips isDemo), and public demos expire after 30 days.
 
+import { seedHubSamples } from '@/lib/workforce/demo-hubs'
 import { demoTrainingOfferings } from './demo-training'
 import 'server-only'
 import { createHash, randomBytes } from 'crypto'
@@ -361,6 +362,9 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
     ],
   })
 
+  // The Education Hub catalog and the Workforce Hub's partners and match, so each hub has something to read.
+  await seedHubSamples(institutionId, apps.map((a) => a.id)).catch((e) => console.error('demo hub samples failed', e))
+
   // A view shared with the confirmed partner, so the partner preview (Shared with you) has something to open.
   const confirmedPartner = await prisma.ecosystemPartner.findFirst({ where: { institutionId, status: 'CONFIRMED' }, orderBy: { createdAt: 'asc' }, select: { id: true, name: true } })
   if (confirmedPartner) {
@@ -669,6 +673,7 @@ export async function reseedWorkforceDemo(slug: string, now = new Date()) {
   await prisma.institutionEmployer.deleteMany({ where: { institutionId: id } })
   await prisma.institutionMember.deleteMany({ where: { institutionId: id } })
   await prisma.rapidResponse.deleteMany({ where: { institutionId: id } })
+  await prisma.fundingPartnerCommitment.deleteMany({ where: { institutionId: id } })
   await prisma.fundingApplication.deleteMany({ where: { institutionId: id } })
   await prisma.partnerView.deleteMany({ where: { institutionId: id } })
   await prisma.ecosystemPartner.deleteMany({ where: { institutionId: id } })
