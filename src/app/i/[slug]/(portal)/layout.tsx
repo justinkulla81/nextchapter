@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { openDemo } from '@/lib/higher-ed/open-demo'
 import type { CSSProperties } from 'react'
 import { headers } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
@@ -44,10 +45,12 @@ export default async function InstitutionPortalLayout({
   const { slug } = await params
   const access = await getInstitutionAccess(slug)
   if (access === 'signed-out') {
+    const h = await headers()
+    // A demo that opens without a login goes through its public entry, not the login page (owner rule 2026-11-18).
+    if (await openDemo(slug)) redirect(orgKindForHost(h.get('host')) ? `/${slug}/guest` : `/i/${slug}/guest`)
     // x-pathname is set by the proxy (src/lib/supabase/middleware.ts), so a
     // deep link comes back to the same page after login.
-    const path = (await headers()).get('x-pathname') ?? `/i/${slug}`
-    const h = await headers()
+    const path = h.get('x-pathname') ?? `/i/${slug}`
     const login = orgKindForHost(h.get('host')) ? '/login' : path.startsWith('/workforce/') ? '/workforce/login' : path.startsWith('/highered/') ? '/highered/login' : '/i/login'
     redirect(`${login}?next=${encodeURIComponent(path)}`)
   }
