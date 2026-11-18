@@ -122,14 +122,14 @@ export async function recordOpened(args: { institutionId: string; memberId: stri
 const atLeast = (n: number) => (n >= MIN_CELL_SIZE ? n : null)
 
 export type BridgeReport = {
-  needs: { skill: string; alumni: number | null; hasOffering: boolean }[]
+  needs: { skill: string; alumni: number | null; planning: number | null; hasOffering: boolean }[]
   offerings: { key: string; name: string; kind: BridgeOffering['kind']; opened: number | null; landed: number | null }[]
   totalNeeding: number
 }
 
 /** Staff view: counts only. */
 export async function bridgeReport(institution: { id: string; slug: string }, enabledFeatures: unknown): Promise<BridgeReport> {
-  const [needs, opened, landed, offerings, totals] = await Promise.all([
+  const [needs, opened, landed, offerings, totals, plans] = await Promise.all([
     prisma.$queryRaw<{ skill: string; n: number }[]>`
       select skill, count(distinct "memberId")::int as n from public."SkillBridgeEvent"
       where "institutionId" = ${institution.id} and kind = 'NEED'
@@ -147,12 +147,26 @@ export async function bridgeReport(institution: { id: string; slug: string }, en
       group by 1`,
     bridgeOfferings(institution, enabledFeatures),
     prisma.$queryRaw<{ n: number }[]>`select count(distinct "memberId")::int as n from public."SkillBridgeEvent" where "institutionId" = ${institution.id} and kind = 'NEED'`,
+    // Planning to learn: members whose own learning plan has a planned or started course naming the skill, the same measure as
+    // the workforce Skills gaps screen (skills-supply.ts). One grouped read over this institution's members' plan rows.
+    prisma.$queryRaw<{ skill: string; n: number }[]>`
+      select s as skill, count(distinct e."candidateId")::int as n
+      from public."LearningPlanEntry" e
+      join public."InstitutionMember" m on m."candidateId" = e."candidateId" and m."institutionId" = ${institution.id}
+      cross join lateral unnest(e.skills) as s
+      where e.status in ('PLANNED', 'STARTED')
+      group by s limit 500`.catch(() => [] as { skill: string; n: number }[]),
   ])
+  const planningBy = new Map<string, number>()
+  for (const r of plans) {
+    const k = normSkill(r.skill)
+    planningBy.set(k, (planningBy.get(k) ?? 0) + r.n)
+  }
   const openedBy = new Map(opened.map((r) => [r.key, r.n]))
   const landedBy = new Map(landed.map((r) => [r.key, r.n]))
   const taught = new Set(offerings.flatMap((o) => o.skills))
   return {
-    needs: needs.map((r) => ({ skill: r.skill, alumni: atLeast(r.n), hasOffering: taught.has(r.skill) })),
+    needs: needs.map((r) => ({ skill: r.skill, alumni: atLeast(r.n), planning: atLeast(planningBy.get(normSkill(r.skill)) ?? 0), hasOffering: taught.has(r.skill) })),
     offerings: offerings.map((o) => ({ key: o.key, name: o.name, kind: o.kind, opened: atLeast(openedBy.get(o.key) ?? 0), landed: atLeast(landedBy.get(o.key) ?? 0) })),
     totalNeeding: totals[0]?.n ?? 0,
   }
