@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CONNECT_PATH, FINISH_PATH, afterAccountPath, nextPreAccountPath, progressPatch } from './progress'
+import { CONNECT_PATH, FINISH_PATH, afterAccountPath, lightAccountQuestionsDone, nextPreAccountPath, progressPatch } from './progress'
 
 const answered = { desireComplete: true, resumeStepComplete: true, firstName: 'Ana', lastName: 'Lee', email: 'ana@example.com', onboardingResumeConfirmedAt: new Date(), onboardingLocationConfirmedAt: new Date() }
 const withCoachDone = progressPatch(null, { completed: 'coach' })
@@ -52,5 +52,13 @@ describe('afterAccountPath', () => {
     expect(afterAccountPath({ finishedAt: 'x', googleRevealAt: null, introCommitted: false }, false)).toBe('/onboarding/welcome')
     expect(afterAccountPath({ finishedAt: 'x', googleRevealAt: null, introCommitted: false })).toBe('/onboarding/welcome')
     expect(afterAccountPath({ finishedAt: 'x', googleRevealAt: null, introCommitted: true })).toBe('/dashboard')
+  })
+})
+
+describe('lightAccountQuestionsDone', () => {
+  it('waits for every question before the account step, so one answer never registers a light account', () => {
+    const firstOnly = { ...answered, resumeStepComplete: false, onboardingResumeConfirmedAt: null, onboardingLocationConfirmedAt: null, contractAcceptedAt: null, journeyDetails: progressPatch(null, { completed: 'where_you_are' }) }
+    expect(lightAccountQuestionsDone(firstOnly)).toBe(false)
+    expect(lightAccountQuestionsDone({ ...answered, contractAcceptedAt: null, journeyDetails: withCoachDone })).toBe(true)
   })
 })

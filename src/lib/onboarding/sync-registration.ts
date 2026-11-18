@@ -11,6 +11,7 @@ import { applyReferralCookie } from '@/lib/candidates/referral'
 import { claimSavedJobs, recordLeadConversion } from '@/lib/leads/claim-saved-jobs'
 import { claimEmployerFollows } from '@/lib/company-tracker/follow-from-email'
 import { noteLeadConversion } from '@/lib/leads/lifecycle/conversion'
+import { lightAccountQuestionsDone } from '@/lib/onboarding/progress'
 
 // Registration completes the moment the candidate's Supabase auth user
 // stops being anonymous — whether via clicking the "create your account"
@@ -53,6 +54,13 @@ export async function syncRegistrationCompletion(
     profile.duplicateEmailBlockedAt ||
     !profile.assessmentComplete
   ) {
+    return { profile, justRegistered: false }
+  }
+
+  // A light account (opened from a follow-up email, owner decision 2026-11-18) is a real email user from the start, and the
+  // first question already sets assessmentComplete. Stamping it then would skip every question after the first (the hub sends
+  // a registered profile on to the finish screen), so it registers only once the questions before the account step are done.
+  if (profile.lightAccountAt && !lightAccountQuestionsDone(profile, user.email)) {
     return { profile, justRegistered: false }
   }
 
@@ -120,3 +128,4 @@ export async function syncRegistrationCompletion(
 
   return { profile: updated, justRegistered: true }
 }
+

@@ -78,8 +78,8 @@ export function leadEmailContent(variant: LeadVariant, step: LeadStep, c: LeadEm
       ],
       jobs: c.jobs!.slice(0, 3),
       benefits: [],
-      ctaLabel: 'Create my free profile',
-      afterJobs: 'Make a free profile and we send you jobs like these, ranked by how well you fit. No résumé needed to start.',
+      ctaLabel: 'Open my free account',
+      afterJobs: 'Your free account is ready: open it and we send you jobs like these, ranked by how well you fit. No résumé needed to start.',
     }
   }
 
@@ -94,8 +94,8 @@ export function leadEmailContent(variant: LeadVariant, step: LeadStep, c: LeadEm
       ],
       jobs: c.jobs!.slice(0, 3),
       benefits: [],
-      ctaLabel: 'Create my free profile',
-      afterJobs: 'Right now your alert matches the words you searched. Make a free profile and it matches you: your experience and level, ranked by how well you fit. No résumé needed to start.',
+      ctaLabel: 'Open my free account',
+      afterJobs: 'Right now your alert matches the words you searched. Open your free account and it matches you: your experience and level, ranked by how well you fit. No résumé needed to start.',
     }
   }
 
@@ -107,8 +107,8 @@ export function leadEmailContent(variant: LeadVariant, step: LeadStep, c: LeadEm
       paragraphs: [hello(c), 'Thanks for subscribing. Each week we send one read on the white-collar job market: what is changing, who is hiring, who is cutting. Here is where it stands now.'],
       feature: { kicker: `From our ${c.report.month} report`, title: c.report.title, body: c.report.dek, linkLabel: `Read the ${c.report.month} White Collar Employment Report`, url: c.report.url },
       benefits: [],
-      ctaLabel: 'Create my free profile',
-      afterJobs: 'If you are job hunting yourself, a free profile tailors all of this to you: every job on the site ranked by how well you fit. No résumé needed to start.',
+      ctaLabel: 'Open my free account',
+      afterJobs: 'If you are job hunting yourself, your free account tailors all of this to you: every job on the site ranked by how well you fit. No résumé needed to start.',
     }
   }
 
@@ -131,8 +131,8 @@ export function leadEmailContent(variant: LeadVariant, step: LeadStep, c: LeadEm
         url: l.url,
       },
       benefits: [],
-      ctaLabel: 'Create my free profile',
-      afterJobs: 'If you are job hunting yourself, a free profile turns this into your own plan: every job on the site ranked by how well you fit. No résumé needed to start.',
+      ctaLabel: 'Open my free account',
+      afterJobs: 'If you are job hunting yourself, your free account turns this into your own plan: every job on the site ranked by how well you fit. No résumé needed to start.',
     }
   }
 
@@ -148,7 +148,7 @@ export function leadEmailContent(variant: LeadVariant, step: LeadStep, c: LeadEm
       paragraphs: [...base.paragraphs.slice(0, 3), 'While you wait, three more like it are open now:'],
       jobs: fresh,
       benefits: [],
-      afterJobs: 'Make a free profile and we send you jobs like these, ranked by how well you fit. No résumé needed to start.',
+      afterJobs: 'Your free account is ready: open it and we send you jobs like these, ranked by how well you fit. No résumé needed to start.',
     }
   }
   if (fresh && !persona && step !== 'welcome' && (variant === 'saved_job' || variant === 'job_alert')) {
@@ -165,11 +165,11 @@ export function leadEmailContent(variant: LeadVariant, step: LeadStep, c: LeadEm
       benefits: [],
       choices: undefined,
       choicesPrompt: undefined,
-      ctaLabel: 'Create my free profile',
+      ctaLabel: 'Open my free account',
       afterJobs: [
         saved
-          ? 'A free profile shows how well you fit each of these, and what is missing. No résumé needed to start.'
-          : 'Right now your alert matches the words you searched. A free profile makes it match you, ranked by how well you fit. No résumé needed to start.',
+          ? 'Your free account shows how well you fit each of these, and what is missing. No résumé needed to start.'
+          : 'Right now your alert matches the words you searched. Your free account makes it match you, ranked by how well you fit. No résumé needed to start.',
         last ? 'This is our last note.' : '',
       ].filter(Boolean).join(' '),
       ...lastNote,
@@ -184,7 +184,7 @@ export function leadEmailContent(variant: LeadVariant, step: LeadStep, c: LeadEm
       headline: 'Your first-week plan',
       paragraphs: [hello(c), plan.intro, 'Three steps for this week:'],
       benefits: plan.steps,
-      ctaLabel: 'Save this plan: create my free profile',
+      ctaLabel: 'Save this plan: open my free account',
     }
   }
   // The second reminder asks for something different from the first: not a plan to save but a look at where they stand,
@@ -207,7 +207,7 @@ export function leadEmailContent(variant: LeadVariant, step: LeadStep, c: LeadEm
       benefits: [],
       choicesPrompt: 'Which sounds most like you? One tap and we tailor what we send. No résumé needed.',
       choices: c.choices,
-      ctaLabel: 'Or skip ahead: create my free profile',
+      ctaLabel: 'Or skip ahead: open my free account',
     }
   }
   return base
@@ -239,7 +239,7 @@ function baseContent(variant: LeadVariant, step: LeadStep, c: LeadEmailContext):
         'To see more jobs like this one ranked for you, create a free profile. Add your résumé and every job on the site comes back ordered by how well you fit.',
       ],
       benefits: BENEFITS,
-      ctaLabel: 'Create my free profile',
+      ctaLabel: 'Open my free account',
       footerNote: 'This is the only follow-up reminder we send about this application.',
     }
   }
@@ -254,7 +254,7 @@ function baseContent(variant: LeadVariant, step: LeadStep, c: LeadEmailContext):
         FREE,
       ],
       benefits: BENEFITS,
-      ctaLabel: 'Create my free profile',
+      ctaLabel: 'Open my free account',
       footerNote: variant === 'newsletter' ? 'This is the one reminder we send, then we stop.' : 'One more reminder after this, then we stop.',
     }
   }
@@ -269,7 +269,7 @@ function baseContent(variant: LeadVariant, step: LeadStep, c: LeadEmailContext):
         'If not, no hard feelings. We will leave you alone.',
       ],
       benefits: [],
-      ctaLabel: 'Create my free profile',
+      ctaLabel: 'Open my free account',
       footerNote: 'This is the last reminder.',
     }
   }
@@ -288,7 +288,7 @@ function baseContent(variant: LeadVariant, step: LeadStep, c: LeadEmailContext):
         FREE,
       ],
       benefits: BENEFITS,
-      ctaLabel: 'Create my free profile',
+      ctaLabel: 'Open my free account',
       footerNote: 'We send one follow-up reminder in three days, then stop.',
     }
   }
@@ -304,7 +304,7 @@ function baseContent(variant: LeadVariant, step: LeadStep, c: LeadEmailContext):
         FREE,
       ],
       benefits: BENEFITS,
-      ctaLabel: 'Create my free profile',
+      ctaLabel: 'Open my free account',
       footerNote: note,
     }
   }
@@ -320,7 +320,7 @@ function baseContent(variant: LeadVariant, step: LeadStep, c: LeadEmailContext):
         FREE,
       ],
       benefits: BENEFITS,
-      ctaLabel: 'Create my free profile',
+      ctaLabel: 'Open my free account',
       footerNote: note,
     }
   }
@@ -336,7 +336,7 @@ function baseContent(variant: LeadVariant, step: LeadStep, c: LeadEmailContext):
         FREE,
       ],
       benefits: BENEFITS,
-      ctaLabel: 'Create my free profile',
+      ctaLabel: 'Open my free account',
       footerNote: note,
     }
   }
@@ -369,7 +369,7 @@ function baseContent(variant: LeadVariant, step: LeadStep, c: LeadEmailContext):
       FREE,
     ],
     benefits: BENEFITS,
-    ctaLabel: 'Create my free profile',
+    ctaLabel: 'Open my free account',
     footerNote: note,
   }
 }

@@ -1517,6 +1517,7 @@ model CandidateProfile {
   applicationsBucket                String? // "none" | "under_10" | "10_50" | "50_plus"
   interviewsBucket                  String? // "none" | "a_few" | "several" | "late_stages"
   registrationCompletedAt           DateTime? // set once the anonymous->permanent auth conversion completes
+  lightAccountAt                    DateTime? // set when the account was opened from a follow-up email before onboarding (owner decision 2026-11-18): an email user with a name, saved jobs and no answers yet. registrationCompletedAt stays null until the questions are done
   // Candidate-initiated "make my account unusable" — deliberately NOT a
   // delete. Blocks dashboard access (see getDashboardData) and signs the
   // session out, but every row (resume, references, reports, etc.) stays
