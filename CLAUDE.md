@@ -1,5 +1,10 @@
 # Project instructions
 
+## Mission
+
+NextChapter's mission, in the owner's words (2026-11-18): **No professional should go through a career transition alone.**
+Use it as written, one sentence, wherever a deck, page, pitch or email states the mission. Do not reword or extend it.
+
 ## Design principles
 
 Whenever you design a new product, feature, UI, or write code that produces
