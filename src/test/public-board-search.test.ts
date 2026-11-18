@@ -4,12 +4,13 @@ vi.mock('server-only', () => ({}))
 vi.mock('next/cache', () => ({ unstable_cache: (fn: unknown) => fn }))
 
 const findLight = vi.fn()
+const countLight = vi.fn()
 const findWide = vi.fn()
 const limits: number[] = []
 const scanOpts: ({ noIndexScan?: boolean } | undefined)[] = []
 vi.mock('@/lib/prisma', () => ({
   prisma: {
-    boardLightRow: { findMany: (...a: unknown[]) => findLight(...a) },
+    boardLightRow: { findMany: (...a: unknown[]) => findLight(...a), count: (...a: unknown[]) => countLight(...a) },
     exclusiveJobPosting: { findMany: (...a: unknown[]) => findWide(...a) },
   },
 }))
@@ -34,6 +35,7 @@ const light = (n: number) =>
 
 beforeEach(() => {
   findLight.mockReset()
+  countLight.mockReset()
   findWide.mockReset()
   limits.length = 0
   scanOpts.length = 0
@@ -42,30 +44,34 @@ beforeEach(() => {
 
 describe('public board search', () => {
   it('counts (up to the cap) and reads the board, each with a database time limit', async () => {
-    findLight.mockResolvedValueOnce(ids(COUNT_CAP + 1)).mockResolvedValueOnce(light(12))
+    countLight.mockResolvedValueOnce(COUNT_CAP + 1)
+    findLight.mockResolvedValueOnce(light(12))
     const result = await searchPublicBoard({ q: '', loc: ', KY', remote: false })
-    expect(findLight).toHaveBeenCalledTimes(2)
+    expect(countLight).toHaveBeenCalledTimes(1)
+    expect(findLight).toHaveBeenCalledTimes(1)
     expect(limits).toEqual([10_000, 10_000])
     expect(result.jobs).toHaveLength(12)
   })
 
   it('stops counting at the cap and says the count is capped, never a number it did not count', async () => {
-    findLight.mockResolvedValueOnce(ids(COUNT_CAP + 1)).mockResolvedValueOnce(light(12))
+    countLight.mockResolvedValueOnce(COUNT_CAP + 1)
+    findLight.mockResolvedValueOnce(light(12))
     const result = await searchPublicBoard({ q: '', loc: ', KY', remote: false })
-    const countCall = findLight.mock.calls[0][0]
+    const countCall = countLight.mock.calls[0][0]
     expect(countCall.take).toBe(COUNT_CAP + 1)
-    expect(countCall.select).toEqual({ id: true, postedAt: true, createdAt: true })
     expect(countCall.skip).toBeUndefined()
-    // No order on the count, and plain index scans off for it: ordered, it walked the date index row by row (#12, 2026-11-17).
+    // A count (no ORDER BY, so it stops at the cap) with plain index scans off: ordered, it walked the date index row by row (#12).
     expect(countCall.orderBy).toBeUndefined()
     expect(scanOpts[0]).toEqual({ noIndexScan: true })
-    expect(findLight.mock.calls[1][0].orderBy).toBeDefined()
+    // Over the cap, the page comes off the date index.
+    expect(findLight.mock.calls[0][0].orderBy).toBeDefined()
     expect(scanOpts[1]?.noIndexScan).toBeUndefined()
     expect(result.total).toBe(COUNT_CAP)
     expect(result.totalCapped).toBe(true)
   })
 
   it('keeps an exact count when the matches are at or under the cap, and cuts the page from them instead of an ordered scan', async () => {
+    countLight.mockResolvedValueOnce(40)
     findLight.mockResolvedValueOnce(ids(40)).mockImplementationOnce(async ({ where }: { where: { id: { in: string[] } } }) =>
       // Read by id, returned in another order: the page keeps the count's newest-first order.
       [...where.id.in].reverse().map((id) => ({ ...light(1)[0], id })),
@@ -77,13 +83,24 @@ describe('public board search', () => {
     expect(pageCall.orderBy).toBeUndefined()
     expect(pageCall.where.id.in[0]).toBe('c39') // the newest posted first
     expect(result.jobs.map((j) => j.id).slice(0, 3)).toEqual(['c39', 'c38', 'c37'])
-    expect(limits).toEqual([10_000]) // one board read with a time limit: the count; the page is read by primary key
+    expect(limits).toEqual([10_000, 10_000]) // the count and the matches' ids, each with a time limit; the page is read by primary key
   })
 
   it('pages through the matches it counted', async () => {
+    countLight.mockResolvedValueOnce(40)
     findLight.mockResolvedValueOnce(ids(40)).mockImplementationOnce(async ({ where }: { where: { id: { in: string[] } } }) => where.id.in.map((id) => ({ ...light(1)[0], id })))
     await searchPublicBoard({ q: 'analyst', loc: '', remote: false, offset: 30 })
     expect(findLight.mock.calls[1][0].where.id.in).toEqual(['c9', 'c8', 'c7', 'c6', 'c5', 'c4', 'c3', 'c2', 'c1', 'c0'])
+  })
+
+  it('skips the count for a search with no terms at all (every live job matches) and says the count is capped', async () => {
+    findLight.mockResolvedValueOnce(light(12))
+    const result = await searchPublicBoard({ q: '', loc: '', remote: false })
+    expect(findLight).toHaveBeenCalledTimes(1)
+    expect(findLight.mock.calls[0][0].orderBy).toBeDefined() // the newest page, off the date index
+    expect(result.total).toBe(COUNT_CAP)
+    expect(result.totalCapped).toBe(true)
+    expect(result.jobs).toHaveLength(12)
   })
 
   it('skips the count query when the caller only wants the jobs (the saved-search alerts)', async () => {
