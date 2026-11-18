@@ -1065,7 +1065,7 @@ const CONSENT_COPY: Record<string, { label: (c: string) => string; help: string 
   SHARE_DOSSIER_WITH_EMPLOYERS: { label: (c) => `Show my Dossier to employers ${c} approves`, help: 'Employers that hire through your college can see your Dossier and ask for an introduction. You say yes or no each time.' },
   // Workforce programs only: they match people to benefits (Program › People, src/lib/workforce/people-crm.ts).
   // Colleges only: the entrepreneurship center (src/lib/higher-ed/ventures.ts). Off by default; a launched venture is shared as an outcome.
-  SHARE_VENTURE: { label: (c) => `Tell ${c}'s entrepreneurship center I'm building or buying a business`, help: 'Its name, stage, kind, customers, team and funding, so the center can offer office hours, programs, investors and alumni customers. Never runway, hours or money. Once it launches, its name is shared with your outcome.' },
+  SHARE_VENTURE: { label: (c) => `Share my company with ${c}`, help: 'Its name, stage, kind, customers, team, funding and any exit. The entrepreneurship center sees it to offer office hours, programs, investors and alumni customers, and so do the offices that work with founders: Alumni Relations, Advancement, Career Services, lifelong learning and faculty. Never runway, hours or personal money.' },
   SHARE_NEEDS: { label: (c) => `Let ${c} see why I joined and the help I need`, help: 'Whether you are moving here, changing fields or starting out, and the money pressures and barriers you told NextChapter about, like childcare, rent or health coverage, so they can match you to local programs. Never amounts or messages.' },
 }
 
