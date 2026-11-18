@@ -136,6 +136,7 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
         wioa: true,
         ...(tenant.services ? { services: tenant.services } : {}),
         ...(tenant.annualCheckInMonth ? { checkIns: { annualMonth: tenant.annualCheckInMonth } } : {}),
+        ...(tenant.officeNames ? { officeNames: tenant.officeNames } : {}),
       },
       profile: (tenant.profile ?? undefined) as Prisma.InputJsonValue | undefined,
       isDemo: true,
