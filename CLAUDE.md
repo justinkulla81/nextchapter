@@ -2,8 +2,15 @@
 
 ## Mission
 
-NextChapter's mission, in the owner's words (2026-11-18): **No professional should go through a career transition alone.**
-Use it as written, one sentence, wherever a deck, page, pitch or email states the mission. Do not reword or extend it.
+NextChapter's mission and vision, in the owner's words (2026-11-18, replacing "No professional should go through a career
+transition alone"):
+
+- **Mission:** Our mission is to ensure every person knows the dignity of work.
+- **Vision:** Jobs sustain people, communities and economies. But work is changing faster than anyone can keep up with alone. We
+  envision a job market where communities come together, so every person has the support, resources and opportunities to take
+  their next step.
+
+Use them as written wherever a deck, page, pitch or email states the mission or vision. Do not reword, shorten or extend them.
 
 ## Design principles
 
