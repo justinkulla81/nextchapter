@@ -58,7 +58,7 @@
   function postingFromJsonLd(texts) {
     for (var i = 0; i < texts.length; i++) {
       var data
-      try { data = JSON.parse(texts[i]) } catch (e) { continue }
+      try { data = JSON.parse(texts[i]) } catch { continue }
       var nodes = Array.isArray(data) ? data : data && data['@graph'] ? data['@graph'] : [data]
       for (var j = 0; j < nodes.length; j++) {
         var n = nodes[j]
