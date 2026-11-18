@@ -218,7 +218,10 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
       else skipped.push(spec.slug)
     }
   } else if (group === 'profile') {
-    const [citiesRaw, entities, cityRows, socGroups, premiums, socs, groups, degreeEntities, degreeCityRows] = await Promise.all([loadCityStats(), loadEntityStats(), loadProfileCityRows(), loadSocGroups(), loadAiPayPremium().catch(() => []), loadSocStats(), loadGroupStats(), loadDegreeEntities(), loadDegreeCityRows()])
+    // Two batches, never all at once: each long read holds a pooled connection for its whole transaction (~100 s), and the pool is
+    // RUNTIME_POOL_SIZE (8). All ten together left the build stalled on a connection until the time limit (rankings-refresh, 2026-11-17).
+    const [citiesRaw, entities, cityRows, socGroups, premiums] = await Promise.all([loadCityStats(), loadEntityStats(), loadProfileCityRows(), loadSocGroups(), loadAiPayPremium().catch(() => [])])
+    const [socs, groups, degreeEntities, degreeCityRows] = await Promise.all([loadSocStats(), loadGroupStats(), loadDegreeEntities(), loadDegreeCityRows()])
     const info = await placeInfo([...new Set(citiesRaw.map((c) => c.st))])
     const cities = keyCities(citiesRaw, (k) => info.has(k))
     cityCount = cities.length
