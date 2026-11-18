@@ -146,7 +146,7 @@ export async function HubSkillsGaps({ ctx, base }: Props) {
                   <ul className="space-y-1 text-sm">
                     {r.teach.map((pg) => (
                       <li key={pg.id}>
-                        <a href={`${base}/programs`} className="font-medium hover:underline">
+                        <a href={base.replace(/\/hub$/, '/education/programs')} className="font-medium hover:underline">
                           {pg.name}
                         </a>
                         <span className="text-muted-foreground">
@@ -160,7 +160,7 @@ export async function HubSkillsGaps({ ctx, base }: Props) {
                 ) : (
                   <p className="text-sm text-muted-foreground">
                     No program of yours teaches this yet.{' '}
-                    <a href={`${base}/programs`} className="font-medium text-primary hover:underline">
+                    <a href={base.replace(/\/hub$/, '/education/programs')} className="font-medium text-primary hover:underline">
                       Add one in Programs
                     </a>
                   </p>

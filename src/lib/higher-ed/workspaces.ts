@@ -125,6 +125,9 @@ export const ORG_TYPE_LABELS: Record<InstitutionOrgType, string> = {
 const POST_JOBS: AccessToken[] = ['INSTITUTION_ADMIN', 'CAREER_SERVICES', 'EMPLOYER_RELATIONS', 'ALUMNI_RELATIONS']
 const TARGET_COMPANIES: AccessToken[] = ['INSTITUTION_ADMIN', 'CAREER_SERVICES', 'EMPLOYER_RELATIONS']
 
+// The Workforce Hub's own pages (funding with partners and match, partners by type, feed) keep the roles they were built for.
+const WFHUB_OWN: AccessToken[] = ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'VIEWER:wfhub']
+
 export const WORKSPACES: WorkspaceConfig[] = [
   {
     key: 'candidate',
@@ -321,16 +324,6 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'responses', label: 'Rapid response', comingIn: null, group: 'Employers', from: { workspace: 'workforce', tab: 'rapid' } },
       // Layoff seats come after the rapid-response plan.
       { key: 'layoffs', label: 'Layoff seats', comingIn: null, group: 'Employers' },
-      { key: 'learning', label: 'Colleges and partners', comingIn: null, demoOnly: true, group: 'Partners' },
-      { key: 'system', label: 'Board and job centers', comingIn: null, demoOnly: true, group: 'Partners' },
-      { key: 'programs', label: 'Programs', comingIn: null, group: 'Partners', from: { workspace: 'execed', tab: 'home' } },
-      { key: 'enrollments', label: 'Enrollments', comingIn: null, group: 'Partners', from: { workspace: 'execed', tab: 'enrollments' } },
-      { key: 'ecosystem', label: 'Ecosystem', comingIn: null, group: 'Partners' },
-      { key: 'views', label: 'Partner views', comingIn: null, group: 'Partners' },
-      { key: 'etpl', label: 'Eligible training list', comingIn: null, group: 'Partners', from: { workspace: 'workforce', tab: 'etpl' } },
-      { key: 'applications', label: 'Applications', comingIn: null, group: 'Funding' },
-      { key: 'grantlist', label: 'Grants to apply for', comingIn: null, group: 'Funding' },
-      { key: 'funding', label: 'Grants and funding', comingIn: null, demoOnly: true, group: 'Funding' },
       { key: 'regionjobs', label: 'Jobs in your region', comingIn: null, group: 'Jobs' },
       { key: 'groupjobs', label: 'Jobs for your group', comingIn: null, group: 'Jobs' },
       { key: 'employerjobs', label: 'Employer jobs', comingIn: null, group: 'Jobs' },
@@ -368,13 +361,23 @@ export const WORKSPACES: WorkspaceConfig[] = [
     label: 'Workforce Hub',
     icon: 'HandCoins',
     release: 'V1',
-    requiredRoles: ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'VIEWER:wfhub'],
+    // CAREER_SERVICES, EMPLOYER_RELATIONS and VIEWER:hub opened the funding and partner pages when they were Talent Hub tabs (moved
+    // here 2026-11-18); the Workforce Hub's own pages stay with the roles they had.
+    requiredRoles: ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'CAREER_SERVICES', 'EMPLOYER_RELATIONS', 'VIEWER:wfhub', 'VIEWER:hub'],
     homePath: 'workforce-hub',
     orgKind: 'workforce',
     tabs: [
-      { key: 'funding', label: 'Funding', comingIn: null },
-      { key: 'partners', label: 'Partners', comingIn: null },
-      { key: 'feed', label: 'Feed', comingIn: null },
+      { key: 'funding', label: 'Funding', comingIn: null, group: 'Funding', requiredRoles: WFHUB_OWN },
+      // Moved from Talent Hub (owner, 2026-11-18): funding serves every hub, not only Talent Hub.
+      { key: 'applications', label: 'Applications', comingIn: null, group: 'Funding' },
+      { key: 'grantlist', label: 'Grants to apply for', comingIn: null, group: 'Funding' },
+      { key: 'opportunities', label: 'Grants and funding', comingIn: null, demoOnly: true, group: 'Funding' },
+      { key: 'partners', label: 'Partners', comingIn: null, group: 'Partners', requiredRoles: WFHUB_OWN },
+      // Moved from Talent Hub (owner, 2026-11-18): the organizations every hub works with. Training partners are in the Education Hub.
+      { key: 'ecosystem', label: 'Ecosystem', comingIn: null, group: 'Partners' },
+      { key: 'views', label: 'Partner views', comingIn: null, group: 'Partners' },
+      { key: 'system', label: 'Board and job centers', comingIn: null, demoOnly: true, group: 'Partners' },
+      { key: 'feed', label: 'Feed', comingIn: null, group: 'Feed', requiredRoles: WFHUB_OWN },
     ],
   },
   {
@@ -384,13 +387,19 @@ export const WORKSPACES: WorkspaceConfig[] = [
     label: 'Education Hub',
     icon: 'GraduationCap',
     release: 'V1',
-    requiredRoles: ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'CAREER_SERVICES', 'VIEWER:education'],
+    // EMPLOYER_RELATIONS and VIEWER:hub opened the training partners when they were Talent Hub tabs (moved here 2026-11-18).
+    requiredRoles: ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'CAREER_SERVICES', 'EMPLOYER_RELATIONS', 'VIEWER:education', 'VIEWER:hub'],
     homePath: 'education',
     orgKind: 'workforce',
     tabs: [
       { key: 'catalog', label: 'Catalog', comingIn: null },
       { key: 'assign', label: 'Assign', comingIn: null },
       { key: 'gaps', label: 'Gaps and coverage', comingIn: null },
+      // The training partners (owner, 2026-11-18, moved from Talent Hub > Partners): colleges and providers, their programs and who is enrolled.
+      { key: 'learning', label: 'Colleges and partners', comingIn: null, demoOnly: true },
+      { key: 'programs', label: 'Programs', comingIn: null, from: { workspace: 'execed', tab: 'home' } },
+      { key: 'enrollments', label: 'Enrollments', comingIn: null, from: { workspace: 'execed', tab: 'enrollments' } },
+      { key: 'etpl', label: 'Eligible training list', comingIn: null, from: { workspace: 'workforce', tab: 'etpl' } },
     ],
   },
   {
@@ -593,4 +602,18 @@ export const STAFF_ROLE_LABELS: Record<InstitutionUserRole, string> = {
 export function brandingEditPath(ctx: { institution: { slug: string; orgType: InstitutionOrgType | null }; workspaces: readonly string[]; mode: string }): string | null {
   if (!ctx.workspaces.includes('admin') || ctx.mode === 'demo-guest') return null
   return `${orgBasePath(ctx.institution.slug, ctx.institution.orgType)}/admin/branding`
+}
+
+/** Talent Hub pages that moved to the Workforce Hub or the Education Hub (owner, 2026-11-18): the old address redirects to the new one. */
+export const HUB_MOVED_TABS: Record<string, { workspace: WorkspaceKey; tab: string }> = {
+  applications: { workspace: 'wfhub', tab: 'applications' },
+  grantlist: { workspace: 'wfhub', tab: 'grantlist' },
+  funding: { workspace: 'wfhub', tab: 'opportunities' },
+  ecosystem: { workspace: 'wfhub', tab: 'ecosystem' },
+  views: { workspace: 'wfhub', tab: 'views' },
+  system: { workspace: 'wfhub', tab: 'system' },
+  learning: { workspace: 'education', tab: 'learning' },
+  programs: { workspace: 'education', tab: 'programs' },
+  enrollments: { workspace: 'education', tab: 'enrollments' },
+  etpl: { workspace: 'education', tab: 'etpl' },
 }

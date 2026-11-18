@@ -158,7 +158,7 @@ export async function HubApplications({ ctx, base }: Props) {
       )}
       <p className="text-xs text-muted-foreground">
         Opportunities to consider are listed under{' '}
-        <Link href={`${base}/funding`} className="text-[color:var(--accent-text,var(--primary))] hover:underline">
+        <Link href={`${base}/opportunities`} className="text-[color:var(--accent-text,var(--primary))] hover:underline">
           Grants and funding
         </Link>
         . A layoff response can be linked to the application that pays for it, and the outcomes report then shows results by funder.
