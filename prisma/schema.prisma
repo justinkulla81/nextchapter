@@ -12854,6 +12854,7 @@ enum InstitutionUserRole {
   FACULTY // Teaching: faculty who teach courses and Exec Ed programs
   EXEC_ED // Exec Ed: executive / continuing education staff
   VIEWER // assigned workspace, read-only
+  ACADEMIC_AFFAIRS // provost and academic affairs: the Academic Affairs workspace (programs against the job market)
   WORKFORCE_PARTNER // the local workforce board's staff: Workforce board workspace, read-only (needs enabledFeatures.wioa)
 }
 

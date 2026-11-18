@@ -65,8 +65,8 @@ export function educationRows(): { soc: string; lvl: EduLevel; fld: string | nul
 // ---- Scan shapes ---------------------------------------------------------------------------------------------------
 
 export interface SocStat { soc: string; n: number; paid: number; payMed: number | null }
-/** `stage` rows are keyed `field|stage`. */
-export interface GroupStat { kind: 'level' | 'field' | 'stage'; key: string; n: number; paid: number; payMed: number | null }
+/** `stage` rows are keyed `field|stage`, `statefield` rows `ST|field`. */
+export interface GroupStat { kind: 'level' | 'field' | 'stage' | 'statefield'; key: string; n: number; paid: number; payMed: number | null }
 
 /** Career stages for the degree lists, from a posting's seniority level (the rungs in src/lib/jobs/career-stage.ts). */
 export const STAGE_LEVELS = {
@@ -493,7 +493,12 @@ export interface DegreeFieldFigure {
   perHundred: number | null
   stages: Record<Stage, { open: number; pay: number | null }>
 }
-export interface DegreeFieldFigures { edition: string; fields: DegreeFieldFigure[] }
+export interface DegreeFieldFigures {
+  edition: string
+  fields: DegreeFieldFigure[]
+  /** Open jobs and median posted pay by state, for the fields our board covers: state -> field -> [open jobs, pay or null]. Missing on rows built before 2026-11-18. */
+  states?: Record<string, Record<string, [number, number | null]>>
+}
 
 /** A stored row as the pages read it: a field our board does not cover shows no pay or jobs per graduate, whenever it was built. */
 export function withCoverage(f: DegreeFieldFigures): DegreeFieldFigures {
@@ -520,7 +525,15 @@ export function degreeFieldFigures(groups: GroupStat[], edition: string): Degree
       stages: Object.fromEntries(STAGES.map((x) => [x, { open: st(x)?.n ?? 0, pay: cov ? payOrNull(st(x)) : null }])) as DegreeFieldFigure['stages'],
     }
   })
-  return { edition, fields: fields.sort((a, b) => b.open - a.open) }
+  const covered = new Set(fields.filter((f) => f.covered).map((f) => f.field))
+  const states: NonNullable<DegreeFieldFigures['states']> = {}
+  for (const g of groups) {
+    if (g.kind !== 'statefield') continue
+    const [st, field] = g.key.split('|')
+    if (!covered.has(field) || !/^[A-Z]{2}$/.test(st)) continue
+    ;(states[st] ??= {})[field] = [g.n, g.payMed != null && g.paid >= 20 ? Math.round(g.payMed) : null]
+  }
+  return { edition, fields: fields.sort((a, b) => b.open - a.open), states }
 }
 
 /** Dispatches one degree spec to its ranker. */

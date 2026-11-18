@@ -24,7 +24,8 @@ export const RANKING_METHOD: Record<BuildGroup, string> = {
   // 2026-11-17: degree lists add majors, open jobs per graduate and career stage (built 2026-11-18 02:55 with #1678).
   // 2026-11-18: fields our board barely covers (nursing, education, health professions, social work) leave the count, pay,
   // jobs-per-graduate and career-stage lists (fieldCovered).
-  profile: '2026-11-18',
+  // 2026-11-18b: open jobs and pay by state and field, and a monthly copy of the field figures (Academic Affairs).
+  profile: '2026-11-18b',
   support: 'v0',
 }
 
