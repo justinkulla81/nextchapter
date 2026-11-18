@@ -14,7 +14,6 @@ import { layoffPeople } from '../../src/lib/warn/layoff-alert-people'
 import { buildLocalPicture, classifyLayoffIndustry } from '../../src/lib/warn/layoff-context'
 import { pictureRows, talkingPoints, type Audience } from '../../src/lib/warn/layoff-picture'
 import { withComposeLinks } from '../../src/lib/warn/layoff-alert-drafts'
-import { employerSlug } from '../../src/lib/warn/layoff-pages'
 
 const SITE = 'https://launchyournextchapter.com'
 const TO = 'justin@launchyournextchapter.com'

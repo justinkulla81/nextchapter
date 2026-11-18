@@ -21,7 +21,7 @@
   }
 
   var money = function (n) { return '$' + Math.round(n / 1000) + 'K' }
-  var send = function (m) { try { chrome.runtime.sendMessage(m, function () { void chrome.runtime.lastError }) } catch (e) {} }
+  var send = function (m) { try { chrome.runtime.sendMessage(m, function () { void chrome.runtime.lastError }) } catch {} }
   var tagged = function (u) { return u + (u.indexOf('?') < 0 ? '?' : '&') + 'utm_source=job_xray&utm_medium=extension' }
 
   function row(label, body) {
@@ -167,7 +167,7 @@
         if (!data || data.error) return remove()
         render(posting, data)
       })
-    } catch (e) {}
+    } catch {}
   }
 
   // These sites swap the job in place without a page load, so watch for changes and re-read, at most twice a second.

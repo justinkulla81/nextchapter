@@ -58,7 +58,8 @@ async function main() {
       if (county === 'error') failed++
       else {
         await prisma.geoPlace.update({ where: { id: p.id }, data: { county, countyCheckedAt: new Date() } })
-        county ? found++ : none++
+        if (county) found++
+        else none++
       }
       if (++done % 250 === 0) console.log(`${done}/${todo.length}: ${found} found, ${none} no county, ${failed} failed`)
     }
