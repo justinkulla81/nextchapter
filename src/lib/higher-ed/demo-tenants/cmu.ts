@@ -270,6 +270,8 @@ export const CMU_TENANT: DemoTenant = {
     { title: 'Data Visualization', courseCode: null, term: 'Spring 2027', schedule: 'Online, weekly', modality: 'online', seats: 6, description: 'Turning data into charts people understand, with Tableau and Python.', skills: ['data visualization', 'Python', 'Tableau'] },
   ],
   profile: {
+    // Academic Affairs › Peers: the peer group the owner chose for the demo (MIT, Harvard, Stanford, UC Berkeley, Princeton).
+    peerUnitids: ['166683', '166027', '243744', '110635', '186131'],
     college: {
       unitid: '211440',
       shortName: 'CMU',
