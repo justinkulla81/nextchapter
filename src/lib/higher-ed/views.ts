@@ -50,6 +50,8 @@ const ROI_ROLES: AccessToken[] = ['INSTITUTION_ADMIN', 'DEVELOPMENT', 'VIEWER:de
 const OUTCOMES_ROLES: AccessToken[] = ['INSTITUTION_ADMIN', 'CAREER_SERVICES', 'DEVELOPMENT', 'VIEWER:career', 'VIEWER:development']
 // Sees every open caseload (the Career Services director).
 const CASELOAD_ALL_ROLES: AccessToken[] = ['INSTITUTION_ADMIN', 'VIEWER:career']
+// Academic Affairs (Institution tier): counts about alumni, never names.
+const ACADEMIC_ROLES: AccessToken[] = ['INSTITUTION_ADMIN', 'ACADEMIC_AFFAIRS', 'VIEWER:academic']
 
 function assertHolds(ctx: Ctx, roles: AccessToken[], what: string) {
   if (!holds(ctx, roles)) throw new WorkspaceAccessError(`No access to ${what} at ${ctx.institution.slug}`)
@@ -267,6 +269,29 @@ export type MemberAiSkillsRow = {
 // holds back any group under 10 people) and never passes a row on.
 export async function getMemberAiSkills(ctx: Ctx, db: Db = prisma): Promise<MemberAiSkillsRow[]> {
   assertHolds(ctx, OUTCOMES_ROLES, 'outcomes')
+  return db.$queryRaw<MemberAiSkillsRow[]>`
+    select "primaryFunction", "resumeKeywords", "confirmedSkillsHave", certifications, "skillLevels"
+    from private.v_member_ai_skills
+    where "institutionId" = ${ctx.institution.id}`
+}
+
+export type AlumniWorkRow = { employer: string | null; title: string | null; classYear: number | null }
+
+// Academic Affairs: where alumni work, for counts by employer and by role (alumni at risk, retraining demand). Members with
+// SHARE_OUTCOME on only (the view returns employer and title as null otherwise). No names leave this function; the caller
+// counts and hides any group under MIN_CELL_SIZE.
+export async function getAlumniWork(ctx: Ctx, db: Db = prisma): Promise<AlumniWorkRow[]> {
+  assertHolds(ctx, ACADEMIC_ROLES, 'academic affairs')
+  const visible = await visibleMemberSql(ctx)
+  return db.$queryRaw<AlumniWorkRow[]>`
+    select employer, title, "classYear"
+    from private.v_member_directory
+    where "institutionId" = ${ctx.institution.id} and "shareOutcome" and (employer is not null or title is not null) ${visible}`
+}
+
+// Academic Affairs, skills gaps: the same counts-only skill rows as the Outcomes panel, for the academic affairs roles.
+export async function getAlumniSkills(ctx: Ctx, db: Db = prisma): Promise<MemberAiSkillsRow[]> {
+  assertHolds(ctx, ACADEMIC_ROLES, 'academic affairs')
   return db.$queryRaw<MemberAiSkillsRow[]>`
     select "primaryFunction", "resumeKeywords", "confirmedSkillsHave", certifications, "skillLevels"
     from private.v_member_ai_skills
