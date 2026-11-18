@@ -110,6 +110,46 @@ export function leadEmailContent(variant: LeadVariant, step: LeadStep, c: LeadEm
     }
   }
 
+  // The reminders lead with jobs too: three not sent before (send.ts leaves out the ones already in an earlier email). The
+  // application follow-up keeps its advice and swaps the benefits list for the jobs; someone who picked a situation keeps the
+  // first-week plan and the last "where you stand" note, which are already about them.
+  const fresh = (c.jobs?.length ?? 0) >= 3 ? c.jobs!.slice(0, 3) : null
+  const last = step === 'nudge2'
+  const lastNote = last ? { footerNote: 'This is the last reminder.' } : {}
+  if (fresh && followUp) {
+    return {
+      ...base,
+      paragraphs: [...base.paragraphs.slice(0, 3), 'While you wait, three more like it are open now:'],
+      jobs: fresh,
+      benefits: [],
+      afterJobs: 'Make a free profile and we send you jobs like these, ranked by how well you fit. No résumé needed to start.',
+    }
+  }
+  if (fresh && !persona && step !== 'welcome' && (variant === 'saved_job' || variant === 'job_alert')) {
+    const saved = variant === 'saved_job'
+    const what = saved
+      ? c.detail ? `You saved ${c.detail}. Three more like it are open now:` : 'Three more jobs like the one you saved are open now:'
+      : c.detail ? `New for your alert, ${c.detail}:` : 'New for your job alert:'
+    return {
+      ...base,
+      subject: saved ? (c.detail ? `Three more like ${c.detail}` : 'Three more jobs like the one you saved') : c.detail ? `Three new jobs: ${c.detail}` : 'Three new jobs for your alert',
+      headline: saved ? 'Three more like the one you saved' : 'Three new jobs for your alert',
+      paragraphs: [hello(c), what],
+      jobs: fresh,
+      benefits: [],
+      choices: undefined,
+      choicesPrompt: undefined,
+      ctaLabel: 'Create my free profile',
+      afterJobs: [
+        saved
+          ? 'A free profile shows how well you fit each of these, and what is missing. No résumé needed to start.'
+          : 'Right now your alert matches the words you searched. A free profile makes it match you, ranked by how well you fit. No résumé needed to start.',
+        last ? 'This is our last note.' : '',
+      ].filter(Boolean).join(' '),
+      ...lastNote,
+    }
+  }
+
   if (persona && step === 'nudge1' && !followUp) {
     const plan = planFor(persona.slug)
     return {

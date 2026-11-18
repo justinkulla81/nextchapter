@@ -25,6 +25,19 @@ function profileUrl(email: string, variant: LeadVariant, step: LeadStep, journey
   return `${appUrl()}/api/lead-profile/${makeUnsubscribeToken(email, null)}?${query}`
 }
 
+/** The job ids in the lifecycle emails already sent to this address (their tracked job links), so a reminder shows new ones. */
+async function jobsAlreadySent(email: string): Promise<Set<string>> {
+  // From the address's own (at most two) earlier emails, by their unique (type, sourceRef) key: a few rows, never a scan of the links.
+  const sent = await prisma.crmActivity
+    .findMany({
+      where: { type: 'EMAIL', sourceRef: { in: (['welcome', 'nudge1'] as const).map((s) => lifecycleRef(s, email)) } },
+      select: { outreachTracking: { select: { links: { select: { originalUrl: true } } } } },
+    })
+    .catch(() => [])
+  const urls = sent.flatMap((a) => a.outreachTracking?.links.map((l) => l.originalUrl) ?? [])
+  return new Set(urls.map((u) => /\/api\/lead-job\/[^?]+\?(?:.*&)?job=([a-z0-9]+)/i.exec(u)?.[1]).filter((id): id is string => !!id))
+}
+
 export interface LifecycleSend {
   email: string
   variant: LeadVariant
@@ -51,14 +64,17 @@ export async function sendLifecycleEmail(input: LifecycleSend): Promise<boolean>
   const email = input.email.trim().toLowerCase()
   if (isUndeliverableAddress(email)) return false
 
-  // The application and saved-job welcomes lead with three open jobs like that job, the job-alert welcome with three its search finds
-  // now (job links are made tracked below).
+  // The application and saved-job emails lead with three open jobs like that job, the job-alert emails with three its search finds
+  // now (job links are made tracked below). A reminder leaves out the jobs an earlier email already sent this address.
   const token = makeUnsubscribeToken(email, null)
   const welcome = input.step === 'welcome'
-  const found: LeadJob[] =
-    welcome && (input.variant === 'applied_job' || input.variant === 'saved_job') ? await similarLeadJobs(input.jobId)
-    : welcome && input.variant === 'job_alert' ? await jobsForSearch(input.search)
-    : []
+  const wantsJobs = (input.variant === 'applied_job' && input.step !== 'nudge2') || input.variant === 'saved_job' || input.variant === 'job_alert'
+  const already = wantsJobs && !welcome && !input.test ? await jobsAlreadySent(email) : new Set<string>()
+  const pool: LeadJob[] =
+    !wantsJobs ? []
+    : input.variant === 'job_alert' ? await jobsForSearch(input.search, 3 + already.size)
+    : await similarLeadJobs(input.jobId, 3 + already.size)
+  const found = pool.filter((j) => !already.has(j.id)).slice(0, 3)
   const jobs: LeadEmailJob[] = found.map((j, i) => ({
     title: j.title,
     company: j.company,

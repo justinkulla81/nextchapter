@@ -50,6 +50,6 @@ export async function jobsForSearch(search: { q: string; loc: string; remote: bo
 }
 
 /** similarJobsForLead in the email's shape. */
-export async function similarLeadJobs(jobId: string | null | undefined): Promise<LeadJob[]> {
-  return (await similarJobsForLead(jobId)).map((j) => ({ id: j.id, title: j.title, company: j.companyName, place: placeOf(j) }))
+export async function similarLeadJobs(jobId: string | null | undefined, limit = 3): Promise<LeadJob[]> {
+  return (await similarJobsForLead(jobId, limit)).map((j) => ({ id: j.id, title: j.title, company: j.companyName, place: placeOf(j) }))
 }
