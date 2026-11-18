@@ -281,8 +281,15 @@ export function inBackground(task: () => Promise<void>): void {
 const LEASE_HOLDER = `${process.pid}-${Math.random().toString(36).slice(2, 10)}`
 /** How long a claimed refresh is left to its instance: a whole-board read and its snapshot write take about a minute. */
 export const REFRESH_LEASE_MS = 5 * 60_000
-/** How far past its usual age a snapshot is still served while another instance is reading its replacement. */
-export const REFRESH_GRACE_MS = 15 * 60_000
+/**
+ * How far past its usual age a snapshot is still served while another instance is reading its replacement. It was 15 minutes, which
+ * only covered a snapshot that had just gone stale. After a quiet spell the last snapshot is hours old (20 h on 2026-11-18, the board
+ * unchanged overnight), so every instance that lost the lease found it too old, read the whole table anyway, and the lease saved
+ * nothing: 2-3 instances read the search facts (~690k rows each) in the same second at every reload. An instance that loses the lease
+ * now keeps serving the last snapshot, up to a day old, and takes the new one at its next refresh (minutes later, once the lease
+ * holder has written it). Rows in it that closed since are dropped on read where the caller checks liveness (stillLive).
+ */
+export const REFRESH_GRACE_MS = 24 * 60 * 60_000
 
 /**
  * Claims the database read that replaces a stale snapshot of `kind`, so one instance reads and the rest wait for its snapshot. When a

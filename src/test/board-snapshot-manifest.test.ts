@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/prisma', () => ({ prisma: {} }))
 
-import { isOtherBuild, readManifest, snapshotUsable, writeSnapshot, SHARED_ACROSS_BUILDS, SNAPSHOT_SHAPES, type SnapshotManifest } from '@/lib/jobs/board-snapshot'
+import { isOtherBuild, readManifest, snapshotUsable, writeSnapshot, REFRESH_GRACE_MS, SHARED_ACROSS_BUILDS, SNAPSHOT_SHAPES, type SnapshotManifest } from '@/lib/jobs/board-snapshot'
 
 const MIN = 60_000
 const NOW = Date.UTC(2026, 10, 9, 18, 0)
@@ -167,5 +167,21 @@ describe('snapshotUsable', () => {
   it('treats another build like this one when no separate limit is given (the raw search facts)', () => {
     expect(use(manifest({ at: NOW - 3 * 60 * MIN }), 'fp1')).toBe(true)
     expect(use(manifest({ at: NOW - 3 * 60 * MIN }), 'fp2')).toBe(false)
+  })
+})
+
+describe('an instance that lost the refresh lease', () => {
+  // 2026-11-18: the last search-facts snapshot was 20 h old after a quiet night. With a 15-minute grace every instance that lost the
+  // lease found it too old and read the whole table anyway (2-3 reads of ~690k rows in the same second).
+  it('keeps serving a snapshot hours past its fresh window while the lease holder reads', () => {
+    const old = manifest({ at: NOW - 20 * 60 * MIN, fingerprint: 'fp-old' })
+    const freshMs = 2 * 60 * MIN
+    expect(snapshotUsable(old, 'fp-new', { freshMs, now: NOW })).toBe(false)
+    expect(snapshotUsable(old, 'fp-new', { freshMs: freshMs + REFRESH_GRACE_MS, now: NOW })).toBe(true)
+  })
+
+  it('still reads the database past a day', () => {
+    const ancient = manifest({ at: NOW - 30 * 60 * MIN * 2, fingerprint: 'fp-old' })
+    expect(snapshotUsable(ancient, 'fp-new', { freshMs: 2 * 60 * MIN + REFRESH_GRACE_MS, now: NOW })).toBe(false)
   })
 })

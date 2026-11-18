@@ -200,8 +200,10 @@ async function firstJobSocs(opts: { holdingCopy?: boolean } = {}): Promise<{ at:
         const again = await snapshotJobSocs()
         if (again) return again
       }
-      // Another instance is already reading the replacement: keep serving the last snapshot a little longer (board-snapshot.ts).
-      if (!(await claimSnapshotRefresh('occupations'))) {
+      // Another instance is already reading the replacement: keep serving the last snapshot until it is stored (board-snapshot.ts).
+      // A ten-minute lease: a cold read of the occupations is ~29 pages and has taken over six minutes, longer than the default five,
+      // and a lease that ran out mid-read let a second instance start the same read.
+      if (!(await claimSnapshotRefresh('occupations', 10 * 60_000))) {
         const late = await snapshotJobSocs(REFRESH_GRACE_MS)
         if (late) return late
       }
