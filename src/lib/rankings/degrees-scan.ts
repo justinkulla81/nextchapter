@@ -41,17 +41,19 @@ function stageSql() {
   return Prisma.sql`(CASE ${Prisma.join(when, ' ')} END)`
 }
 
-/** Openings and posted pay by education level, by field of study, and by field of study and career stage. One pass over the board. */
+/** Openings and posted pay by education level, by field of study, by field and career stage, and by state and field. One pass over the board. */
 export async function loadGroupStats(): Promise<GroupStat[]> {
-  const rows = await longRead((tx) => tx.$queryRaw<{ gl: number; gs: number; lvl: string | null; fld: string | null; stage: string | null; n: number; paid: number; pay_med: number | null }[]>`
-    SELECT GROUPING(m.lvl)::int AS gl, GROUPING(s.stage)::int AS gs, m.lvl, m.fld, s.stage, count(*)::int AS n, count(*) FILTER (WHERE ${PAID})::int AS paid,
+  const rows = await longRead((tx) => tx.$queryRaw<{ gl: number; gs: number; gst: number; lvl: string | null; fld: string | null; stage: string | null; st: string | null; n: number; paid: number; pay_med: number | null }[]>`
+    SELECT GROUPING(m.lvl)::int AS gl, GROUPING(s.stage)::int AS gs, GROUPING("locationState")::int AS gst, m.lvl, m.fld, s.stage, "locationState" AS st,
+      count(*)::int AS n, count(*) FILTER (WHERE ${PAID})::int AS paid,
       (percentile_cont(0.5) WITHIN GROUP (ORDER BY ${MID_PAY}) FILTER (WHERE ${PAID}))::float AS pay_med
     FROM "ExclusiveJobPosting" ${mapping()} CROSS JOIN LATERAL (SELECT ${stageSql()}::text AS stage) s ${LIVE}
-    GROUP BY GROUPING SETS ((m.lvl), (m.fld), (m.fld, s.stage))`)
+    GROUP BY GROUPING SETS ((m.lvl), (m.fld), (m.fld, s.stage), ("locationState", m.fld))`)
   return rows.flatMap((r): GroupStat[] => {
     if (r.gl === 0 && r.lvl) return [{ kind: 'level', key: r.lvl, n: r.n, paid: r.paid, payMed: r.pay_med }]
-    if (r.gl === 1 && r.gs === 1 && r.fld) return [{ kind: 'field', key: r.fld, n: r.n, paid: r.paid, payMed: r.pay_med }]
+    if (r.gl === 1 && r.gs === 1 && r.gst === 1 && r.fld) return [{ kind: 'field', key: r.fld, n: r.n, paid: r.paid, payMed: r.pay_med }]
     if (r.gl === 1 && r.gs === 0 && r.fld && r.stage) return [{ kind: 'stage', key: `${r.fld}|${r.stage}`, n: r.n, paid: r.paid, payMed: r.pay_med }]
+    if (r.gl === 1 && r.gst === 0 && r.fld && r.st) return [{ kind: 'statefield', key: `${r.st}|${r.fld}`, n: r.n, paid: r.paid, payMed: r.pay_med }]
     return []
   })
 }

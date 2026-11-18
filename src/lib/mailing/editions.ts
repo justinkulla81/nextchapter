@@ -221,9 +221,14 @@ async function sendOne(
     unsubscribeUrl,
   })
   const audience = audienceForEdition(edition)
+  // A layoff outreach email is a one-to-one note, not an update: no "NextChapter · Update" line under it (owner, 2026-11-18; the line made
+  // it read as a newsletter, and Gmail filed it under Promotions).
+  const note = edition.campaign === LAYOFF_OUTREACH_CAMPAIGN
+  const withTagHtml = (h: string) => (note ? h : withAudienceHtml(audience, h))
+  const withTagText = (t: string) => (note ? t : withAudienceText(audience, t))
   // Our own links carry this recipient's id so a visit names who it was sent to (not for a test send).
-  const html = to.recipientId ? tagMailingLinks(withAudienceHtml(audience, rendered.html), to.recipientId, 'html') : withAudienceHtml(audience, rendered.html)
-  const text = to.recipientId ? tagMailingLinks(withAudienceText(audience, rendered.text), to.recipientId, 'text') : withAudienceText(audience, rendered.text)
+  const html = to.recipientId ? tagMailingLinks(withTagHtml(rendered.html), to.recipientId, 'html') : withTagHtml(rendered.html)
+  const text = to.recipientId ? tagMailingLinks(withTagText(rendered.text), to.recipientId, 'text') : withTagText(rendered.text)
   const fromName = edition.lists.length === 1 ? edition.lists[0].list.defaultFromName || settings.fromName : settings.fromName
   return resend.emails.send({
     // Cold recipients send from their own subdomain when one is set (Mailing settings), so a poor reputation there stays there.

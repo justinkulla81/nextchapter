@@ -24,6 +24,7 @@ const ROLES: InstitutionUserRole[] = [
   'COACH',
   'FACULTY',
   'EXEC_ED',
+  'ACADEMIC_AFFAIRS',
   'ENTREPRENEURSHIP',
 ]
 

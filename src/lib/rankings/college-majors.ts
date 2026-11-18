@@ -5,8 +5,8 @@
 import { MAJORS, majorChange, type Major } from '@/lib/rankings/majors'
 import type { DegreeFieldFigure, DegreeFieldFigures } from '@/lib/rankings/degrees-specs'
 
-/** [CIP series, bachelor's, master's, doctoral], most degrees first. */
-export type RawCollegeMajor = [string, number, number, number]
+/** [CIP series, bachelor's, master's, doctoral, bachelor's and above in the base year (2020-21)], most degrees first. */
+export type RawCollegeMajor = [string, number, number, number, number?]
 
 export interface CollegeMajorRow {
   major: Major
@@ -15,6 +15,9 @@ export interface CollegeMajorRow {
   bach: number
   master: number
   doctoral: number
+  /** Degrees here in the base year (2020-21), and the change since, or null when the base is under 10. */
+  total0: number
+  hereChange: number | null
   /** This college's share of all US degrees in the major. */
   shareOfUs: number
   /** Three-year change in US degrees in the major, or null when too small to read. */
@@ -34,12 +37,12 @@ const BY_CIP = new Map(MAJORS.map((m) => [m.cip, m]))
 
 export function collegeMajorsView(raw: RawCollegeMajor[], figures: DegreeFieldFigures | null): CollegeMajorsView {
   const byField = new Map((figures?.fields ?? []).map((f) => [f.field, f]))
-  const rows = raw.flatMap(([cip, bach, master, doctoral]): CollegeMajorRow[] => {
+  const rows = raw.flatMap(([cip, bach, master, doctoral, total0 = 0]): CollegeMajorRow[] => {
     const major = BY_CIP.get(cip)
     const total = bach + master + doctoral
     if (!major || total <= 0) return []
     return [{
-      major, total, bach, master, doctoral, shareOfUs: major.total > 0 ? total / major.total : 0, usChange: majorChange(major),
+      major, total, bach, master, doctoral, total0, hereChange: total0 >= 10 ? ((total - total0) / total0) * 100 : null, shareOfUs: major.total > 0 ? total / major.total : 0, usChange: majorChange(major),
       field: major.field ? byField.get(major.field) ?? null : null,
     }]
   })

@@ -20,6 +20,7 @@ import { PartnerOverview, PartnerShared } from './screens-partner'
 import { HubEmployerJobs, HubGroupJobs, HubRegionJobs } from './screens-hub-jobs'
 import { HubPartnerViews } from './screens-hub-partners'
 import { HubEcosystem } from './screens-hub-ecosystem'
+import { AcademicPeers, AcademicPrograms, AcademicState } from './screens-academic'
 import { CompanyOverview, CompanySupport, CompanyGrants, CompanyTraining, CompanyColleges, CompanyWorkforce } from './screens-company'
 import { readComms } from '@/lib/census/comms-settings'
 import { CommsToggles, OrgKeysPanel } from '@/components/census/OrgKeysPanel'
@@ -1714,6 +1715,9 @@ async function StaffConnectScreen(props: ScreenProps) {
 
 export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'candidate:home': CandidateHome,
+  'academic:home': AcademicPrograms,
+  'academic:state': AcademicState,
+  'academic:peers': AcademicPeers,
   'candidate:groups': CandidateGroups,
   'candidate:mentors': CandidateMentoring,
   'alumni:home': AlumniHome,

@@ -75,8 +75,12 @@ export function htmlToText(html: string): string {
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<li>/gi, '\n• ')
     .replace(/<\/(p|div|ul|ol)>/gi, '\n\n')
-    .replace(/<a href="([^"]*)">([\s\S]*?)<\/a>/gi, (_m, href: string, text: string) =>
-      text.replace(/<[^>]+>/g, '').trim() === href ? href : `${text} (${href})`)
+    .replace(/<a href="([^"]*)">([\s\S]*?)<\/a>/gi, (_m, href: string, text: string) => {
+      const shown = text.replace(/<[^>]+>/g, '').trim()
+      // A link shown as its own address without the tags (the layoff notes do this) is the address once, not twice.
+      const decoded = href.replace(/&amp;/g, '&')
+      return shown === href || (/^https?:\/\//.test(shown) && decoded.startsWith(shown)) ? decoded : `${text} (${href})`
+    })
     .replace(/<[^>]+>/g, '')
     .replace(/&nbsp;/g, ' ')
     .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&')

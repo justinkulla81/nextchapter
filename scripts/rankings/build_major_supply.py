@@ -11,7 +11,9 @@ Inputs (free, nces.ed.gov/ipeds/datacenter/data/<name>.zip), unzipped into one f
 Counts first majors only (MAJORNUM 1), so a double major is one degree, and only degrees at bachelor's level and above
 (AWLEVEL 5 bachelor's, 7 master's, 17/18/19 doctoral), plus associate degrees (3) kept apart for reference.
 Also writes src/lib/rankings/data/college-majors/<ST>.json: each college's majors (up to 40, most degrees first) as
-[cip series, bachelor's, master's, doctoral], for the majors section of the college pages.
+[cip series, bachelor's, master's, doctoral, bachelor's and above in the base year], for the college pages and the portal's
+Academic Affairs workspace; and src/lib/rankings/data/college-index.json: every college with degrees at bachelor's level and
+above as [name, state, control, degrees, base-year degrees, {degree field: degrees}], for its state's supply and its peers.
 Run: python3 -I scripts/rankings/build_major_supply.py <folder>
 """
 import csv, collections, json, os, re, sys
@@ -75,6 +77,7 @@ for r in rows('CIPCode2020.csv'):
         fam_titles[code] = clean(r['CIPTitle']).title().replace(' And ', ' and ').replace(' Of ', ' of ').replace(' In ', ' in ')
 
 hd = {r['UNITID']: (r['INSTNM'].strip(), r['STABBR'].strip()) for r in rows('HD2024.csv')}
+control = {r['UNITID']: {'1': 'Public', '2': 'Private nonprofit', '3': 'Private for-profit'}.get(r['CONTROL'].strip()) for r in rows('HD2024.csv')}
 
 
 def load(name):
@@ -100,7 +103,7 @@ def load(name):
 
 
 now, schools, per_college = load('C2024_a.csv')
-base, _, _ = load('c2021_a.csv')
+base, _, per_college0 = load('c2021_a.csv')
 
 majors = {}
 for s in sorted(now):
@@ -135,12 +138,30 @@ by_state = collections.defaultdict(dict)
 for u, ms in per_college.items():
     if u not in hd:
         continue
-    rows_ = sorted(((s_, c['b'], c['m'], c['d']) for s_, c in ms.items() if s_ in majors), key=lambda x: (-(x[1] + x[2] + x[3]), x[0]))[:40]
+    then = per_college0.get(u, {})
+    rows_ = sorted(((s_, c['b'], c['m'], c['d'], sum(then.get(s_, {}).get(l, 0) for l in 'bmd')) for s_, c in ms.items() if s_ in majors), key=lambda x: (-(x[1] + x[2] + x[3]), x[0]))[:40]
     if rows_:
         by_state[hd[u][1]][u] = [list(x) for x in rows_]
 for st, d in by_state.items():
     with open(os.path.join(cdir, f'{st}.json'), 'w') as f:
         json.dump(d, f, separators=(',', ':'))
+index = {}
+for u, ms in per_college.items():
+    if u not in hd:
+        continue
+    tot = sum(c['b'] + c['m'] + c['d'] for c in ms.values())
+    if tot <= 0:
+        continue
+    tot0 = sum(sum(c.get(l, 0) for l in 'bmd') for c in per_college0.get(u, {}).values())
+    mix = collections.Counter()
+    for s_, c in ms.items():
+        f = majors.get(s_, {}).get('fld')
+        if f:
+            mix[f] += c['b'] + c['m'] + c['d']
+    index[u] = [hd[u][0], hd[u][1], control.get(u), tot, tot0, dict(mix)]
+with open(os.path.join(os.path.dirname(OUT), 'college-index.json'), 'w') as f:
+    json.dump(index, f, separators=(',', ':'), ensure_ascii=False)
+print('college index', len(index), 'bytes', os.path.getsize(os.path.join(os.path.dirname(OUT), 'college-index.json')))
 print('college files', len(by_state), 'colleges', sum(len(d) for d in by_state.values()), 'bytes', sum(os.path.getsize(os.path.join(cdir, x)) for x in os.listdir(cdir)))
 tot = sum(m['b'] for m in majors.values())
 print('majors', len(majors), "bachelor's", tot, 'bytes', os.path.getsize(OUT))

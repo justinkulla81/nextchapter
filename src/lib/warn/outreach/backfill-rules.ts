@@ -67,21 +67,11 @@ export function assignDays(editions: { id: string; recipients: number }[], days 
   return out
 }
 
-/** The two headline styles each day tests, against each other within that day (so the day of the week is the same for both). */
-export const HEADLINE_DAYS: readonly (readonly [string, string])[] = [['n1', 'q1'], ['loc', 'pg'], ['aud', 'quick'], ['plain', 'num2']]
-
-/** Within one day, alternate the two arms by audience so each audience is split evenly. */
-export function assignArms(items: { id: string; audience: string }[], day: number): Map<string, string> {
-  const pair = HEADLINE_DAYS[day % HEADLINE_DAYS.length]
-  const seen = new Map<string, number>()
-  const out = new Map<string, string>()
-  for (const it of [...items].sort((a, b) => a.audience.localeCompare(b.audience) || a.id.localeCompare(b.id))) {
-    const i = seen.get(it.audience) ?? 0
-    out.set(it.id, pair[i % 2])
-    seen.set(it.audience, i + 1)
-  }
-  return out
-}
+/**
+ * The one subject every backfill email gets: the audience's own line, the same one the live emails use (owner, 2026-11-18). The eight-style
+ * headline test it replaces put 5 to 15 people on each style; the ask is the one thing tested now, so the subject is held still.
+ */
+export const BACKFILL_HEADLINE = 'aud' as const
 
 /** The nine-o'clock-Eastern instants of `count` consecutive days from `monday`, weekends included (owner, 2026-11-13: the daily caps limit sends, so every day sends). */
 export function sendDayTimes(monday: Date, count: number): Date[] {

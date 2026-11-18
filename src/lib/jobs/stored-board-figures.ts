@@ -19,6 +19,7 @@ export type BoardFigureKey =
   | 'ranking-places'
   | 'ranking-method'
   | 'degree-fields'
+  | `degree-fields:${string}`
   | `ranking-awards:${number}`
   | `ranking:${string}`
   | 'segment-index'
