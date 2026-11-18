@@ -396,16 +396,16 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
   // an alum reaches the list. The nightly sync leaves sample rows alone because demo colleges are skipped.
   const founders = memberRows.filter((m, i) => m.affiliation === 'ALUM' && !dnc(i) && (m.classYear ?? 0) < now.getUTCFullYear() - 6 && i % 7 === 3).slice(0, 4)
   const VENTURES = [
-    { status: 'STARTED', source: 'SHARED', ventureName: 'Allegheny Grid Analytics', ventureStage: 'grow', days: 40 },
-    { status: 'STARTED', source: 'OUTCOME', ventureName: 'Northside Learning Co.', ventureStage: null, days: 12 },
-    { status: 'CONSIDERING', source: 'SHARED', ventureName: 'Riverfront Robotics Supply', ventureStage: 'validate', days: 20 },
-    { status: 'CONSIDERING', source: 'CHECK_IN', ventureName: null, ventureStage: null, days: 5 },
+    { status: 'STARTED', source: 'SHARED', ventureName: 'Allegheny Grid Analytics', ventureStage: 'grow', days: 40, fundingRound: 'series_a', fundingTotal: '5m_20m', exitKind: null, exitAcquirer: null, exitYear: null },
+    { status: 'STARTED', source: 'SHARED', ventureName: 'Northside Learning Co.', ventureStage: null, days: 12, fundingRound: 'seed', fundingTotal: '1m_5m', exitKind: 'acquired', exitAcquirer: 'a national education company', exitYear: 2026 },
+    { status: 'CONSIDERING', source: 'SHARED', ventureName: 'Riverfront Robotics Supply', ventureStage: 'validate', days: 20, fundingRound: 'pre_seed', fundingTotal: 'under_250k', exitKind: null, exitAcquirer: null, exitYear: null },
+    { status: 'CONSIDERING', source: 'CHECK_IN', ventureName: null, ventureStage: null, days: 5, fundingRound: null, fundingTotal: null, exitKind: null, exitAcquirer: null, exitYear: null },
   ] as const
   await db.ventureFlag.createMany({
     data: founders.map((m, k) => {
       const v = VENTURES[k]
       const at = new Date(now.getTime() - v.days * DAY)
-      return { institutionId, memberId: m.id!, status: v.status, source: v.source, ventureName: v.ventureName, ventureStage: v.ventureStage, firstFlaggedAt: at, startedAt: v.status === 'STARTED' ? at : null, isSampleData: true }
+      return { institutionId, memberId: m.id!, status: v.status, source: v.source, ventureName: v.ventureName, ventureStage: v.ventureStage, fundingRound: v.fundingRound, fundingTotal: v.fundingTotal, exitKind: v.exitKind, exitAcquirer: v.exitAcquirer, exitYear: v.exitYear, reportedAt: v.fundingRound ? at : null, firstFlaggedAt: at, startedAt: v.status === 'STARTED' ? at : null, isSampleData: true }
     }),
   })
 

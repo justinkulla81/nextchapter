@@ -79,7 +79,7 @@ import { AlumniData } from './screens-alumni-data'
 import { DevelopmentGrants } from './screens-grants'
 import { SkillsBridgeSection, StaffSkillsBridge } from './screens-bridge'
 import { AlumniInNews, ResearchAndPatents, TeachingGroups } from './screens-campus'
-import { VentureShareCard, VenturesFounders } from './screens-ventures'
+import { VentureShareCard, VenturesFounders, YourVentureCard } from './screens-ventures'
 import { InternshipsScreen } from './screens-internships'
 import { AlumniMentors, CandidateJobs, CareerEmployers, CareerStudents, EmployerDossiersWithIntros, EmployerPage, IntroRequestsCard } from './screens-network'
 import { counselors, searchRoster } from '@/lib/higher-ed/caseload'
@@ -310,6 +310,7 @@ async function CandidateHome({ ctx, base }: ScreenProps) {
       <CareerStatusCard slug={ctx.institution.slug} collegeName={ctx.institution.name} flag={openFlag?.state === 'CLEARED' ? null : (openFlag?.state ?? null)} />
       <IntroRequestsCard ctx={ctx} />
       {kind === 'college' && <VentureShareCard ctx={ctx} base={base} />}
+      {kind === 'college' && <YourVentureCard ctx={ctx} base={base} />}
       <MyProgramCard ctx={ctx} />
       <NewsCard ctx={ctx} />
       <StagePanel ctx={ctx} />

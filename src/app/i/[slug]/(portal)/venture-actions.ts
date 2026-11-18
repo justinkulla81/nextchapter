@@ -8,6 +8,7 @@ import { requireWorkspace } from '@/lib/higher-ed/access'
 import type { AccessToken } from '@/lib/higher-ed/workspaces'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { setMyConsent } from './member-actions'
+import { parseVentureReport, saveVentureReport } from '@/lib/higher-ed/ventures'
 
 type Result = { error?: string; ok?: boolean; message?: string }
 const CENTER: AccessToken[] = ['ENTREPRENEURSHIP', 'INSTITUTION_ADMIN']
@@ -30,4 +31,18 @@ export async function shareVenture(slug: string, share: boolean): Promise<Result
   const r = await setMyConsent(slug, 'SHARE_VENTURE', share)
   if (r.error) return { error: r.error }
   return { ok: true }
+}
+
+// The alum's "Your company" form on their Home: name, website, funding to date and an exit. Saving it shares the venture with the
+// entrepreneurship center (SHARE_VENTURE on), which every office's Founders list then shows.
+export async function reportMyVenture(slug: string, _prev: Result | undefined, formData: FormData): Promise<Result> {
+  const r = parseVentureReport(formData)
+  if ('error' in r) return { error: r.error }
+  const ctx = await requireWorkspace(slug, 'candidate')
+  if (!ctx.memberId) return { error: 'This is a preview: there’s no member record behind it, so nothing was saved.' }
+  const consent = await setMyConsent(slug, 'SHARE_VENTURE', true)
+  if (consent.error) return { error: consent.error }
+  await saveVentureReport(ctx.institution.id, ctx.memberId, r)
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true, message: 'Saved. The entrepreneurship center sees it, and you can update it any time.' }
 }

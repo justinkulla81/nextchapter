@@ -5,8 +5,9 @@ import { Rocket } from 'lucide-react'
 import type { WorkspaceContext } from '@/lib/higher-ed/access'
 import { prisma } from '@/lib/prisma'
 import { readProfile } from '@/lib/higher-ed/profile'
-import { ventureFlags, ventureFromProfile, type VentureRow } from '@/lib/higher-ed/ventures'
-import { markVentureContacted, shareVenture } from '@/app/i/[slug]/(portal)/venture-actions'
+import { EXIT_KINDS, FUNDING_ROUNDS, FUNDING_TOTALS, ventureFlags, ventureFromProfile, type VentureRow } from '@/lib/higher-ed/ventures'
+import { markVentureContacted, reportMyVenture, shareVenture } from '@/app/i/[slug]/(portal)/venture-actions'
+import { VentureReportForm } from './VentureReportForm'
 import { EmptyState } from '@/components/ui/empty-state'
 import { ActionButton } from './CommunityForms'
 
@@ -46,8 +47,21 @@ export async function VenturesFounders({ ctx }: Props) {
                   {r.ventureName ? <span className="font-normal"> · {r.ventureName}</span> : null}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {[r.stage, ...r.details].filter(Boolean).join(' · ') || 'No venture details shared'}
+                  {[r.stage, ...r.details].filter(Boolean).join(' · ') || (r.funding.length ? null : 'No venture details shared')}
                 </p>
+                {(r.funding.length > 0 || r.website) && (
+                  <p className="text-sm">
+                    {r.funding.join(' · ')}
+                    {r.website && (
+                      <>
+                        {r.funding.length ? ' · ' : ''}
+                        <a href={r.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                          Website
+                        </a>
+                      </>
+                    )}
+                  </p>
+                )}
                 <p className="text-xs text-muted-foreground">
                   {SOURCE[r.source]} · {r.status === 'STARTED' && r.startedAt ? `started ${dateFmt.format(r.startedAt)}` : `since ${dateFmt.format(r.firstFlaggedAt)}`}
                   {r.contactedAt ? ` · contacted ${dateFmt.format(r.contactedAt)}` : ''}
@@ -74,8 +88,8 @@ export async function VenturesFounders({ ctx }: Props) {
     <div className="max-w-4xl space-y-8">
       <p className="max-w-3xl text-sm text-muted-foreground">
         Alumni starting or buying a business. {center} reaches out; every office sees the same list, so no one asks twice. An alum is here only if
-        they told {ctx.institution.name} in a check-in, switched on sharing their venture, or shared a new job as a founder or owner. Updated nightly,
-        and at once when an alum answers or changes a setting. Runway, hours and money are never shown.
+        they told {ctx.institution.name} in a check-in, switched on sharing their venture, or shared a new job as a founder or owner. Funding and exits are what
+        the alum reports. Updated nightly, and at once when an alum answers or changes a setting. Runway, hours and personal money are never shown.
       </p>
       {rows.length === 0 ? (
         <EmptyState icon={Rocket} title="No founders yet" description="Alumni appear here when they say they are starting a company in a check-in, or share their venture." />
@@ -120,5 +134,56 @@ export async function VentureShareCard({ ctx }: Props) {
         <ActionButton label="Not now" variant="ghost" done="Okay. You can share it later under Privacy." run={shareVenture.bind(null, ctx.institution.slug, false)} />
       </div>
     </section>
+  )
+}
+
+// On the alum's Home: their company as they share it (name, website, funding, exit). Open when they already share a venture;
+// otherwise one folded line any alum can open ("Started a company? Tell the Swartz Center").
+export async function YourVentureCard({ ctx }: Props) {
+  if (!ctx.memberId) return null
+  const [inst, flag, consent] = await Promise.all([
+    prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { profile: true } }),
+    prisma.ventureFlag.findFirst({ where: { memberId: ctx.memberId }, select: { ventureName: true, website: true, fundingRound: true, fundingTotal: true, exitKind: true, exitAcquirer: true, exitYear: true } }),
+    prisma.institutionConsent.findFirst({ where: { memberId: ctx.memberId, scope: 'SHARE_VENTURE' }, orderBy: { changedAt: 'desc' }, select: { granted: true } }),
+  ])
+  const center = readProfile(inst.profile).college?.entrepreneurshipCenter
+  if (!center) return null
+  const shared = consent?.granted === true
+  const d = {
+    ventureName: (shared && flag?.ventureName) || '',
+    website: (shared && flag?.website) || '',
+    fundingRound: (shared && flag?.fundingRound) || '',
+    fundingTotal: (shared && flag?.fundingTotal) || '',
+    exitKind: (shared && flag?.exitKind) || '',
+    exitAcquirer: (shared && flag?.exitAcquirer) || '',
+    exitYear: shared && flag?.exitYear ? String(flag.exitYear) : '',
+  }
+  const form = (
+    <VentureReportForm action={reportMyVenture.bind(null, ctx.institution.slug)} center={center.name} defaults={d} rounds={FUNDING_ROUNDS} totals={FUNDING_TOTALS} exits={EXIT_KINDS} />
+  )
+  const intro = (
+    <p className="text-sm text-muted-foreground">
+      {center.name} supports alumni founders with office hours, programs, investors and fellow alumni as customers. What you share here is seen by {ctx.institution.name}’s
+      offices, and you can stop sharing any time under Privacy.
+    </p>
+  )
+  if (shared && flag)
+    return (
+      <section aria-labelledby="your-venture" className="space-y-3 rounded-lg border border-border bg-card p-4">
+        <h2 id="your-venture" className="text-base font-semibold">
+          Your company
+        </h2>
+        {intro}
+        {form}
+      </section>
+    )
+  return (
+    <details className="rounded-lg border border-border bg-card p-4">
+      <summary className="cursor-pointer text-sm font-semibold">Started or run a company? Tell {center.name}</summary>
+      <div className="mt-3 space-y-3">
+        {intro}
+        {form}
+      </div>
+    </details>
   )
 }

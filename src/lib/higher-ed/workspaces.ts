@@ -234,8 +234,8 @@ export const WORKSPACES: WorkspaceConfig[] = [
     label: 'Entrepreneurship',
     icon: 'Rocket',
     release: 'V1',
-    // The center's own staff act on it; the other offices read the same list (one view of an alum's venture for every office).
-    requiredRoles: ['ENTREPRENEURSHIP', 'INSTITUTION_ADMIN', 'ALUMNI_RELATIONS', 'DEVELOPMENT', 'CAREER_SERVICES', 'EXEC_ED', 'VIEWER:ventures'],
+    // The center's own staff act on it; the other offices and faculty read the same list (one view of an alum's venture for every office).
+    requiredRoles: ['ENTREPRENEURSHIP', 'INSTITUTION_ADMIN', 'ALUMNI_RELATIONS', 'DEVELOPMENT', 'CAREER_SERVICES', 'EXEC_ED', 'FACULTY', 'VIEWER:ventures'],
     homePath: 'ventures',
     minTier: 'INSTITUTION',
     orgKind: 'college',
