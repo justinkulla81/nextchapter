@@ -45,7 +45,15 @@ A workforce organization's training catalog: universities and colleges, third-pa
 - Table `FundingPartnerCommitment` (`prisma/manual/funding-partner-commitment.sql`, applied 2026-11-18).
 
 ## Academic Affairs (2026-11-18)
-A college's provost and academic affairs office (role `ACADEMIC_AFFAIRS`, or a viewer seat on `academic`): workspace key `academic`, **Institution tier only** (`minTier: 'INSTITUTION'`; admins on lower tiers see it in "what a higher tier adds"). Three tabs:
+A college's provost and academic affairs office (role `ACADEMIC_AFFAIRS`, or a viewer seat on `academic`): workspace key `academic`, **Institution tier only** (`minTier: 'INSTITUTION'`; admins on lower tiers see it in "what a higher tier adds"). Owner, 2026-11-18: lead with what the college cannot see from its own records; its federal figures are reference.
+
+**Insights** (counts only, never a named alumnus; groups under 5 read "fewer than 5"):
+- **Alumni at risk** (home): alumni who share where they work (consent) at employers with a layoff filing in the last year or open roles down a fifth or more in four weeks (weekly `CompanySignal`), with their most common roles there; and alumni at employers hiring more. Links to Alumni Relations › Layoff alerts to reach them.
+- **Skills gaps:** for each kind of work where at least 5 alumni share their profile, the skills its postings ask for most (the daily skills-market snapshot) against the share of those alumni whose résumé shows each; rising and AI-related skills flagged.
+- **Employers hiring nearby:** employers with the most open professional roles in the college's counties (profile region), ranked by roles in the fields its majors lead to: entry and early-career roles, median posted pay, four-week hiring trend, layoffs filed. The college itself is left out.
+- **Retraining demand:** alumni in roles with high AI exposure (Anthropic Economic Index, by title) or at flagged employers, and the skills that would move them, each with the college's own programs and courses that teach it, or "No program yet".
+
+**Reference** (the college's own federal figures):
 - **Programs vs. market:** every major the college awards (up to 40, IPEDS 2023-24 against 2020-21), its share of US graduates, the field it leads to and whether that field has more open jobs per new graduate than average, US pay early, mid and late in a career, and the month-on-month change in the field's open jobs. One primary action: download the table as CSV (`/i/<slug>/export/programs`, plan feature `exports`).
 - **Your state:** the college's degrees by field against every college in its state, and the state's open jobs, jobs per 100 graduates and median pay by field.
 - **Peers:** same control, a half to double the degrees a year, in-state first; ranked by the share of graduates in above-average fields.

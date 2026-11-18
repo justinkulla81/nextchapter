@@ -285,10 +285,15 @@ export const WORKSPACES: WorkspaceConfig[] = [
     homePath: 'academic',
     minTier: 'INSTITUTION',
     orgKind: 'college',
+    // Insights first: what the college cannot see from its own records (owner, 2026-11-18). Its own federal figures follow as reference.
     tabs: [
-      { key: 'home', label: 'Programs vs. market', comingIn: null },
-      { key: 'state', label: 'Your state', comingIn: null },
-      { key: 'peers', label: 'Peers', comingIn: null },
+      { key: 'home', label: 'Alumni at risk', comingIn: null, group: 'Insights' },
+      { key: 'skills', label: 'Skills gaps', comingIn: null, group: 'Insights' },
+      { key: 'employers', label: 'Employers hiring nearby', comingIn: null, group: 'Insights' },
+      { key: 'retraining', label: 'Retraining demand', comingIn: null, group: 'Insights' },
+      { key: 'programs', label: 'Programs vs. market', comingIn: null, group: 'Reference' },
+      { key: 'state', label: 'Your state', comingIn: null, group: 'Reference' },
+      { key: 'peers', label: 'Peers', comingIn: null, group: 'Reference' },
     ],
   },
   {

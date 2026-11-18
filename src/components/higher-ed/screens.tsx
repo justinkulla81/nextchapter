@@ -21,6 +21,7 @@ import { HubEmployerJobs, HubGroupJobs, HubRegionJobs } from './screens-hub-jobs
 import { HubPartnerViews } from './screens-hub-partners'
 import { HubEcosystem } from './screens-hub-ecosystem'
 import { AcademicPeers, AcademicPrograms, AcademicState } from './screens-academic'
+import { AcademicAtRisk, AcademicEmployers, AcademicRetraining, AcademicSkills } from './screens-academic-insights'
 import { CompanyOverview, CompanySupport, CompanyGrants, CompanyTraining, CompanyColleges, CompanyWorkforce } from './screens-company'
 import { readComms } from '@/lib/census/comms-settings'
 import { CommsToggles, OrgKeysPanel } from '@/components/census/OrgKeysPanel'
@@ -1739,7 +1740,11 @@ async function StaffConnectScreen(props: ScreenProps) {
 
 export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'candidate:home': CandidateHome,
-  'academic:home': AcademicPrograms,
+  'academic:home': AcademicAtRisk,
+  'academic:skills': AcademicSkills,
+  'academic:employers': AcademicEmployers,
+  'academic:retraining': AcademicRetraining,
+  'academic:programs': AcademicPrograms,
   'academic:state': AcademicState,
   'academic:peers': AcademicPeers,
   'candidate:groups': CandidateGroups,
