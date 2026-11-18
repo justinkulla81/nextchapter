@@ -15,7 +15,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     ? await prisma.institution.findFirst({ where: { slug, isDemo: true, isSampleData: true }, select: { id: true, orgType: true } })
     : null
   if (!inst) return NextResponse.redirect(new URL(`${ORG_SUBDOMAINS_ON ? '/demo' : '/demo/workforce'}?link=expired`, request.url), 307)
-  const res = NextResponse.redirect(new URL(orgAppPath(slug, orgHostKindOf(inst.orgType), '/hub'), request.url), 307)
+  const kind = orgHostKindOf(inst.orgType)
+  const res = NextResponse.redirect(new URL(orgAppPath(slug, kind, kind === 'workforce' ? '/hub' : ''), request.url), 307)
   const mine = guestSlugs(request.cookies.get(DEMO_GUEST_COOKIE)?.value)
   res.cookies.set(DEMO_GUEST_COOKIE, guestCookieValue([...mine, slug]), { path: '/', httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', maxAge: DEMO_GUEST_DAYS * 86_400 })
   captureServerEvent(`demo:${slug}`, 'demo_guest_link_opened', { slug, institutionId: inst.id, returning: mine.includes(slug) })
