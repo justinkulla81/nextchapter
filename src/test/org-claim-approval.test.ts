@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const db = vi.hoisted(() => ({ orgClaim: { findUnique: vi.fn(), update: vi.fn() }, orgWorkspace: { findFirst: vi.fn(), update: vi.fn() } }))
+const db = vi.hoisted(() => ({ orgClaim: { findUnique: vi.fn(), update: vi.fn() }, orgWorkspace: { findFirst: vi.fn(), update: vi.fn() }, publicOrgPage: { findMany: vi.fn(async () => [] as { kind: string }[]) } }))
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/prisma', () => ({ prisma: db }))
 const capture = vi.hoisted(() => vi.fn())
@@ -29,6 +29,12 @@ describe('approving a claim', () => {
     expect(provision.provisionFreeWorkspace).toHaveBeenCalledWith({ crmOrganizationId: 'o1', name: 'KentuckianaWorks', orgType: 'GOVERNMENT', claimantEmail: 'pat@board.gov' })
     expect(db.orgClaim.update.mock.calls[0][0]).toMatchObject({ where: { id: 'c1' }, data: { approvedBy: 'owner@example.com' } })
     expect(capture).toHaveBeenCalledWith('org-claim:o1', 'org_claim_approved', expect.objectContaining({ claimId: 'c1', orgType: 'GOVERNMENT' }))
+  })
+  it('opens the economic development workspace for an organization linked to its economic development page', async () => {
+    db.orgClaim.findUnique.mockResolvedValue(claim({ crmOrganization: { name: 'One Louisville', orgTypes: ['NONPROFIT', 'OTHER'] } }))
+    db.publicOrgPage.findMany.mockResolvedValueOnce([{ kind: 'ECON_DEV' }])
+    expect((await approveOrgClaim('c1', 'a')).ok).toBe(true)
+    expect(provision.provisionFreeWorkspace).toHaveBeenCalledWith(expect.objectContaining({ name: 'One Louisville', orgType: 'ECONOMIC_DEVELOPMENT' }))
   })
   it('leaves the claim open when the workspace could not be created, so it can be retried', async () => {
     db.orgClaim.findUnique.mockResolvedValue(claim())
