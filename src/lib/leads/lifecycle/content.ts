@@ -33,6 +33,8 @@ export interface LeadEmailContext {
   jobs?: LeadEmailJob[]
   /** The latest jobs report, for the newsletter welcome: its month, headline, summary and (tracked) link. */
   report?: { month: string; title: string; dek: string; url: string } | null
+  /** The last seven days of layoff notices, for the newsletter reminder, with the (tracked) link to the week's page. */
+  layoffs?: { notices: number; workers: number; states: number; top: { name: string; workers: number; state: string | null }[]; url: string } | null
 }
 
 export interface LeadEmailJob {
@@ -107,6 +109,30 @@ export function leadEmailContent(variant: LeadVariant, step: LeadStep, c: LeadEm
       benefits: [],
       ctaLabel: 'Create my free profile',
       afterJobs: 'If you are job hunting yourself, a free profile tailors all of this to you: every job on the site ranked by how well you fit. No résumé needed to start.',
+    }
+  }
+
+  // The newsletter reminder (a week after the welcome, which showed the report) leads with something new: who filed layoffs in the
+  // last seven days, the "who is cutting" the welcome promised. A quiet week falls through to the reminder as it was.
+  if (variant === 'newsletter' && step === 'nudge1' && !persona && c.layoffs && c.layoffs.top.length > 0) {
+    const n = (x: number) => x.toLocaleString('en-US')
+    const l = c.layoffs
+    const top = l.top.slice(0, 3).map((t) => `${t.name} (${n(t.workers)}${t.state ? `, ${t.state}` : ''})`)
+    return {
+      ...base,
+      subject: `Layoffs this week: ${n(l.workers)} workers`,
+      headline: 'Who is cutting this week',
+      paragraphs: [hello(c), 'A week ago you subscribed to our read on the white-collar job market. Here is who filed layoff notices in the last seven days.'],
+      feature: {
+        kicker: 'Layoffs this week',
+        title: `${n(l.notices)} notices, ${n(l.workers)} workers, ${n(l.states)} ${l.states === 1 ? 'state' : 'states'}`,
+        body: `The largest: ${top.join('; ')}.`,
+        linkLabel: 'See every layoff filed this week',
+        url: l.url,
+      },
+      benefits: [],
+      ctaLabel: 'Create my free profile',
+      afterJobs: 'If you are job hunting yourself, a free profile turns this into your own plan: every job on the site ranked by how well you fit. No résumé needed to start.',
     }
   }
 

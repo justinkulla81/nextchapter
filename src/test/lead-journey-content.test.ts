@@ -122,4 +122,14 @@ describe('lifecycle email journey question', () => {
       expect(leadEmailContent('saved_job', 'nudge2', { firstName: null, detail: 'PM at Acme' }).headline).toBe('How well do you fit?')
     })
   })
+
+  it("leads the newsletter reminder with the week's layoffs, and falls back without them", () => {
+    const layoffs = { notices: 42, workers: 5310, states: 14, top: [{ name: 'Acme', workers: 1200, state: 'Texas' }, { name: 'Beta', workers: 400, state: null }], url: 'https://x.test/w' }
+    const c = leadEmailContent('newsletter', 'nudge1', { firstName: null, detail: null, layoffs })
+    expect(c.subject).toBe('Layoffs this week: 5,310 workers')
+    expect(c.feature).toMatchObject({ title: '42 notices, 5,310 workers, 14 states', body: 'The largest: Acme (1,200, Texas); Beta (400).', url: 'https://x.test/w' })
+    expect(c.ctaLabel).toBe('Create my free profile')
+    expect(leadEmailContent('newsletter', 'nudge1', { firstName: null, detail: null }).headline).toBe('Still looking?')
+    expect(leadEmailContent('newsletter', 'nudge1', { firstName: null, detail: null, journey: 'laid-off', layoffs }).headline).toBe('Your first-week plan')
+  })
 })
