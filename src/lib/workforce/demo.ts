@@ -676,6 +676,7 @@ export async function reseedWorkforceDemo(slug: string, now = new Date()) {
   await prisma.fundingPartnerCommitment.deleteMany({ where: { institutionId: id } })
   await prisma.partnerGroup.deleteMany({ where: { institutionId: id } })
   await prisma.talentCohort.deleteMany({ where: { institutionId: id } })
+  await prisma.partnerReferral.deleteMany({ where: { institutionId: id } })
   await prisma.fundingApplication.deleteMany({ where: { institutionId: id } })
   await prisma.partnerView.deleteMany({ where: { institutionId: id } })
   await prisma.ecosystemPartner.deleteMany({ where: { institutionId: id } })
