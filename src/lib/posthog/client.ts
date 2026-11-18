@@ -1,7 +1,7 @@
 'use client'
 
 import type { PostHog } from 'posthog-js'
-import { automationSignals } from './automation'
+import { automationSignals, currentWindow } from './automation'
 
 // A thin stand-in for posthog-js that keeps the real library (~70 KB gzipped) out of every
 // page's critical bundle. Calls are queued and replayed, in order, once the library has
@@ -34,7 +34,7 @@ function load(): Promise<PostHog> {
         // PostHog's survey widget (surveys.js, 37 KB) is not used: the app's own forms and prompts do their own capture().
         disable_surveys: true,
         // Every event carries whether the browser looks automated (src/lib/posthog/automation.ts); events are kept and filtered in reports.
-        loaded: (client) => client.register(automationSignals(navigator)),
+        loaded: (client) => client.register(automationSignals(navigator, currentWindow())),
       })
       real = ph
       for (const run of queue.splice(0)) run(ph)
