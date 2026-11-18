@@ -10,9 +10,8 @@ import { runMonthlyEmails } from '@/lib/higher-ed/monthly'
 import { cleanupExpiredDemos, reseedWorkforceDemo } from '@/lib/workforce/demo'
 import { autoJoinMajorGroups } from '@/lib/higher-ed/major-groups'
 import { syncVentureFlags } from '@/lib/higher-ed/ventures'
+import { fillDemoIfEmpty } from '@/lib/higher-ed/demo-fill'
 import { DEMO_TENANTS } from '@/lib/higher-ed/demo-tenants'
-import { resetDemoInstitution } from '@/lib/higher-ed/demo-seed'
-import { seedDemoContent } from '@/lib/institution/admin'
 
 export const maxDuration = 300
 
@@ -73,12 +72,7 @@ async function fillEmptyDemoPlaceholders(): Promise<string[]> {
     select: { slug: true },
   })
   const filled: string[] = []
-  for (const { slug } of rows) {
-    const result = await prisma.$transaction((tx) => resetDemoInstitution(tx, new Date(), DEMO_TENANTS[slug]), { timeout: 120_000, maxWait: 20_000 })
-    await seedDemoContent(result.institutionId, 'demo-placeholder')
-    captureServerEvent('cron', 'institution_demo_reset', { institutionId: result.institutionId, slug, members: result.members, source: 'nightly_placeholder' })
-    filled.push(slug)
-  }
+  for (const { slug } of rows) if (await fillDemoIfEmpty(slug, 'nightly_placeholder')) filled.push(slug)
   // A workforce or economic development demo row with a region and no people yet (one NextChapter set up by hand): seed it
   // the way the demo generator does, keeping its name, region and address. At most a few a night.
   const workforce = await prisma.institution.findMany({
