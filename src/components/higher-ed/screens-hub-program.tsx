@@ -1200,7 +1200,9 @@ export async function HubFunding({ ctx }: Props) {
 export async function HubPublic({ ctx, base }: Props) {
   const inst = await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { profile: true } })
   const state = (inst.profile as { region?: { state?: string } } | null)?.region?.state ?? null
-  const orgBase = base.replace(/\/hub$/, '')
+  // Shown in the Workforce Hub (owner, 2026-11-18); the pages it edits are Talent Hub pages.
+  const orgBase = base.replace(/\/(hub|workforce-hub)$/, '')
+  const hubBase = `${orgBase}/hub`
   const site = 'https://launchyournextchapter.com'
   const rows: { name: string; what: string; feeds: string; control: string; status: 'Live' | 'Planned'; href: string; cta: string; external?: boolean; edit?: { href: string; external?: boolean } }[] = [
     {
@@ -1223,7 +1225,7 @@ export async function HubPublic({ ctx, base }: Props) {
       href: `${site}/layoffs`,
       cta: 'See the layoff tracker',
       external: true,
-      edit: { href: `${base}/layoffs` },
+      edit: { href: `${hubBase}/layoffs` },
     },
     {
       name: 'Moving here page',
@@ -1231,7 +1233,7 @@ export async function HubPublic({ ctx, base }: Props) {
       feeds: 'People (Attract)',
       control: 'The consent text, who follows up, and where leads go.',
       status: 'Planned',
-      href: `${base}/attract`,
+      href: `${hubBase}/attract`,
       cta: 'See Attract',
     },
     {
@@ -1240,7 +1242,7 @@ export async function HubPublic({ ctx, base }: Props) {
       feeds: 'Employers',
       control: 'What is public, and who may pledge.',
       status: 'Planned',
-      href: `${base}/upskill`,
+      href: `${hubBase}/upskill`,
       cta: 'See Upskilling',
     },
     {
@@ -1261,7 +1263,7 @@ export async function HubPublic({ ctx, base }: Props) {
       status: 'Live',
       href: `${orgBase}/employer`,
       cta: 'Open the preview',
-      edit: { href: `${base}/companies` },
+      edit: { href: `${hubBase}/companies` },
     },
   ]
   return (

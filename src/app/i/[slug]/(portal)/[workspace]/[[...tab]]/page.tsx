@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import { Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { requireWorkspace } from '@/lib/higher-ed/access'
-import { getWorkspace, HUB_MOVED_TABS, labelFor, officeLabel, officeNamesOf, orgBasePath, orgKindOf, tabsFor, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
+import { getWorkspace, MOVED_TABS, labelFor, officeLabel, officeNamesOf, orgBasePath, orgKindOf, tabsFor, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
 import { loadModules } from '@/components/higher-ed/screens-community'
 import { LockedFeature } from '@/components/plans/LockedFeature'
 import { PLAN_CONTACT_EMAIL, blockedScreen, trialForLock, trialState } from '@/lib/plans/entitlements'
@@ -28,9 +28,9 @@ export default async function WorkspacePage({
   if (!config || config.release !== 'V1') notFound()
 
   const ctx = await requireWorkspace(slug, config.key as WorkspaceKey)
-  // A Talent Hub page that moved to the Workforce Hub or the Education Hub (owner, 2026-11-18): the old address still works.
-  const moved = config.key === 'hub' && tab?.length === 1 ? HUB_MOVED_TABS[tab[0]] : undefined
-  if (moved) {
+  // A page that moved to another section (owner, 2026-11-18): the old address still works. Admin pages moved only for workforce organizations.
+  const moved = tab?.length === 1 ? MOVED_TABS[config.key as WorkspaceKey]?.[tab[0]] : undefined
+  if (moved && (!moved.orgKind || moved.orgKind === orgKindOf(ctx.institution.orgType))) {
     const qs = new URLSearchParams(Object.entries(await searchParams).flatMap(([k, v]): [string, string][] => (typeof v === 'string' ? [[k, v]] : []))).toString()
     redirect(`${orgBasePath(slug, ctx.institution.orgType)}/${getWorkspace(moved.workspace)!.homePath}/${moved.tab}${qs ? `?${qs}` : ''}`)
   }
@@ -116,7 +116,7 @@ export default async function WorkspacePage({
           cn('-mb-px shrink-0 border-b-2 px-3 py-2 text-sm font-medium transition-colors', isActive ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground')
         return (
           // Talent Hub's areas and pages are in the left rail on wide screens (WorkspaceRail); phones keep these rows.
-          <div className={cn('space-y-3', ['hub', 'business', 'education', 'wfhub'].includes(config.key) && kind === 'workforce' && 'lg:hidden')}>
+          <div className={cn('space-y-3', ['hub', 'business', 'education', 'wfhub', 'partnerhub'].includes(config.key) && kind === 'workforce' && 'lg:hidden')}>
             {groups.length > 1 && (
               <nav aria-label={`${officeLabel(config, kind, officeNames)} areas`} className="flex flex-wrap gap-2">
                 {groups.map((g) => {

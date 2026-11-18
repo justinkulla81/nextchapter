@@ -134,7 +134,7 @@ export async function WfPartners({ ctx, base }: Props) {
       </div>
       {groups.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
-          No partners yet. <a href={base.replace(/\/workforce-hub$/, '/hub/network')} className="font-medium text-primary hover:underline">Open Your network</a> to invite the people you work with.
+          No partners yet. <a href={`${base}/network`} className="font-medium text-primary hover:underline">Open Your network</a> to invite the people you work with.
         </p>
       ) : (
         groups.map((g) => (
@@ -157,7 +157,7 @@ export async function WfPartners({ ctx, base }: Props) {
   )
 }
 
-/** The feed list, shared by the Workforce Hub and the Partner Hub. */
+/** The feed list, shared by the Partner Hub (staff) and Your partnership (a partner's own people). */
 export function FeedView({ items, intro }: { items: FeedItem[]; intro: string }) {
   return (
     <div className="space-y-8">
@@ -195,10 +195,10 @@ export function FeedView({ items, intro }: { items: FeedItem[]; intro: string })
 
 export async function WfFeed({ ctx }: Props) {
   const items = await loadFeed(ctx.institution.id).catch(() => [])
-  return <FeedView items={items} intro="What is happening, nationally and in your region: layoffs, funding closing soon, how your city ranks and the latest data. Partners see the same feed in their Partner Hub." />
+  return <FeedView items={items} intro="What is happening, nationally and in your region: layoffs, funding closing soon, how your city ranks and the latest data. Partners see the same feed under Your partnership." />
 }
 
-/** The Partner Hub's feed: the hub's own feed, read-only. */
+/** The feed a partner organization's people see (Your partnership): the same feed, read-only. */
 export async function PartnerFeed({ ctx }: Props) {
   const items = await loadFeed(ctx.institution.id).catch(() => [])
   const org = ctx.institution.programBrandName ?? ctx.institution.name
@@ -227,7 +227,7 @@ export async function WfGroups({ ctx }: Props) {
   return (
     <div className="space-y-8">
       <p className="max-w-3xl text-sm text-muted-foreground">
-        A group is a table of partners that work together: a coordination council, a funders table, an economic-development roundtable. Choose its members from your partners and post updates; members read them in their Partner Hub. Partners are added under Partners and Your network.
+        A group is a table of partners that work together: a coordination council, a funders table, an economic-development roundtable. Choose its members from your partners and post updates; members read them under Your partnership. Partners are added under Partners and Your network.
       </p>
       {edit && (
         room.allowed ? (
@@ -278,7 +278,7 @@ export async function WfGroups({ ctx }: Props) {
   )
 }
 
-/** The Partner Hub's Groups: the groups my partner is in, who else is in them, and the updates. Read-only. */
+/** Your partnership › Groups (a partner organization's own people): the groups my partner is in, who else is in them, and the updates. Read-only. */
 export async function PartnerGroups({ ctx }: Props) {
   const ids = ctx.partnerIds ?? []
   const org = ctx.institution.programBrandName ?? ctx.institution.name

@@ -27,7 +27,7 @@ export const FREE_ADMIN_LIMIT = 1
 export const FREE_VISIBLE_GRANTS = 2
 // How many skills a free organization sees in full on Market › Skills gaps; the rest are a preview.
 export const FREE_VISIBLE_SKILL_GAPS = 3
-// How many partner groups a free organization can run (Workforce Hub); more is a paid step.
+// How many partner groups a free organization can run (Partner Hub); more is a paid step.
 export const FREE_PARTNER_GROUPS = 1
 
 // Where a free organization asks for the paid plan: the support address the
@@ -313,7 +313,7 @@ export const LOCK_PITCH: Record<EntitlementFeature, LockPitch> = {
   },
   partnerGroups: {
     headline: 'Give every table of partners a home of its own',
-    bullets: ['A group for each council, roundtable or funders table', 'Choose the members from your partners and post updates they read in their Partner Hub', 'Keep each conversation with the people it is for'],
+    bullets: ['A group for each council, roundtable or funders table', 'Choose the members from your partners and post updates they read under Your partnership', 'Keep each conversation with the people it is for'],
     sampleTitle: 'Groups (sample)',
     sample: [['Workforce coordination council', '7 partners'], ['Funders table', '4 partners'], ['Economic development roundtable', '5 partners']],
   },

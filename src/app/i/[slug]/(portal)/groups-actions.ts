@@ -58,5 +58,5 @@ export async function postUpdate(slug: string, groupId: string, _prev: GroupResu
   await prisma.partnerGroupPost.create({ data: { groupId, body: v.value.body, createdBy: ctx.userId, authorLabel: ctx.institution.programBrandName ?? ctx.institution.name } })
   captureServerEvent(ctx.userId, 'partner_group_update_posted', { institutionId: ctx.institution.id, groupId, length: v.value.body.length })
   done(slug)
-  return { ok: true, message: 'Posted. Members see it in their Partner Hub.' }
+  return { ok: true, message: 'Posted. Members see it under Your partnership.' }
 }
