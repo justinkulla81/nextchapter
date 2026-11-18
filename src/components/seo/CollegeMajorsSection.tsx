@@ -22,6 +22,8 @@ function headline(name: string, view: CollegeMajorsView): string {
   if (f?.perHundred != null) {
     const vs = view.allFields != null ? `, ${f.perHundred >= view.allFields ? 'above' : 'below'} the ${view.allFields.toFixed(1)} across all fields` : ''
     out += ` Nationally, ${lc(f.field)} has ${f.perHundred.toFixed(1)} open jobs for every 100 new graduates${vs}.`
+  } else if (f?.covered === false) {
+    out += ` Our job data covers few ${lc(f.field)} jobs, which are mostly posted on hospital, school-district and agency sites, so we show no job figures for it.`
   } else if (!top.major.field) {
     out += ' Its graduates go into many kinds of work rather than one field.'
   }
@@ -39,8 +41,14 @@ function Row({ r, unitid }: { r: CollegeMajorRow; unitid: string }) {
       <td className="p-3 text-right tabular-nums">{n0(r.total)}</td>
       <td className="p-3 text-right tabular-nums">{share(r.shareOfUs)}</td>
       <td className="p-3">{r.major.field ?? <span className="text-muted-foreground">Many kinds of work</span>}</td>
-      <td className="p-3 text-right tabular-nums">{f?.perHundred != null ? f.perHundred.toFixed(1) : '–'}</td>
-      <td className="p-3 text-right tabular-nums">{f?.stages.early.pay != null ? usdK(f.stages.early.pay) : '–'}</td>
+      {f?.covered === false ? (
+        <td colSpan={2} className="p-3 text-right text-muted-foreground">Not measured</td>
+      ) : (
+        <>
+          <td className="p-3 text-right tabular-nums">{f?.perHundred != null ? f.perHundred.toFixed(1) : '–'}</td>
+          <td className="p-3 text-right tabular-nums">{f?.stages.early.pay != null ? usdK(f.stages.early.pay) : '–'}</td>
+        </>
+      )}
       <td className="p-3 text-right tabular-nums">{r.usChange != null ? signed(r.usChange) : '–'}</td>
     </tr>
   )
@@ -84,7 +92,7 @@ export function CollegeMajorsSection({ name, unitid, view }: { name: string; uni
         </details>
       )}
       <p className="mt-3 max-w-3xl text-xs text-muted-foreground">
-        Degrees at bachelor&apos;s level and above in {MAJOR_YEAR}, first majors only (federal IPEDS completions). The field a major leads to is our judgment on its program code. Open jobs per 100 graduates and early-career pay are national figures for that field{view.edition ? `, ${editionLabel(view.edition)}` : ''}: professional roles on our board whose occupation typically needs a four-year degree, against a year of degrees in the majors that lead to it. They compare fields; they are not this college&apos;s placement rate. A dash means the major leads to many kinds of work, too few postings show pay, or the figure is not built yet.
+        Degrees at bachelor&apos;s level and above in {MAJOR_YEAR}, first majors only (federal IPEDS completions). The field a major leads to is our judgment on its program code. Open jobs per 100 graduates and early-career pay are national figures for that field{view.edition ? `, ${editionLabel(view.edition)}` : ''}: professional roles on our board whose occupation typically needs a four-year degree, against a year of degrees in the majors that lead to it. They compare fields; they are not this college&apos;s placement rate. &ldquo;Not measured&rdquo; marks fields such as nursing and education whose jobs are mostly posted on hospital, school-district and agency sites our data does not cover, so a count would understate them. A dash means the major leads to many kinds of work, too few postings show pay, or the figure is not built yet.
       </p>
       <p className="mt-3 text-sm"><TrackedLink href={MAJORS_PATH} event="majors_link_clicked" properties={{ from: 'college_page', to: MAJORS_PATH, unitid }} className={LINK}>Compare every major and field</TrackedLink></p>
     </section>

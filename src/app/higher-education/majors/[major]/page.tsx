@@ -104,7 +104,13 @@ export default async function MajorPage({ params }: { params: Promise<{ major: s
         <h2 id="market" className={H2}>{m.field ? `The job market for ${lc(m.field)}` : 'Where its graduates work'}</h2>
         {!m.field && <p className="mt-2 max-w-3xl text-sm">{m.title} graduates go into many kinds of work rather than one field, so we do not match it to one set of jobs. <L href={`${MAJORS_PATH}#fields`}>Compare the degree fields</L> to see where open jobs outnumber graduates.</p>}
         {m.field && !f && <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Open jobs and pay for {lc(m.field)} appear after the next monthly rankings build.</p>}
-        {f && (
+        {f && f.covered === false && (
+          <>
+            <p className="mt-2 max-w-3xl text-sm">Our job data covers few {lc(f.field)} jobs: they are mostly posted on hospital, school-district and agency sites we do not track, so an open-job count or pay figure from it would understate the market. We do not show one.</p>
+            {f.growth != null && <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><Stat value={signed(f.growth)} label="projected job growth to 2035" note="Bureau of Labor Statistics" /></ul>}
+          </>
+        )}
+        {f && f.covered !== false && (
           <>
             <p className="mt-2 max-w-3xl text-sm text-muted-foreground">{m.title} graduates usually go into {lc(f.field)}. Open professional roles on our board whose occupation typically needs a four-year degree, {editionLabel(figures!.edition)}.</p>
             <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
