@@ -8,6 +8,7 @@
 // companies, participants, their searches and hires. Demo orgs never email
 // anyone (sendCampaign skips isDemo), and public demos expire after 30 days.
 
+import { demoTrainingOfferings } from './demo-training'
 import 'server-only'
 import { createHash, randomBytes } from 'crypto'
 import type { CurrentJobStatus, InstitutionOrgType, JourneyStage, JourneyType, Prisma } from '@prisma/client'
@@ -603,6 +604,8 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
       .filter((p) => p.extra?.kind === 'growing' || p.extra?.kind === 'pivot')
       .map((p, k) => ({ cohortId: cohort.id, memberId: memberId(p.i), status: 'ENROLLED' as const, payer: p.extra?.kind === 'growing' ? ('EMPLOYER' as const) : ('WIOA_VOUCHER' as const), enrolledAt: new Date(now.getTime() - 10 * DAY), sessionsAttended: 2 + (k % 2), isSampleData: true })),
   })
+  // The Education Hub's sample catalog, so Catalog, Assign and Gaps and coverage are filled in (src/lib/workforce/demo-training.ts).
+  await prisma.trainingOffering.createMany({ data: demoTrainingOfferings(institutionId, localTowns[0]?.city ?? 'Your region') })
 }
 
 
@@ -674,6 +677,7 @@ export async function reseedWorkforceDemo(slug: string, now = new Date()) {
   await prisma.groupJobFeed.deleteMany({ where: { institutionId: id } })
   await prisma.memberCompany.deleteMany({ where: { institutionId: id } })
   await prisma.program.deleteMany({ where: { institutionId: id } })
+  await prisma.trainingOffering.deleteMany({ where: { institutionId: id } })
   await prisma.candidateProfile.deleteMany({ where: { userId: { startsWith: demoUserPrefix(slug) }, isSampleData: true } })
   await prisma.employerProfile.deleteMany({ where: { userId: { startsWith: demoUserPrefix(slug) }, isSampleData: true } })
   await seedWorkforceDemo({ institutionId: id, slug, seed: `${slug}:${now.toISOString().slice(0, 10)}`, now, localTowns, name: inst.name })

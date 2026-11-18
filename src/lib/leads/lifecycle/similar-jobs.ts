@@ -43,7 +43,7 @@ export async function jobsForSearch(search: { q: string; loc: string; remote: bo
   if (!search) return []
   try {
     const { jobs } = await searchPublicBoard({ q: search.q, loc: search.loc, remote: search.remote, skipTotal: true })
-    return jobs.filter((j) => j.pagePath).slice(0, limit).map((j) => ({ id: j.id, title: j.title, company: j.company, place: j.location?.split(';')[0].trim() || null })) // a job listed in several places: the first
+    return jobs.filter((j) => j.pagePath).slice(0, limit).map((j) => ({ id: j.id, title: j.title, company: j.company, place: placeForSearch(j.location, search.loc) }))
   } catch {
     return []
   }
@@ -52,4 +52,11 @@ export async function jobsForSearch(search: { q: string; loc: string; remote: bo
 /** similarJobsForLead in the email's shape. */
 export async function similarLeadJobs(jobId: string | null | undefined, limit = 3): Promise<LeadJob[]> {
   return (await similarJobsForLead(jobId, limit)).map((j) => ({ id: j.id, title: j.title, company: j.companyName, place: placeOf(j) }))
+}
+
+/** A job listed in several places ("Sterling, VA; Denver, CO"): the place that matches the search, else the first. */
+export function placeForSearch(location: string | null, searchLoc: string): string | null {
+  const parts = (location ?? '').split(';').map((p) => p.trim()).filter(Boolean)
+  const want = searchLoc.trim().toLowerCase()
+  return (want && parts.find((p) => p.toLowerCase().includes(want))) || parts[0] || null
 }
