@@ -51,7 +51,7 @@ export async function EducationCatalog({ ctx, searchParams, base }: Props) {
         <StatTile label="In the catalog" value={offerings.length} />
         <StatTile label="Universities and colleges" value={count('UNIVERSITY')} />
         <StatTile label="Third-party" value={count('THIRD_PARTY')} />
-        <StatTile label="Offered by Louisville" value={count('LOCAL')} note={offerings.some((o) => o.ncCustom) ? `${offerings.filter((o) => o.ncCustom).length} built by NextChapter` : undefined} />
+        <StatTile label="Offered in your region" value={count('LOCAL')} note={offerings.some((o) => o.ncCustom) ? `${offerings.filter((o) => o.ncCustom).length} built by NextChapter` : undefined} />
       </div>
 
       <nav aria-label="Filter by source" className="flex flex-wrap gap-2">

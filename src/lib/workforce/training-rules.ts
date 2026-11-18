@@ -6,7 +6,7 @@ import { MIN_GROUP, seniorityBand } from './skills-intel'
 export const TRAINING_SOURCES = [
   { key: 'UNIVERSITY', label: 'Universities and colleges', hint: 'A degree, certificate or executive program from a college.' },
   { key: 'THIRD_PARTY', label: 'Third-party training', hint: 'A course from a provider such as Coursera, a bootcamp or a professional body.' },
-  { key: 'LOCAL', label: 'Offered by Louisville', hint: 'Training the region runs itself, including courses NextChapter builds for it.' },
+  { key: 'LOCAL', label: 'Offered in your region', hint: 'Training the region runs itself, including courses NextChapter builds for it.' },
 ] as const
 export type TrainingSource = (typeof TRAINING_SOURCES)[number]['key']
 export const isTrainingSource = (v: unknown): v is TrainingSource => TRAINING_SOURCES.some((s) => s.key === v)
