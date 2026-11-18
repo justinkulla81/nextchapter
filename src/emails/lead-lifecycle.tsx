@@ -41,7 +41,7 @@ export default function LeadLifecycleEmail({ content, ctaUrl, unsubscribeUrl, po
       }
     >
       <Card pad="28px 32px 36px">
-        <Wordmark label="Lead lifecycle" />
+        <Wordmark label={content.label ?? 'Your next step'} />
         <Headline>{content.headline}</Headline>
         {content.paragraphs.map((p, i) => (
           <Body key={i}>{p}</Body>
@@ -68,6 +68,16 @@ export default function LeadLifecycleEmail({ content, ctaUrl, unsubscribeUrl, po
               ))}
             </tbody>
           </table>
+        )}
+        {content.feature && (
+          <div style={{ margin: '0 0 20px', padding: '16px 0', borderTop: '1px solid #e5e7eb', borderBottom: '1px solid #e5e7eb' }}>
+            <p style={{ margin: '0 0 6px', fontSize: '13px', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: MUTED }}>{content.feature.kicker}</p>
+            <p style={{ margin: '0 0 8px', fontSize: '19px', fontWeight: 700, lineHeight: '1.35', color: BRAND }}>{content.feature.title}</p>
+            <p style={{ margin: '0 0 10px', fontSize: '16px', lineHeight: '1.6', color: '#202124' }}>{content.feature.body}</p>
+            <a href={content.feature.url} style={{ fontSize: '16px', fontWeight: 600, color: BRAND, textDecoration: 'underline' }}>
+              {content.feature.linkLabel}
+            </a>
+          </div>
         )}
         {content.afterJobs && <Body>{content.afterJobs}</Body>}
         {content.choices && content.choices.length > 0 && (

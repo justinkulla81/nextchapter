@@ -82,4 +82,13 @@ describe('lifecycle email journey question', () => {
     expect(c.choices).toBeUndefined()
     expect(c.ctaLabel).toBe('Create my free profile')
   })
+
+  it('leads the newsletter welcome with the latest report and one profile button, no situation question', () => {
+    const report = { month: 'October 2026', title: 'Hiring improved', dek: 'October added 165,000 jobs.', url: 'https://x.test/r' }
+    const c = leadEmailContent('newsletter', 'welcome', { firstName: null, detail: null, choices: [], report })
+    expect(c.feature).toMatchObject({ kicker: 'From our October 2026 report', title: 'Hiring improved', url: 'https://x.test/r' })
+    expect(c.choices).toBeUndefined()
+    expect(c.ctaLabel).toBe('Create my free profile')
+    expect(leadEmailText(c, 'https://x.test/p')).toContain('Read the October 2026 White Collar Employment Report: https://x.test/r')
+  })
 })
