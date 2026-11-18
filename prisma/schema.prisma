@@ -13072,6 +13072,7 @@ model Institution {
   // A one-time free trial of the paid plan for a FREE organization (src/lib/plans/entitlements.ts: trialState). Not self-billing.
   trialStartedAt    DateTime?
   trialEndsAt       DateTime?
+  trainingOfferings TrainingOffering[]
   alumniCount       Int?
   includedSeats     Int                @default(0)
   licenseStartAt    DateTime?
@@ -18820,4 +18821,35 @@ model PublicPageContent {
   updatedAt         DateTime  @updatedAt
 
   @@index([status])
+}
+
+// Education Hub (a workforce organization's curated training catalog). source: UNIVERSITY | THIRD_PARTY | LOCAL (offered locally, including
+// courses NextChapter builds for the region: ncCustom). Targeting: empty industries / functions / levels = everyone; levels are the
+// bands Individual contributor | Manager | Director or above. assignment: LISTED (browsable) | ASSIGNED (shown to matching members in
+// Learn). status: ACTIVE | ARCHIVED. programId links a university offering to the college's Program.
+model TrainingOffering {
+  id            String      @id @default(cuid())
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  source        String      @default("THIRD_PARTY")
+  title         String
+  provider      String?
+  url           String?
+  summary       String?
+  skills        String[]    @default([])
+  industries    String[]    @default([])
+  functions     String[]    @default([])
+  levels        String[]    @default([])
+  hours         Int?
+  priceCents    Int         @default(0)
+  wioaEligible  Boolean     @default(false)
+  ncCustom      Boolean     @default(false)
+  programId     String?
+  assignment    String      @default("LISTED")
+  status        String      @default("ACTIVE")
+  createdBy     String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([institutionId, status])
 }

@@ -24,6 +24,8 @@ export type WorkspaceKey =
   | 'hub'
   // Their business side (owner, 2026-11-17): bringing employers to the region, and the businesses already here.
   | 'business'
+  // A workforce customer's training catalog: universities, third-party training and training offered locally, curated and assigned.
+  | 'education'
 
 // What a person holds at one institution. Staff roles come straight from
 // InstitutionUser; a VIEWER seat is scoped to one workspace ("VIEWER:alumni");
@@ -356,6 +358,22 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'incentives', label: 'Incentives and costs', comingIn: null },
       { key: 'employers', label: 'Big employers', comingIn: null },
       { key: 'small', label: 'Startups and small business', comingIn: null },
+    ],
+  },
+  {
+    // The region's training (owner, 2026-11-18): universities, third-party providers and what Louisville offers itself (including
+    // courses NextChapter builds for it), curated here and assigned to people by industry, experience and function.
+    key: 'education',
+    label: 'Education Hub',
+    icon: 'GraduationCap',
+    release: 'V1',
+    requiredRoles: ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'CAREER_SERVICES', 'VIEWER:education'],
+    homePath: 'education',
+    orgKind: 'workforce',
+    tabs: [
+      { key: 'catalog', label: 'Catalog', comingIn: null },
+      { key: 'assign', label: 'Assign', comingIn: null },
+      { key: 'gaps', label: 'Gaps and coverage', comingIn: null },
     ],
   },
   {
