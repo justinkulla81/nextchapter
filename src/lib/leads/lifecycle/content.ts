@@ -15,6 +15,8 @@ export interface LeadEmailContent {
   jobs?: LeadEmailJob[]
   /** The one line between the jobs and the profile button. */
   afterJobs?: string
+  /** The newsletter welcome's lead: the latest report's headline finding and a link to the report. */
+  feature?: { kicker: string; title: string; body: string; linkLabel: string; url: string }
   /** The line above the unsubscribe link: says what else we will and will not send. */
   footerNote: string
 }
@@ -29,6 +31,8 @@ export interface LeadEmailContext {
   choices?: { label: string; url: string }[]
   /** Open jobs like the one they applied for (the application welcome), each with its tracked link. */
   jobs?: LeadEmailJob[]
+  /** The latest jobs report, for the newsletter welcome: its month, headline, summary and (tracked) link. */
+  report?: { month: string; title: string; dek: string; url: string } | null
 }
 
 export interface LeadEmailJob {
@@ -90,6 +94,19 @@ export function leadEmailContent(variant: LeadVariant, step: LeadStep, c: LeadEm
       benefits: [],
       ctaLabel: 'Create my free profile',
       afterJobs: 'Right now your alert matches the words you searched. Make a free profile and it matches you: your experience and level, ranked by how well you fit. No résumé needed to start.',
+    }
+  }
+
+  // Someone who subscribed to the newsletter wants the market read, so the welcome leads with the latest report's one finding and a
+  // link to it, then the one ask. (Owner decision 2026-11-18: no jobs here, the signup says nothing about what they do.)
+  if (variant === 'newsletter' && step === 'welcome' && c.report) {
+    return {
+      ...base,
+      paragraphs: [hello(c), 'Thanks for subscribing. Each week we send one read on the white-collar job market: what is changing, who is hiring, who is cutting. Here is where it stands now.'],
+      feature: { kicker: `From our ${c.report.month} report`, title: c.report.title, body: c.report.dek, linkLabel: `Read the ${c.report.month} White Collar Employment Report`, url: c.report.url },
+      benefits: [],
+      ctaLabel: 'Create my free profile',
+      afterJobs: 'If you are job hunting yourself, a free profile tailors all of this to you: every job on the site ranked by how well you fit. No résumé needed to start.',
     }
   }
 
@@ -297,7 +314,9 @@ export function leadEmailText(content: LeadEmailContent, ctaUrl: string | null):
     content.headline,
     '',
     ...content.paragraphs,
-    ...(content.jobs?.length ? ['', ...content.jobs.map((j) => `- ${j.title}, ${[j.company, j.place].filter(Boolean).join(', ')}: ${j.url}`), '', content.afterJobs ?? ''] : []),
+    ...(content.feature ? ['', `${content.feature.kicker}: ${content.feature.title}`, content.feature.body, `${content.feature.linkLabel}: ${content.feature.url}`] : []),
+    ...(content.jobs?.length ? ['', ...content.jobs.map((j) => `- ${j.title}, ${[j.company, j.place].filter(Boolean).join(', ')}: ${j.url}`)] : []),
+    ...(content.afterJobs ? ['', content.afterJobs] : []),
     ...(content.choices?.length ? ['', content.choicesPrompt ?? '', ...content.choices.map((o) => `- ${o.label}: ${o.url}`)] : []),
     ...(content.benefits.length ? ['', ...content.benefits.map((b) => `- ${b}`)] : []),
     ...(content.ctaLabel && ctaUrl ? ['', `${content.ctaLabel}: ${ctaUrl}`] : []),

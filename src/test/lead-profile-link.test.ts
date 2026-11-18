@@ -74,3 +74,18 @@ describe('GET /api/lead-job/<token>', () => {
     expect(res.cookies.get(LEAD_COOKIE)).toBeUndefined()
   })
 })
+
+describe('GET /api/lead-report/<token>', () => {
+  it('opens the edition with the email attribution, and the latest for an unknown slug', async () => {
+    const { GET: reportGet } = await import('@/app/api/lead-report/[token]/route')
+    const { latestReport } = await import('@/lib/reports')
+    const token = makeUnsubscribeToken('a@example.org', null)
+    const go = (q: string) => reportGet(new NextRequest(`https://launchyournextchapter.com/api/lead-report/${token}${q}`, { headers: { 'user-agent': 'Mozilla/5.0' } }), { params: Promise.resolve({ token }) })
+    const res = await go('?r=white-collar-employment-report-september-2026&step=welcome')
+    const to = new URL(res.headers.get('location')!)
+    expect(to.pathname).toBe('/reports/white-collar-employment-report-september-2026')
+    expect(to.searchParams.get('utm_content')).toBe('report')
+    expect(res.cookies.get(LEAD_COOKIE)?.value).toBe(token)
+    expect(new URL((await go('?r=https://evil.example')).headers.get('location')!).pathname).toBe(`/reports/${latestReport()!.slug}`)
+  })
+})

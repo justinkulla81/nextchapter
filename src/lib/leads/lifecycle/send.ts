@@ -10,6 +10,7 @@ import type { LeadStep, LeadVariant } from './config'
 import { journeyButtons } from './journey'
 import { leadEmailContent, leadEmailText, type LeadEmailContext, type LeadEmailJob } from './content'
 import { jobsForSearch, similarLeadJobs, type LeadJob } from './similar-jobs'
+import { latestReport } from '@/lib/reports'
 
 const appUrl = () => process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com'
 const FROM = 'NextChapter <support@launchyournextchapter.com>'
@@ -64,8 +65,11 @@ export async function sendLifecycleEmail(input: LifecycleSend): Promise<boolean>
     place: j.place,
     url: `${appUrl()}/api/lead-job/${token}?job=${j.id}&step=${input.step}&v=${input.variant}&pos=${i + 1}`,
   }))
-  const choices = input.context.journey || input.variant === 'waitlist_b2b' || jobs.length >= 3 ? [] : journeyButtons(email, input.step, input.context.detail)
-  const content = leadEmailContent(input.variant, input.step, { ...input.context, choices, jobs })
+  // The newsletter welcome leads with the latest report (its link counts the click, then opens the report).
+  const edition = input.variant === 'newsletter' && welcome ? latestReport() : null
+  const report = edition ? { month: edition.month, title: edition.title, dek: edition.dek, url: `${appUrl()}/api/lead-report/${token}?r=${edition.slug}&step=${input.step}` } : null
+  const choices = report || input.context.journey || input.variant === 'waitlist_b2b' || jobs.length >= 3 ? [] : journeyButtons(email, input.step, input.context.detail)
+  const content = leadEmailContent(input.variant, input.step, { ...input.context, choices, jobs, report })
   const settings = await getMailingSettings()
   const unsubscribeUrl = `${appUrl()}/updates/unsubscribe/${makeUnsubscribeToken(email, null)}`
   const directCta = profileUrl(email, input.variant, input.step, input.context.journey)
@@ -102,6 +106,10 @@ export async function sendLifecycleEmail(input: LifecycleSend): Promise<boolean>
       const links = await Promise.all(content.jobs.map((j) => prisma.crmOutreachLink.create({ data: { trackingId: tracking.id, originalUrl: j.url } })))
       content.jobs = content.jobs.map((j, i) => ({ ...j, url: `${appUrl()}/api/crm/outreach/click/${links[i].id}` }))
     }
+    if (content.feature) {
+      const link = await prisma.crmOutreachLink.create({ data: { trackingId: tracking.id, originalUrl: content.feature.url } })
+      content.feature = { ...content.feature, url: `${appUrl()}/api/crm/outreach/click/${link.id}` }
+    }
     pixelUrl = `${appUrl()}/api/crm/outreach/open/${tracking.id}`
   }
 
@@ -125,6 +133,6 @@ export async function sendLifecycleEmail(input: LifecycleSend): Promise<boolean>
     return false
   }
 
-  if (!input.test) captureServerEvent(email, 'lead_email_sent', { variant: input.variant, step: input.step, journey: input.context.journey ?? null, journey_choices_shown: !!content.choices?.length, similar_jobs_shown: content.jobs?.length ?? 0, jobId: input.jobId ?? null })
+  if (!input.test) captureServerEvent(email, 'lead_email_sent', { variant: input.variant, step: input.step, journey: input.context.journey ?? null, journey_choices_shown: !!content.choices?.length, similar_jobs_shown: content.jobs?.length ?? 0, report_shown: content.feature ? edition?.slug ?? null : null, jobId: input.jobId ?? null })
   return true
 }
