@@ -26,6 +26,9 @@ export type WorkspaceKey =
   | 'business'
   // A workforce customer's training catalog: universities, third-party training and training offered locally, curated and assigned.
   | 'education'
+  // A workforce customer's grants and its partner organizations, shared by every hub (owner, 2026-11-18).
+  | 'funding'
+  | 'partners'
 
 // What a person holds at one institution. Staff roles come straight from
 // InstitutionUser; a VIEWER seat is scoped to one workspace ("VIEWER:alumni");
@@ -318,16 +321,6 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'responses', label: 'Rapid response', comingIn: null, group: 'Employers', from: { workspace: 'workforce', tab: 'rapid' } },
       // Layoff seats come after the rapid-response plan.
       { key: 'layoffs', label: 'Layoff seats', comingIn: null, group: 'Employers' },
-      { key: 'learning', label: 'Colleges and partners', comingIn: null, demoOnly: true, group: 'Partners' },
-      { key: 'system', label: 'Board and job centers', comingIn: null, demoOnly: true, group: 'Partners' },
-      { key: 'programs', label: 'Programs', comingIn: null, group: 'Partners', from: { workspace: 'execed', tab: 'home' } },
-      { key: 'enrollments', label: 'Enrollments', comingIn: null, group: 'Partners', from: { workspace: 'execed', tab: 'enrollments' } },
-      { key: 'ecosystem', label: 'Ecosystem', comingIn: null, group: 'Partners' },
-      { key: 'views', label: 'Partner views', comingIn: null, group: 'Partners' },
-      { key: 'etpl', label: 'Eligible training list', comingIn: null, group: 'Partners', from: { workspace: 'workforce', tab: 'etpl' } },
-      { key: 'applications', label: 'Applications', comingIn: null, group: 'Funding' },
-      { key: 'grantlist', label: 'Grants to apply for', comingIn: null, group: 'Funding' },
-      { key: 'funding', label: 'Grants and funding', comingIn: null, demoOnly: true, group: 'Funding' },
       { key: 'regionjobs', label: 'Jobs in your region', comingIn: null, group: 'Jobs' },
       { key: 'groupjobs', label: 'Jobs for your group', comingIn: null, group: 'Jobs' },
       { key: 'employerjobs', label: 'Employer jobs', comingIn: null, group: 'Jobs' },
@@ -367,13 +360,50 @@ export const WORKSPACES: WorkspaceConfig[] = [
     label: 'Education Hub',
     icon: 'GraduationCap',
     release: 'V1',
-    requiredRoles: ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'CAREER_SERVICES', 'VIEWER:education'],
+    // EMPLOYER_RELATIONS and VIEWER:hub opened the training partners when they were Talent Hub tabs (moved here 2026-11-18).
+    requiredRoles: ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'CAREER_SERVICES', 'EMPLOYER_RELATIONS', 'VIEWER:education', 'VIEWER:hub'],
     homePath: 'education',
     orgKind: 'workforce',
     tabs: [
       { key: 'catalog', label: 'Catalog', comingIn: null },
       { key: 'assign', label: 'Assign', comingIn: null },
       { key: 'gaps', label: 'Gaps and coverage', comingIn: null },
+      // The training partners (owner, 2026-11-18, moved from Talent Hub > Partners): colleges and providers, their programs and who is enrolled.
+      { key: 'learning', label: 'Colleges and partners', comingIn: null, demoOnly: true },
+      { key: 'programs', label: 'Programs', comingIn: null, from: { workspace: 'execed', tab: 'home' } },
+      { key: 'enrollments', label: 'Enrollments', comingIn: null, from: { workspace: 'execed', tab: 'enrollments' } },
+      { key: 'etpl', label: 'Eligible training list', comingIn: null, from: { workspace: 'workforce', tab: 'etpl' } },
+    ],
+  },
+  {
+    // Funding (owner, 2026-11-18, moved out of Talent Hub): grants pay for work in every hub (training, attraction, layoff response).
+    key: 'funding',
+    label: 'Funding',
+    icon: 'HandCoins',
+    release: 'V1',
+    requiredRoles: ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'CAREER_SERVICES', 'EMPLOYER_RELATIONS', 'VIEWER:hub', 'VIEWER:funding'],
+    homePath: 'funding',
+    orgKind: 'workforce',
+    tabs: [
+      { key: 'applications', label: 'Applications', comingIn: null },
+      { key: 'grantlist', label: 'Grants to apply for', comingIn: null },
+      { key: 'opportunities', label: 'Grants and funding', comingIn: null, demoOnly: true },
+    ],
+  },
+  {
+    // Partners (owner, 2026-11-18, moved out of Talent Hub): the organizations the region works with, shared by every hub.
+    // Training partners are in the Education Hub.
+    key: 'partners',
+    label: 'Partners',
+    icon: 'Users',
+    release: 'V1',
+    requiredRoles: ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'CAREER_SERVICES', 'EMPLOYER_RELATIONS', 'VIEWER:hub', 'VIEWER:partners'],
+    homePath: 'partners',
+    orgKind: 'workforce',
+    tabs: [
+      { key: 'ecosystem', label: 'Ecosystem', comingIn: null },
+      { key: 'views', label: 'Partner views', comingIn: null },
+      { key: 'system', label: 'Board and job centers', comingIn: null, demoOnly: true },
     ],
   },
   {
@@ -576,4 +606,18 @@ export const STAFF_ROLE_LABELS: Record<InstitutionUserRole, string> = {
 export function brandingEditPath(ctx: { institution: { slug: string; orgType: InstitutionOrgType | null }; workspaces: readonly string[]; mode: string }): string | null {
   if (!ctx.workspaces.includes('admin') || ctx.mode === 'demo-guest') return null
   return `${orgBasePath(ctx.institution.slug, ctx.institution.orgType)}/admin/branding`
+}
+
+/** Talent Hub pages that moved to their own sections (owner, 2026-11-18): the old address redirects to the new one. */
+export const HUB_MOVED_TABS: Record<string, { workspace: WorkspaceKey; tab: string }> = {
+  applications: { workspace: 'funding', tab: 'applications' },
+  grantlist: { workspace: 'funding', tab: 'grantlist' },
+  funding: { workspace: 'funding', tab: 'opportunities' },
+  ecosystem: { workspace: 'partners', tab: 'ecosystem' },
+  views: { workspace: 'partners', tab: 'views' },
+  system: { workspace: 'partners', tab: 'system' },
+  learning: { workspace: 'education', tab: 'learning' },
+  programs: { workspace: 'education', tab: 'programs' },
+  enrollments: { workspace: 'education', tab: 'enrollments' },
+  etpl: { workspace: 'education', tab: 'etpl' },
 }

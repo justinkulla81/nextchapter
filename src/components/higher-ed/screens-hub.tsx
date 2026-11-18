@@ -48,10 +48,10 @@ type Notice = Awaited<ReturnType<typeof regionNotices>>[number]
 type Verb = { verb: string; line: string; tab: string; demoOnly?: boolean; from?: 'execed' | 'workforce' }
 const VERBS: Verb[] = [
   { verb: 'Attract', line: 'Bring people here for the job, with benefits and proof of a move.', tab: 'attract', demoOnly: true },
-  { verb: 'Retrain', line: 'Colleges and partners that move people into growing roles.', tab: 'learning', demoOnly: true },
+  { verb: 'Retrain', line: 'Colleges and partners that move people into growing roles.', tab: 'education/learning', demoOnly: true },
   { verb: 'Support', line: 'A plan for every layoff, from the first day.', tab: 'layoffs' },
-  { verb: 'Train', line: 'Programs, cohorts and who is enrolled.', tab: 'programs', from: 'execed' },
-  { verb: 'Fund', line: 'Grants and funding, with the partners to bring in.', tab: 'funding', demoOnly: true },
+  { verb: 'Train', line: 'Programs, cohorts and who is enrolled.', tab: 'education/programs', from: 'execed' },
+  { verb: 'Fund', line: 'Grants and funding, with the partners to bring in.', tab: 'funding/opportunities', demoOnly: true },
   { verb: 'Understand', line: 'Jobs, skills, pay and unemployment in your region.', tab: 'region' },
   { verb: 'Coordinate', line: 'Employers, colleges and the public system in one picture.', tab: 'companies' },
 ]
@@ -118,11 +118,13 @@ export async function HubHome({ ctx, base }: Props) {
   // The action names the biggest layoff waiting, so the button says what it is for.
   const biggest = [...unansweredList].sort((a, b) => (b.employees ?? 0) - (a.employees ?? 0))[0]
   const isDemo = ctx.institution.isDemo
+  // Funding, Partners and the Education Hub sit beside Talent Hub (owner, 2026-11-18): their pages are siblings of this base.
+  const sib = (path: string) => base.replace(/\/hub$/, `/${path}`)
   const needs: { label: string; detail: string; href: string; cta: string }[] = []
   if (unanswered > 0) needs.push({ label: `${unanswered} layoff${unanswered === 1 ? '' : 's'} filed in your region with no response yet`, detail: 'Real filings from the last 120 days.', href: `${base}/${isDemo ? 'rapid' : 'layoffs'}`, cta: biggest ? `Plan the response to ${biggest.employer.length > 40 ? 'the biggest layoff' : `the ${biggest.employer} layoff`}` : 'Plan the response' })
   if (requests.length > 0) needs.push({ label: `${requests.length} seat request${requests.length === 1 ? '' : 's'} from member companies waiting`, detail: 'A company asked for free access for its people.', href: `${base}/layoffs`, cta: 'Answer the request' })
   if (redZone > 0) needs.push({ label: `${small(redZone)} people out of work 26 weeks or more`, detail: 'The longest searches, where outreach matters most.', href: `${base}/participants`, cta: 'See who' })
-  if (claimsWaiting > 0) needs.push({ label: `${claimsWaiting} organization${claimsWaiting === 1 ? '' : 's'} asked to join your talent network`, detail: 'Check who they are, then confirm or decline.', href: `${base}/ecosystem`, cta: 'Review requests' })
+  if (claimsWaiting > 0) needs.push({ label: `${claimsWaiting} organization${claimsWaiting === 1 ? '' : 's'} asked to join your talent network`, detail: 'Check who they are, then confirm or decline.', href: sib('partners/ecosystem'), cta: 'Review requests' })
   if (employerJobsWaiting > 0) needs.push({ label: `${employerJobsWaiting} job${employerJobsWaiting === 1 ? '' : 's'} from employers waiting for your review`, detail: 'Employers you approved posted these. Approve or decline each.', href: `${base}/employerjobs`, cta: 'Review jobs' })
   if (suggestions.length > 0) {
     const invite = { label: 'Invite the people you work with', detail: suggestionLine(suggestions.length), href: `${base}/network`, cta: 'Choose who to invite' }
@@ -130,8 +132,8 @@ export async function HubHome({ ctx, base }: Props) {
     if (isDemo) needs.push(invite)
     else needs.unshift(invite)
   }
-  for (const f of dueFunding) needs.push({ label: `${f.name}: due ${periodDay(f.dueDate)}`, detail: `${f.status === 'DRAFTING' ? 'Drafting' : 'Considering'}${f.funder ? ` · ${f.funder}` : ''}`, href: `${base}/applications`, cta: 'Open application' })
-  if (isDemo && dueFunding.length === 0) needs.push({ label: `Governor’s Reserve Fund: next deadline ${nextReserveDeadline(now)}`, detail: 'Monthly, first Wednesday. Check fit and partners.', href: `${base}/funding`, cta: 'See funding' })
+  for (const f of dueFunding) needs.push({ label: `${f.name}: due ${periodDay(f.dueDate)}`, detail: `${f.status === 'DRAFTING' ? 'Drafting' : 'Considering'}${f.funder ? ` · ${f.funder}` : ''}`, href: sib('funding/applications'), cta: 'Open application' })
+  if (isDemo && dueFunding.length === 0) needs.push({ label: `Governor’s Reserve Fund: next deadline ${nextReserveDeadline(now)}`, detail: 'Monthly, first Wednesday. Check fit and partners.', href: sib('funding/opportunities'), cta: 'See funding' })
   const verbs = VERBS.filter((v) => (!v.demoOnly || isDemo) && (!v.from || ctx.workspaces.includes(v.from)))
   // The portal Home pattern (src/components/partners/PortalHome.tsx): one line and one primary action, what needs you, three
   // numbers with their sources, the region's layoffs as a dense table. The region picture stays visible under the action
@@ -221,7 +223,7 @@ export async function HubHome({ ctx, base }: Props) {
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {verbs.map((v) => (
               <li key={v.verb}>
-                <Link href={`${base}/${v.tab}`} className="block h-full rounded-lg border border-border p-4 transition-colors hover:border-[var(--portal,var(--ink))]">
+                <Link href={v.tab.includes('/') ? sib(v.tab) : `${base}/${v.tab}`} className="block h-full rounded-lg border border-border p-4 transition-colors hover:border-[var(--portal,var(--ink))]">
                   <p className="font-semibold text-[color:var(--accent-text,var(--primary))]">{v.verb}</p>
                   <p className="mt-1 text-sm text-muted-foreground">{v.line}</p>
                 </Link>

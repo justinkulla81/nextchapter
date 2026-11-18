@@ -42,6 +42,11 @@ Open: which system the region uses (Geographic Solutions, a Salesforce build, ot
 
 ## The seven verbs and the areas
 
+**Decided (owner, 2026-11-18):** Funding and Partners are their own sections beside the hubs, not Talent Hub areas: grants pay for
+work in every hub, and the Business and Education Hubs work with the same organizations. Training partners (colleges and
+providers, Programs, Enrollments, the eligible training list) are in the Education Hub. Talent Hub keeps Home, People,
+Employers, Jobs, Market, Reports and Public presence. The old Talent Hub addresses redirect (`HUB_MOVED_TABS`).
+
 **Verbs** (what the organization does; Home shows one tile for each, with status and what needs you):
 Attract · Retrain · Support (layoff response) · Train · Fund · Understand (labor market) · Coordinate
 

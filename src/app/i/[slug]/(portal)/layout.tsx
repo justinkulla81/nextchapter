@@ -95,7 +95,7 @@ export default async function InstitutionPortalLayout({
   // Same tabs and filters the page uses ([workspace]/[[...tab]]/page.tsx); phones keep the pills.
   // The Business Hub (no areas) lists its pages the same way, one per line.
   if (folded) {
-    for (const key of ['hub', 'business', 'education'] as const) {
+    for (const key of ['hub', 'business', 'education', 'funding', 'partners'] as const) {
       const item = railItems.find((r) => r.key === key)
       if (!item) continue
       const tabs = tabsFor(access.tokens, key, modules, 'workforce').filter((t) => (!t.demoOnly || institution.isDemo) && (!t.from || access.workspaces.includes(t.from.workspace)) && (!t.hideWhenWorkspace || !access.workspaces.includes(t.hideWhenWorkspace)))
