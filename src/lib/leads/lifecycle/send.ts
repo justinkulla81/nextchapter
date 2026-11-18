@@ -11,6 +11,7 @@ import { journeyButtons } from './journey'
 import { leadEmailContent, leadEmailText, type LeadEmailContext, type LeadEmailJob } from './content'
 import { jobsForSearch, similarLeadJobs, type LeadJob } from './similar-jobs'
 import { latestReport } from '@/lib/reports'
+import { accountLink } from '@/lib/leads/light-account'
 import { getPublicNotices } from '@/lib/warn/layoff-pages'
 import { buildLayoffWeekBrief } from '@/lib/newsletter/layoff-week'
 
@@ -93,7 +94,12 @@ export async function sendLifecycleEmail(input: LifecycleSend): Promise<boolean>
   const content = leadEmailContent(input.variant, input.step, { ...input.context, choices, jobs, report, layoffs })
   const settings = await getMailingSettings()
   const unsubscribeUrl = `${appUrl()}/updates/unsubscribe/${makeUnsubscribeToken(email, null)}`
-  const directCta = profileUrl(email, input.variant, input.step, input.context.journey)
+  // The main button opens their account (owner decision 2026-11-18: an account before the questions; the account then leads into
+  // them). Someone who stopped mid-signup at the no-Gmail step keeps the link back into their own signup.
+  const midSignup = input.context.detail === 'onboarding_no_gmail'
+  const directCta = midSignup
+    ? profileUrl(email, input.variant, input.step, input.context.journey)
+    : accountLink(email, { utm_source: 'lead_email', utm_campaign: `${input.variant}_${input.step}` })
 
   let ctaUrl: string | null = content.ctaLabel ? directCta : null
   let pixelUrl: string | undefined

@@ -2,7 +2,7 @@
 // schema change: { onboardingFlow: 'bundles', onboardingBundles: { completed, finishedAt, googleRevealAt } }.
 // Pure: progress.test.ts.
 
-import { BUNDLES_MARKER_KEY, BUNDLES_MARKER_VALUE } from '@/lib/onboarding/flag'
+import { BUNDLES_MARKER_KEY, BUNDLES_MARKER_VALUE, flowOfProfile } from '@/lib/onboarding/flag'
 import { BUNDLE_ORDER, BUNDLE_ROUTE, type BundleId } from '@/lib/onboarding/bundles'
 import { isGoogleConnectOn } from '@/lib/google/connect-switch'
 import { DETAILS_PATH, needsContactDetails } from '@/lib/onboarding/details'
@@ -84,4 +84,17 @@ export function afterAccountPath(p: { finishedAt: string | null; googleRevealAt:
   if (!p.finishedAt) return FINISH_PATH
   if (googleOn && !p.googleRevealAt) return '/onboarding/google'
   return p.introCommitted ? '/dashboard' : '/onboarding/welcome'
+}
+
+/**
+ * Whether a light account (opened from a follow-up email, owner decision 2026-11-18) has answered the questions that come
+ * before the account step, in whichever flow it is on. Until then registration waits (syncRegistrationCompletion), so the hub
+ * keeps asking the questions instead of jumping to the finish screen.
+ */
+export function lightAccountQuestionsDone(
+  profile: Parameters<typeof nextPreAccountPath>[0] & { journeyDetails?: unknown; desireComplete: boolean; contractAcceptedAt: Date | null },
+  email?: string | null,
+): boolean {
+  if (flowOfProfile(profile, email) === 'bundles') return nextPreAccountPath(profile) === accountStepPath()
+  return !!profile.contractAcceptedAt
 }

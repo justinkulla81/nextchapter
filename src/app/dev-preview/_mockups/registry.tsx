@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react'
+import { LightAccountReady, LightSavedJobs } from './light-account'
 import { HomeToday, ProgressBuilt, ProgressTimeline } from './home'
 import { HomeTodayShort, HomeTodayShortQuiet, HomeTodayPaper } from './home-short'
 import { NetworkShort, NetworkTracker } from './network-short'
@@ -344,6 +345,8 @@ export const MOCKUPS: Mockup[] = [
   { path: 'jobs/looking-for', place: 'Jobs', title: 'Find a job: full-time or fractional choice', replaces: '/dashboard/find-my-job (Jobs view)', Component: FindLookingFor },
   { path: 'admin/board-bids-live', place: 'Admin', title: 'CRM funding: workforce board bids (live rows)', replaces: 'new', Component: BoardBidsLive as unknown as ComponentType },
   { path: 'admin/competitor-wins-live', place: 'Admin', title: 'CRM funding: competitor federal wins (live rows)', replaces: 'new', Component: CompetitorWinsLive as unknown as ComponentType },
+  { path: 'onboarding/light-account-ready', place: 'Onboarding', title: 'Light account: "Your account is ready" (from an email)', replaces: 'new', Component: LightAccountReady },
+  { path: 'onboarding/light-saved-jobs', place: 'Onboarding', title: 'Light account: saved jobs and the one next step', replaces: 'new', Component: LightSavedJobs },
   { path: 'account/money', place: 'Account', title: 'Money help (off state)', replaces: 'new', Component: AccountMoney },
 ]
 
