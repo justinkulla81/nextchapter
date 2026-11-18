@@ -12861,6 +12861,7 @@ enum InstitutionUserRole {
   VIEWER // assigned workspace, read-only
   ACADEMIC_AFFAIRS // provost and academic affairs: the Academic Affairs workspace (programs against the job market)
   WORKFORCE_PARTNER // the local workforce board's staff: Workforce board workspace, read-only (needs enabledFeatures.wioa)
+  ENTREPRENEURSHIP // the entrepreneurship center (CMU: Swartz Center): Entrepreneurship workspace
 }
 
 enum InstitutionAffiliation {
@@ -12906,6 +12907,7 @@ enum InstitutionConsentScope {
   SHARE_DOSSIER_WITH_EMPLOYERS // default off
   LIST_IN_DIRECTORY // default off: appear in the alumni directory
   SHARE_NEEDS // default off: workforce programs see the help a member said they need (childcare, housing...), to match benefits
+  SHARE_VENTURE // default off: the college's entrepreneurship center sees that the member is building or buying a business, and its name and stage
 }
 
 enum TransitionFlagState {
@@ -13080,6 +13082,7 @@ model Institution {
   trialEndsAt       DateTime?
   trainingOfferings TrainingOffering[]
   fundingCommitments FundingPartnerCommitment[]
+  partnerGroups      PartnerGroup[]
   alumniCount       Int?
   includedSeats     Int                @default(0)
   licenseStartAt    DateTime?
@@ -15963,6 +15966,7 @@ model EcosystemPartner {
 
   contacts         EcosystemPartnerContact[]
   partnerViews     PartnerView[]
+  groupMemberships PartnerGroupMember[]
 
   @@unique([institutionId, source, refId])
   @@index([institutionId, status])
@@ -18956,4 +18960,68 @@ model InstitutionUnit {
   staff         InstitutionUser[]
 
   @@index([institutionId])
+}
+// One row per member a college's entrepreneurship center should know about (src/lib/higher-ed/ventures.ts). CONSIDERING: the
+// member told the college they are starting a company (check-in) or shares their venture (SHARE_VENTURE). STARTED: the venture
+// has launched, or a shared new job is as a founder or owner. Plain ids (no relations); the foreign keys cascade in SQL
+// (prisma/manual/venture-flags.sql). Venture name and stage are copied only when the member shares them.
+model VentureFlag {
+  id             String    @id @default(cuid())
+  institutionId  String
+  memberId       String
+  status         String // CONSIDERING | STARTED
+  source         String // CHECK_IN | SHARED | OUTCOME
+  ventureName    String?
+  ventureStage   String? // idea | validate | build | launch | grow, or buying
+  firstFlaggedAt DateTime  @default(now())
+  startedAt      DateTime?
+  contactedAt    DateTime?
+  contactedBy    String?
+  isSampleData   Boolean   @default(false)
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([institutionId, memberId])
+  @@index([institutionId, status])
+}
+
+// Workforce Hub: a group of partners that work together (a coordination council, a funders table, an economic-development roundtable).
+// The organization makes it, chooses its members from its ecosystem partners, and posts updates the members read in their Partner Hub.
+model PartnerGroup {
+  id            String      @id @default(cuid())
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  name          String
+  purpose       String?
+  createdBy     String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  members PartnerGroupMember[]
+  posts   PartnerGroupPost[]
+
+  @@index([institutionId])
+}
+
+model PartnerGroupMember {
+  id        String           @id @default(cuid())
+  groupId   String
+  group     PartnerGroup     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  partnerId String
+  partner   EcosystemPartner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now())
+
+  @@unique([groupId, partnerId])
+  @@index([partnerId])
+}
+
+model PartnerGroupPost {
+  id          String       @id @default(cuid())
+  groupId     String
+  group       PartnerGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  body        String       @db.Text
+  createdBy   String
+  authorLabel String
+  createdAt   DateTime     @default(now())
+
+  @@index([groupId, createdAt])
 }

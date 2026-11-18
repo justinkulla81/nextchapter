@@ -37,7 +37,7 @@ import {
   listMemberDirectory,
   listOpenTransitions,
 } from '@/lib/higher-ed/views'
-import { STAFF_ROLE_LABELS, staffRoleLabel, TIER_LABELS, WORKSPACES, auditPortalOf, brandingEditPath, getWorkspace, orgKindOf, tierIncludes, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
+import { OFFICE_NAME_MAX, RENAMABLE_OFFICES, STAFF_ROLE_LABELS, labelFor, officeNamesOf, staffRoleLabel, TIER_LABELS, WORKSPACES, auditPortalOf, brandingEditPath, getWorkspace, orgKindOf, tierIncludes, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
 import { OrgHomeHero } from '@/components/partners/OrgHomeHero'
 import { HiddenMembersNote } from '@/components/plans/HiddenMembersNote'
 import { AdminRelatedOrgs } from './screens-related'
@@ -71,13 +71,14 @@ import { RECRUITING_DATE_LABELS, EARLY_CAREER_LABELS, splitUpcoming, deadlinePas
 import { StaffInviteForm } from './StaffInviteForm'
 import { LockedFeature } from '@/components/plans/LockedFeature'
 import { EducationAssign, EducationCatalog, EducationGaps } from './screens-education'
-import { PartnerFeed, WfFeed, WfFunding, WfPartners } from './screens-wfhub'
+import { PartnerFeed, PartnerGroups, WfFeed, WfFunding, WfGroups, WfPartners } from './screens-wfhub'
 import { institutionEntitlements, trialForLock } from '@/lib/plans/entitlements'
 import { AlumniEngagement, AlumniLayoffs, AlumniOutreach, CareerCheckIns, WaitingForYou } from './screens-outreach'
 import { AlumniData } from './screens-alumni-data'
 import { DevelopmentGrants } from './screens-grants'
 import { SkillsBridgeSection, StaffSkillsBridge } from './screens-bridge'
 import { AlumniInNews, ResearchAndPatents, TeachingGroups } from './screens-campus'
+import { VentureShareCard, VenturesFounders } from './screens-ventures'
 import { InternshipsScreen } from './screens-internships'
 import { AlumniMentors, CandidateJobs, CareerEmployers, CareerStudents, EmployerDossiersWithIntros, EmployerPage, IntroRequestsCard } from './screens-network'
 import { counselors, searchRoster } from '@/lib/higher-ed/caseload'
@@ -90,6 +91,7 @@ import { AdminBoard, AlumniEvents, CandidateNetwork, MilestonesFeed, StagePanel,
 import { CandidatePrograms, ExecEdClients, ExecEdEnrollments, ExecEdPrograms, MyProgramCard, TeachingCapstones, TeachingCourses, WorkforceHome } from './screens-programs'
 import { DevelopmentCrm, DevelopmentFund, DevelopmentRoi, DevelopmentSignals, PeerBenchmarkCard } from './screens-development'
 import { BrandingForm } from './BrandingForm'
+import { OfficeNamesForm } from './OfficeNamesForm'
 import {
   AdminPrivacy,
   AlumniCommunity,
@@ -128,7 +130,7 @@ import { listTargetCompanies } from '@/lib/companies/institution-targets'
 import { canAny } from '@/lib/institution/permissions'
 import { removeStaff, resendStaffInvite } from '@/app/i/[slug]/(portal)/staff-actions'
 import { ActionButton } from './CommunityForms'
-import { addEarlyCareerRoleAction, addRecruitingDateAction, archiveEarlyCareerRoleAction, removeRecruitingDateAction, saveCoreRecruiter, archiveAlumniJob, addTargetCompany, inviteStaff, postAlumniJob, removeTargetCompany, saveBranding, saveCollegeSettings, uploadCrmFile } from '@/app/i/[slug]/(portal)/staff-actions'
+import { addEarlyCareerRoleAction, addRecruitingDateAction, archiveEarlyCareerRoleAction, removeRecruitingDateAction, saveCoreRecruiter, archiveAlumniJob, addTargetCompany, inviteStaff, postAlumniJob, removeTargetCompany, saveBranding, saveCollegeSettings, saveOfficeNames, uploadCrmFile } from '@/app/i/[slug]/(portal)/staff-actions'
 
 export type ScreenSearchParams = { field?: string; purpose?: string; q?: string; page?: string; status?: string; transition?: string; industry?: string; fn?: string; edit?: string; group?: string; company?: string; track?: string; need?: string } & CommunityParams
 type ScreenProps = { ctx: WorkspaceContext; searchParams: ScreenSearchParams; base: string }
@@ -306,6 +308,7 @@ async function CandidateHome({ ctx, base }: ScreenProps) {
       </div>
       <CareerStatusCard slug={ctx.institution.slug} collegeName={ctx.institution.name} flag={openFlag?.state === 'CLEARED' ? null : (openFlag?.state ?? null)} />
       <IntroRequestsCard ctx={ctx} />
+      {kind === 'college' && <VentureShareCard ctx={ctx} base={base} />}
       <MyProgramCard ctx={ctx} />
       <NewsCard ctx={ctx} />
       <StagePanel ctx={ctx} />
@@ -1058,6 +1061,8 @@ const CONSENT_COPY: Record<string, { label: (c: string) => string; help: string 
   SHARE_ENGAGEMENT: { label: (c) => `Count my activity toward ${c}'s alumni engagement`, help: 'That you used the tools and took calls, as totals. Never what you did in them.' },
   SHARE_DOSSIER_WITH_EMPLOYERS: { label: (c) => `Show my Dossier to employers ${c} approves`, help: 'Employers that hire through your college can see your Dossier and ask for an introduction. You say yes or no each time.' },
   // Workforce programs only: they match people to benefits (Program › People, src/lib/workforce/people-crm.ts).
+  // Colleges only: the entrepreneurship center (src/lib/higher-ed/ventures.ts). Off by default; a launched venture is shared as an outcome.
+  SHARE_VENTURE: { label: (c) => `Tell ${c}'s entrepreneurship center I'm building or buying a business`, help: 'Its name, stage, kind, customers, team and funding, so the center can offer office hours, programs, investors and alumni customers. Never runway, hours or money. Once it launches, its name is shared with your outcome.' },
   SHARE_NEEDS: { label: (c) => `Let ${c} see why I joined and the help I need`, help: 'Whether you are moving here, changing fields or starting out, and the money pressures and barriers you told NextChapter about, like childcare, rent or health coverage, so they can match you to local programs. Never amounts or messages.' },
 }
 
@@ -1084,10 +1089,13 @@ async function CandidatePrivacy({ ctx }: ScreenProps) {
   if (workforce) {
     const needs = await prisma.institutionConsent.findFirst({ where: { memberId: ctx.memberId, scope: 'SHARE_NEEDS' }, orderBy: { changedAt: 'desc' }, select: { granted: true } })
     granted.SHARE_NEEDS = needs?.granted ?? false
+  } else {
+    const venture = await prisma.institutionConsent.findFirst({ where: { memberId: ctx.memberId, scope: 'SHARE_VENTURE' }, orderBy: { changedAt: 'desc' }, select: { granted: true } })
+    granted.SHARE_VENTURE = venture?.granted ?? false
   }
   const views = await listProfileViews(ctx.memberId)
   const rows = Object.entries(CONSENT_COPY)
-    .filter(([scope]) => workforce || scope !== 'SHARE_NEEDS')
+    .filter(([scope]) => (workforce ? scope !== 'SHARE_VENTURE' : scope !== 'SHARE_NEEDS'))
     .map(([scope, c]) => (workforce && WORKFORCE_CONSENT_COPY[scope] ? [scope, WORKFORCE_CONSENT_COPY[scope]] as const : [scope, c] as const))
     .map(([scope, c]) => ({ scope, label: c.label(ctx.institution.name), help: c.help, granted: granted[scope] }))
   return (
@@ -1333,10 +1341,19 @@ async function LaunchChecklist({ ctx }: { ctx: WorkspaceContext }) {
 async function AdminBranding({ ctx }: ScreenProps) {
   const i = await prisma.institution.findUnique({
     where: { id: ctx.institution.id },
-    select: { programBrandName: true, accentColor: true, logoUrl: true, profile: true },
+    select: { programBrandName: true, accentColor: true, logoUrl: true, profile: true, enabledFeatures: true },
   })
   const profile = readProfile(i?.profile)
+  // Offices this college can open (or a higher tier would add), each with our name and theirs.
+  const kind = orgKindOf(ctx.institution.orgType)
+  const names = officeNamesOf(i?.enabledFeatures)
+  const offices = WORKSPACES.filter((w) => (RENAMABLE_OFFICES as readonly string[]).includes(w.key) && (!w.orgKind || w.orgKind === kind)).map((w) => ({
+    key: w.key,
+    standard: labelFor(w, kind),
+    current: names[w.key] ?? null,
+  }))
   return (
+    <div className="space-y-6">
     <BrandingForm
       saveAction={saveBranding.bind(null, ctx.institution.slug)}
       defaults={{
@@ -1347,6 +1364,8 @@ async function AdminBranding({ ctx }: ScreenProps) {
         heroImageUrl: profile.heroImageUrl ?? null,
       }}
     />
+    {ctx.tokens.has('INSTITUTION_ADMIN') && !ctx.readOnly && <OfficeNamesForm saveAction={saveOfficeNames.bind(null, ctx.institution.slug)} offices={offices} max={OFFICE_NAME_MAX} />}
+    </div>
   )
 }
 
@@ -1754,6 +1773,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'career:recruiting': RecruitingScreen,
   'candidate:coaching': CandidateCoaching,
   'career:coaching': CareerCoaching,
+  'ventures:home': VenturesFounders,
   'teaching:home': TeachingCourses,
   'teaching:faculty': TeachingFaculty,
   'execed:home': ExecEdPrograms,
@@ -1784,6 +1804,11 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'admin:units': AdminUnits,
   'admin:connections': AdminConnections,
   'admin:publicpage': AdminPublicPage,
+  // A workforce organization's Admin pages that moved (owner, 2026-11-18); a college keeps them in Admin.
+  'wfhub:publicpage': AdminPublicPage,
+  'wfhub:branding': AdminBranding,
+  'wfhub:board': AdminBoard,
+  'partnerhub:related': AdminRelatedOrgs,
   'execed:bridge': StaffSkillsBridge,
   'career:bridge': StaffSkillsBridge,
   'career:checkins': CareerCheckIns,
@@ -1800,16 +1825,16 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'hub:rapid': HubRapid,
   'hub:benefits': HubBenefits,
   'hub:attract': HubAttract,
-  'hub:grants': HubGrants,
+  'wfhub:grants': HubGrants,
   'education:programs': ExecEdPrograms,
   'education:enrollments': ExecEdEnrollments,
   'hub:clients': ExecEdClients,
   'hub:wioa': WorkforceHome,
   'education:etpl': WorkforceEtpl,
   'hub:responses': WorkforceRapid,
-  'wfhub:system': HubSystem,
+  'partnerhub:system': HubSystem,
   'wfhub:opportunities': HubFunding,
-  'hub:public': HubPublic,
+  'wfhub:public': HubPublic,
   'business:home': BusinessHome,
   'business:leads': BusinessLeads,
   'business:pitch': BusinessPitch,
@@ -1820,8 +1845,10 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'hub:report': HubReport,
   'hub:skillsgap': HubSkillsGaps,
   'wfhub:funding': WfFunding,
-  'wfhub:partners': WfPartners,
-  'wfhub:feed': WfFeed,
+  'partnerhub:partners': WfPartners,
+  'partnerhub:groups': WfGroups,
+  'partnerhub:feed': WfFeed,
+  'partnerview:groups': PartnerGroups,
   'partnerview:feed': PartnerFeed,
   'education:catalog': EducationCatalog,
   'education:assign': EducationAssign,
@@ -1831,9 +1858,9 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'hub:regionjobs': HubRegionJobs,
   'hub:groupjobs': HubGroupJobs,
   'hub:employerjobs': HubEmployerJobs,
-  'wfhub:views': HubPartnerViews,
-  'wfhub:ecosystem': HubEcosystem,
-  'hub:network': HubNetwork,
+  'partnerhub:views': HubPartnerViews,
+  'partnerhub:ecosystem': HubEcosystem,
+  'partnerhub:network': HubNetwork,
   'partnerview:overview': PartnerOverview,
   'partnerview:shared': PartnerShared,
   'hub:region': Region,

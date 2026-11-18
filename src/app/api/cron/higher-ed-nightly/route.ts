@@ -9,6 +9,7 @@ import { withCronRun } from '@/lib/cron/run'
 import { runMonthlyEmails } from '@/lib/higher-ed/monthly'
 import { cleanupExpiredDemos, reseedWorkforceDemo } from '@/lib/workforce/demo'
 import { autoJoinMajorGroups } from '@/lib/higher-ed/major-groups'
+import { syncVentureFlags } from '@/lib/higher-ed/ventures'
 import { DEMO_TENANTS } from '@/lib/higher-ed/demo-tenants'
 import { resetDemoInstitution } from '@/lib/higher-ed/demo-seed'
 import { seedDemoContent } from '@/lib/institution/admin'
@@ -31,13 +32,15 @@ export const GET = withCronRun('higher-ed-nightly', async () => {
   const grace = await clearEndedGrace(startedAt)
   // Public workforce demos older than 30 days.
   const demos = await cleanupExpiredDemos(startedAt).catch(() => ({ removed: 0 }))
-  const colleges = await prisma.institution.findMany({ where: { isDemo: false }, select: { id: true } })
-  const totals = { layoffMatches: 0, engagementEvents: 0, checkInsScheduled: 0, failed: 0 }
+  const colleges = await prisma.institution.findMany({ where: { isDemo: false }, select: { id: true, orgType: true } })
+  const totals = { layoffMatches: 0, engagementEvents: 0, checkInsScheduled: 0, ventureFlags: 0, failed: 0 }
   for (const c of colleges) {
     try {
       totals.layoffMatches += (await matchLayoffs(c.id, startedAt)).added
       totals.engagementEvents += (await syncEngagement(c.id, startedAt)).added
       totals.checkInsScheduled += (await scheduleCheckIns(c.id, startedAt)).scheduled
+      const v = !c.orgType || c.orgType === 'COLLEGE' ? await syncVentureFlags(c.id, startedAt) : { created: 0, started: 0 }
+      totals.ventureFlags += v.created + v.started
     } catch (err) {
       totals.failed++
       console.error('[higher-ed-nightly]', c.id, err)

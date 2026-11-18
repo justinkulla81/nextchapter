@@ -13,8 +13,6 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { PrismaClient, type CrmEligibility } from '@prisma/client'
-import { normalizeOrgName } from '../../src/lib/text/org-name-match'
-import { strictOrgKey } from '../../src/lib/crm/normalize'
 import { toRows } from './parse'
 
 const prisma = new PrismaClient()

@@ -33,6 +33,8 @@ const ANY_STAFF: AccessToken[] = [
   'VIEWER:coaching',
   'VIEWER:teaching',
   'VIEWER:execed',
+  'VIEWER:ventures',
+  'ENTREPRENEURSHIP',
 ]
 const TRANSITION_ROLES: AccessToken[] = [
   'INSTITUTION_ADMIN',

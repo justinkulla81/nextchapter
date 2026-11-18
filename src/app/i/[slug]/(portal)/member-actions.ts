@@ -12,8 +12,9 @@ import { setConsent } from '@/lib/higher-ed/join'
 import { closeTransitionFlag, graceDaysFrom, openTransitionFlag, reportNewJob } from '@/lib/higher-ed/transition'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { applyJourneyChange } from '@/lib/journey/apply'
+import { syncVentureFlags } from '@/lib/higher-ed/ventures'
 
-const SCOPES: InstitutionConsentScope[] = ['SHARE_ENGAGEMENT', 'SHARE_OUTCOME', 'SHARE_SEARCH_DETAIL_WITH_CAREER', 'SHARE_DOSSIER_WITH_EMPLOYERS', 'SHARE_NEEDS']
+const SCOPES: InstitutionConsentScope[] = ['SHARE_ENGAGEMENT', 'SHARE_OUTCOME', 'SHARE_SEARCH_DETAIL_WITH_CAREER', 'SHARE_DOSSIER_WITH_EMPLOYERS', 'SHARE_NEEDS', 'SHARE_VENTURE']
 const PREVIEW = 'This is a preview: there’s no member record behind it, so nothing was saved.'
 
 async function me(slug: string) {
@@ -32,6 +33,8 @@ export async function setMyConsent(slug: string, scope: string, granted: boolean
   if (!member) return { error: PREVIEW }
   await setConsent(member.id, scope as InstitutionConsentScope, granted)
   captureServerEvent(ctx.userId, 'he_consent_changed', { institutionId: ctx.institution.id, scope, granted })
+  // The entrepreneurship center's list follows this switch at once, both ways (a few rows for one institution).
+  if (scope === 'SHARE_VENTURE' || scope === 'SHARE_OUTCOME') await syncVentureFlags(ctx.institution.id).catch((err) => console.error('[ventures] sync after consent', err))
   revalidatePath(`/i/${slug}/candidate`, 'layout')
   return {}
 }

@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import { Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { requireWorkspace } from '@/lib/higher-ed/access'
-import { getWorkspace, HUB_MOVED_TABS, labelFor, orgBasePath, orgKindOf, tabsFor, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
+import { getWorkspace, MOVED_TABS, labelFor, officeLabel, officeNamesOf, orgBasePath, orgKindOf, tabsFor, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
 import { loadModules } from '@/components/higher-ed/screens-community'
 import { LockedFeature } from '@/components/plans/LockedFeature'
 import { PLAN_CONTACT_EMAIL, blockedScreen, trialForLock, trialState } from '@/lib/plans/entitlements'
@@ -28,9 +28,9 @@ export default async function WorkspacePage({
   if (!config || config.release !== 'V1') notFound()
 
   const ctx = await requireWorkspace(slug, config.key as WorkspaceKey)
-  // A Talent Hub page that moved to the Workforce Hub or the Education Hub (owner, 2026-11-18): the old address still works.
-  const moved = config.key === 'hub' && tab?.length === 1 ? HUB_MOVED_TABS[tab[0]] : undefined
-  if (moved) {
+  // A page that moved to another section (owner, 2026-11-18): the old address still works. Admin pages moved only for workforce organizations.
+  const moved = tab?.length === 1 ? MOVED_TABS[config.key as WorkspaceKey]?.[tab[0]] : undefined
+  if (moved && (!moved.orgKind || moved.orgKind === orgKindOf(ctx.institution.orgType))) {
     const qs = new URLSearchParams(Object.entries(await searchParams).flatMap(([k, v]): [string, string][] => (typeof v === 'string' ? [[k, v]] : []))).toString()
     redirect(`${orgBasePath(slug, ctx.institution.orgType)}/${getWorkspace(moved.workspace)!.homePath}/${moved.tab}${qs ? `?${qs}` : ''}`)
   }
@@ -38,6 +38,8 @@ export default async function WorkspacePage({
   // A workforce program's staff open the participant and employer views as previews ("See it as"), drawn in the
   // frame of the real site each person uses (src/components/higher-ed/SiteFrames.tsx).
   const framed = kind === 'workforce' && ctx.workspaces.includes('hub') && (config.key === 'candidate' || config.key === 'employer')
+  // The college's own name for this office (Admin › Branding), one small read.
+  const officeNames = officeNamesOf((await prisma.institution.findUnique({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } }))?.enabledFeatures)
   const tabs = tabsFor(ctx.tokens, config.key, await loadModules(ctx.institution.id), kind).filter(
     (t) => (!t.demoOnly || ctx.institution.isDemo) && (!t.from || ctx.workspaces.includes(t.from.workspace)) && (t.key !== 'groups' || framed) && (!t.hideWhenWorkspace || !ctx.workspaces.includes(t.hideWhenWorkspace)) && (!t.institutionOnly || !ctx.units?.length),
   )
@@ -61,7 +63,7 @@ export default async function WorkspacePage({
   const trial = trialState(ctx.institution.storedPlan ?? ctx.institution.plan, ctx.institution.trialStartedAt, ctx.institution.trialEndsAt)
   const header = (
     <div className="flex flex-wrap items-center gap-3">
-      <h1 className="text-2xl font-semibold tracking-tight">{labelFor(config, kind)}</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">{officeLabel(config, kind, officeNames)}</h1>
       {trial.state === 'active' && (
         <a
           href={`mailto:${PLAN_CONTACT_EMAIL}?subject=${encodeURIComponent(`Keep the paid plan for ${slug}`)}`}
@@ -114,9 +116,9 @@ export default async function WorkspacePage({
           cn('-mb-px shrink-0 border-b-2 px-3 py-2 text-sm font-medium transition-colors', isActive ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground')
         return (
           // Talent Hub's areas and pages are in the left rail on wide screens (WorkspaceRail); phones keep these rows.
-          <div className={cn('space-y-3', ['hub', 'business', 'education', 'wfhub'].includes(config.key) && kind === 'workforce' && 'lg:hidden')}>
+          <div className={cn('space-y-3', ['hub', 'business', 'education', 'wfhub', 'partnerhub'].includes(config.key) && kind === 'workforce' && 'lg:hidden')}>
             {groups.length > 1 && (
-              <nav aria-label={`${labelFor(config, kind)} areas`} className="flex flex-wrap gap-2">
+              <nav aria-label={`${officeLabel(config, kind, officeNames)} areas`} className="flex flex-wrap gap-2">
                 {groups.map((g) => {
                   const first = tabs.find((t) => t.group === g)!
                   const isActive = g === active.group
@@ -134,7 +136,7 @@ export default async function WorkspacePage({
               </nav>
             )}
             {shown.length > 1 && (
-              <nav aria-label={`${labelFor(config, kind)} sections`} className="flex gap-1 overflow-x-auto border-b border-border">
+              <nav aria-label={`${officeLabel(config, kind, officeNames)} sections`} className="flex gap-1 overflow-x-auto border-b border-border">
                 {shown.map((t) => (
                   <Link key={t.key} href={hrefOf(t)} aria-current={t.key === active.key ? 'page' : undefined} className={link(t.key === active.key)}>
                     {labelFor(t, kind)}

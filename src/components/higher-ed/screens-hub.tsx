@@ -118,16 +118,17 @@ export async function HubHome({ ctx, base }: Props) {
   // The action names the biggest layoff waiting, so the button says what it is for.
   const biggest = [...unansweredList].sort((a, b) => (b.employees ?? 0) - (a.employees ?? 0))[0]
   const isDemo = ctx.institution.isDemo
-  // Funding and partners (Workforce Hub) and training (Education Hub) sit beside Talent Hub (owner, 2026-11-18): siblings of this base.
+  // Funding and public pages (Workforce Hub), partners (Partner Hub) and training (Education Hub) sit beside Talent Hub
+  // (owner, 2026-11-18): their pages are siblings of this base.
   const sib = (path: string) => base.replace(/\/hub$/, `/${path}`)
   const needs: { label: string; detail: string; href: string; cta: string }[] = []
   if (unanswered > 0) needs.push({ label: `${unanswered} layoff${unanswered === 1 ? '' : 's'} filed in your region with no response yet`, detail: 'Real filings from the last 120 days.', href: `${base}/${isDemo ? 'rapid' : 'layoffs'}`, cta: biggest ? `Plan the response to ${biggest.employer.length > 40 ? 'the biggest layoff' : `the ${biggest.employer} layoff`}` : 'Plan the response' })
   if (requests.length > 0) needs.push({ label: `${requests.length} seat request${requests.length === 1 ? '' : 's'} from member companies waiting`, detail: 'A company asked for free access for its people.', href: `${base}/layoffs`, cta: 'Answer the request' })
   if (redZone > 0) needs.push({ label: `${small(redZone)} people out of work 26 weeks or more`, detail: 'The longest searches, where outreach matters most.', href: `${base}/participants`, cta: 'See who' })
-  if (claimsWaiting > 0) needs.push({ label: `${claimsWaiting} organization${claimsWaiting === 1 ? '' : 's'} asked to join your talent network`, detail: 'Check who they are, then confirm or decline.', href: sib('workforce-hub/ecosystem'), cta: 'Review requests' })
+  if (claimsWaiting > 0) needs.push({ label: `${claimsWaiting} organization${claimsWaiting === 1 ? '' : 's'} asked to join your talent network`, detail: 'Check who they are, then confirm or decline.', href: sib('partner-hub/ecosystem'), cta: 'Review requests' })
   if (employerJobsWaiting > 0) needs.push({ label: `${employerJobsWaiting} job${employerJobsWaiting === 1 ? '' : 's'} from employers waiting for your review`, detail: 'Employers you approved posted these. Approve or decline each.', href: `${base}/employerjobs`, cta: 'Review jobs' })
   if (suggestions.length > 0) {
-    const invite = { label: 'Invite the people you work with', detail: suggestionLine(suggestions.length), href: `${base}/network`, cta: 'Choose who to invite' }
+    const invite = { label: 'Invite the people you work with', detail: suggestionLine(suggestions.length), href: sib('partner-hub/network'), cta: 'Choose who to invite' }
     // On a real organization it is the first thing to do; a demo keeps its own story and lists it last.
     if (isDemo) needs.push(invite)
     else needs.unshift(invite)
@@ -175,7 +176,7 @@ export async function HubHome({ ctx, base }: Props) {
         imageUrl={profile?.heroImageUrl ?? null}
         credit={profile?.heroCredit ?? null}
         creditUrl={profile?.heroSourceUrl ?? null}
-        edit={{ brandingHref: `${base.replace(/\/hub$/, '')}/admin/branding`, regionHref: `${base}/local`, readOnly: ctx.readOnly }}
+        edit={{ brandingHref: sib('workforce-hub/branding'), regionHref: `${base}/local`, readOnly: ctx.readOnly }}
         stats={[
           { label: un ? `Unemployment, ${un.area}` : 'Unemployment', value: un ? `${un.rate}%` : '—', note: un ? `${periodLabel(un.period)}, U.S. Bureau of Labor Statistics` : 'Set your region to show it' },
           { label: 'Labor force', value: un?.laborForce ? un.laborForce.toLocaleString() : '—', note: un?.laborForce ? un.area : undefined },

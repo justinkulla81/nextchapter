@@ -51,3 +51,6 @@ A college's provost and academic affairs office (role `ACADEMIC_AFFAIRS`, or a v
 - **Peers:** same control, a half to double the degrees a year, in-state first; ranked by the share of graduates in above-average fields.
 - Fields our job data barely covers (nursing, education, health professions, social work) read "Not measured", never "below average".
 - Data: static federal files (`src/lib/rankings/data/college-majors/`, `college-index.json`) and the monthly `degree-fields` row (with `states`, and a `degree-fields:<yyyy-mm>` copy per month). No scan on a page view. Public data only, no member data.
+
+## Partner groups (2026-11-18)
+Workforce Hub › **Groups** (and Partner Hub › **Groups**, read-only). A group is a table of partners that work together (a coordination council, a funders table, an economic-development roundtable). The organization starts it, chooses members from its ecosystem partners and posts updates; members read them in their Partner Hub with who else is at the table. Free runs one group (try it); more is paid, with the same trial and preview (`partnerGroups`, `partnerGroupLimit`). Tables `PartnerGroup`, `PartnerGroupMember`, `PartnerGroupPost` (`prisma/manual/partner-groups.sql`, applied 2026-11-18). Updates are posted by the organization's staff; partner replies and shared views per group are not built.

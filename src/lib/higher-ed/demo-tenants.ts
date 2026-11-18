@@ -32,6 +32,8 @@ export type DemoTenant = {
   // Starting service choices, merged over the catalog defaults.
   services?: Record<string, Partial<ServiceSetting>>
   annualCheckInMonth?: number
+  /** The college's own office names (Admin › Branding), by workspace key. */
+  officeNames?: Record<string, string>
   profile?: InstitutionProfile
   // License tier; INSTITUTION opens Lifelong Learning (Exec Ed) and Teaching. Default ADVANCEMENT.
   tier?: 'CAREER' | 'ADVANCEMENT' | 'INSTITUTION'

@@ -7,7 +7,7 @@
 // staff rows for this slug, so one college's staff can't act on another's.
 
 import { revalidatePath } from 'next/cache'
-import type { InstitutionUserRole } from '@prisma/client'
+import type { InstitutionUserRole, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { fixAllCapsCompanyName } from '@/lib/text/org-name-match'
@@ -23,7 +23,7 @@ import { canAny, type InstitutionCapability } from '@/lib/institution/permission
 import { requireWorkspace, type WorkspaceContext } from '@/lib/higher-ed/access'
 import { recordInstitutionAudit } from '@/lib/higher-ed/partner-audit'
 import { US_TIME_ZONES } from '@/lib/higher-ed/time-zone'
-import type { WorkspaceKey } from '@/lib/higher-ed/workspaces'
+import { OFFICE_NAME_MAX, RENAMABLE_OFFICES, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
 
 export type FormState = { error?: string; ok?: boolean; message?: string } | undefined
 
@@ -196,6 +196,7 @@ const INVITABLE: InstitutionUserRole[] = [
   'FACULTY',
   'EXEC_ED',
   'ACADEMIC_AFFAIRS',
+  'ENTREPRENEURSHIP',
   'WORKFORCE_PARTNER',
   'VIEWER',
 ]
@@ -324,6 +325,25 @@ export async function saveBranding(slug: string, _prev: FormState, formData: For
   await recordInstitutionAudit(ctx, 'brand.updated', { type: 'institution', id: ctx.institution.id })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true, message: 'Saved. Everyone sees the new look on their next page load.' }
+}
+
+// Admin › Branding › Office names: the college's own name for each office, kept in enabledFeatures.officeNames.
+export async function saveOfficeNames(slug: string, _prev: FormState, formData: FormData): Promise<FormState> {
+  const ctx = await requireWorkspace(slug, 'admin', { write: true })
+  if (!ctx.tokens.has('INSTITUTION_ADMIN')) return { error: 'Only an admin can rename offices.' }
+  const names: Record<string, string> = {}
+  for (const k of RENAMABLE_OFFICES) {
+    const v = String(formData.get(k) ?? '').replace(/\s+/g, ' ').trim()
+    if (v.length > OFFICE_NAME_MAX) return { error: `Keep each name to ${OFFICE_NAME_MAX} characters.` }
+    if (v) names[k] = v
+  }
+  const row = await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } })
+  const features = { ...((row.enabledFeatures as Record<string, unknown> | null) ?? {}), officeNames: names }
+  await prisma.institution.update({ where: { id: ctx.institution.id }, data: { enabledFeatures: features as Prisma.InputJsonValue } })
+  captureServerEvent(ctx.userId, 'he_office_names_saved', { institutionId: ctx.institution.id, renamed: Object.keys(names) })
+  await recordInstitutionAudit(ctx, 'brand.updated', { type: 'institution', id: ctx.institution.id })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true, message: 'Saved. Staff see the new names on their next page load.' }
 }
 
 // ── Admin › Roster (HE-05) ──────────────────────────────────────────────────

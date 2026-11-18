@@ -30,6 +30,11 @@ const PARTNERS = [
   { name: 'Community foundation', kind: 'FUNDER', status: 'CONFIRMED', commitments: ['MATCH'] },
 ] as const
 
+const GROUPS = [
+  { name: 'Workforce coordination council', purpose: 'Meets monthly to line up funding, referrals and what we say to employers.', members: ['Regional economic development partner', 'Regional workforce board', 'American Job Center', 'Metro chamber of commerce', 'Community nonprofit'], posts: ['Next meeting Dec 9. The Reserve Fund application is due Dec 2: please confirm your match by Friday.', 'Thank you all for the layoff response last month. Three more notices came in this week; the job center will lead outreach.'] },
+  { name: 'Funders table', purpose: 'Foundations and chambers that bring match to our applications.', members: ['Community foundation', 'Metro chamber of commerce'], posts: ['Draft budget for the Talent Recruitment Grant is in the shared folder.'] },
+] as const
+
 // Partners on each funding application, by the application's order in the demo (see seedWorkforceDemo).
 const COMMITMENTS: { app: number; partnerName: string; partnerKind: string; role: string; status: string; amount: number | null; note: string | null }[] = [
   { app: 0, partnerName: 'Regional workforce board', partnerKind: 'WORKFORCE_BOARD', role: 'LEAD', status: 'COMMITTED', amount: null, note: 'Applicant of record' },
@@ -57,6 +62,19 @@ export async function seedHubSamples(institutionId: string, appIds: string[]) {
   if (fresh.length) {
     await prisma.ecosystemPartner.createMany({
       data: fresh.map((p) => ({ institutionId, name: p.name, kind: p.kind, source: 'MANUAL', status: p.status, commitments: [...p.commitments], invitedAt: p.status === 'UNINVITED' ? null : new Date(now - 10 * 86_400_000), decidedAt: p.status === 'CONFIRMED' ? new Date(now - 5 * 86_400_000) : null, createdBy: 'demo', isSampleData: true })),
+    })
+  }
+  // Two groups of partners with updates, so the Groups tab (and a partner's Groups tab) has something to read.
+  await prisma.partnerGroup.deleteMany({ where: { institutionId, createdBy: 'demo' } })
+  const byName = new Map((await prisma.ecosystemPartner.findMany({ where: { institutionId }, take: 300, select: { id: true, name: true } })).map((p) => [p.name, p.id]))
+  for (const g of GROUPS) {
+    const memberIds = g.members.flatMap((n) => (byName.get(n) ? [byName.get(n) as string] : []))
+    await prisma.partnerGroup.create({
+      data: {
+        institutionId, name: g.name, purpose: g.purpose, createdBy: 'demo',
+        members: { create: memberIds.map((partnerId) => ({ partnerId })) },
+        posts: { create: g.posts.map((body, i) => ({ body, createdBy: 'demo', authorLabel: 'Your organization', createdAt: new Date(now - (i + 1) * 3 * 86_400_000) })) },
+      },
     })
   }
   const rows = COMMITMENTS.flatMap((c) => (appIds[c.app] ? [{ institutionId, applicationId: appIds[c.app], partnerName: c.partnerName, partnerKind: c.partnerKind, role: c.role, status: c.status, amount: c.amount, note: c.note, createdBy: 'demo' }] : []))

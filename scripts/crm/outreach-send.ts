@@ -80,7 +80,7 @@ async function main() {
     if (process.env.OUTREACH_BOUNCE_OK !== '1') { console.error(`${msg} Nothing sent. Fix the list, then rerun with OUTREACH_BOUNCE_OK=1 to override.`); process.exit(2) }
     console.log(`${msg} Overridden with OUTREACH_BOUNCE_OK=1.`)
   }
-  let verifyLeft = apply ? ((await hunterAccount())?.requests.verifications) : null
+  const verifyLeft = apply ? ((await hunterAccount())?.requests.verifications) : null
   let creditsLeft = verifyLeft ? verifyLeft.available - verifyLeft.used : 0
   if (apply) console.log(`Hunter verifications left: ${creditsLeft}`)
   let sent = 0, skipped = 0

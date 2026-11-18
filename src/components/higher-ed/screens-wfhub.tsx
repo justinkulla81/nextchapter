@@ -11,6 +11,8 @@ import { institutionEntitlements, trialForLock } from '@/lib/plans/entitlements'
 import { LockedFeature } from '@/components/plans/LockedFeature'
 import { StatTile } from './StatTile'
 import { AddPartnerForm, AskPartner, RemovePartnerButton, StatusButtons } from './WfhubForms'
+import { DeleteGroupButton, MembersForm, NewGroupForm, PostForm } from './GroupForms'
+import { MAX_POSTS_SHOWN, canStartGroup } from '@/lib/workforce/partner-groups'
 
 type Props = { ctx: WorkspaceContext; searchParams: object; base: string }
 
@@ -132,7 +134,7 @@ export async function WfPartners({ ctx, base }: Props) {
       </div>
       {groups.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
-          No partners yet. <a href={base.replace(/\/workforce-hub$/, '/hub/network')} className="font-medium text-primary hover:underline">Open Your network</a> to invite the people you work with.
+          No partners yet. <a href={`${base}/network`} className="font-medium text-primary hover:underline">Open Your network</a> to invite the people you work with.
         </p>
       ) : (
         groups.map((g) => (
@@ -155,7 +157,7 @@ export async function WfPartners({ ctx, base }: Props) {
   )
 }
 
-/** The feed list, shared by the Workforce Hub and the Partner Hub. */
+/** The feed list, shared by the Partner Hub (staff) and Your partnership (a partner's own people). */
 export function FeedView({ items, intro }: { items: FeedItem[]; intro: string }) {
   return (
     <div className="space-y-8">
@@ -193,12 +195,131 @@ export function FeedView({ items, intro }: { items: FeedItem[]; intro: string })
 
 export async function WfFeed({ ctx }: Props) {
   const items = await loadFeed(ctx.institution.id).catch(() => [])
-  return <FeedView items={items} intro="What is happening, nationally and in your region: layoffs, funding closing soon, how your city ranks and the latest data. Partners see the same feed in their Partner Hub." />
+  return <FeedView items={items} intro="What is happening, nationally and in your region: layoffs, funding closing soon, how your city ranks and the latest data. Partners see the same feed under Your partnership." />
 }
 
-/** The Partner Hub's feed: the hub's own feed, read-only. */
+/** The feed a partner organization's people see (Your partnership): the same feed, read-only. */
 export async function PartnerFeed({ ctx }: Props) {
   const items = await loadFeed(ctx.institution.id).catch(() => [])
   const org = ctx.institution.programBrandName ?? ctx.institution.name
   return <FeedView items={items} intro={`What ${org} and its partners are watching: layoffs, funding closing soon, rankings and data, nationally and in the region.`} />
+}
+
+// ── Groups ──────────────────────────────────────────────────────────────────
+
+const when = (d: Date) => new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(d))
+
+export async function WfGroups({ ctx }: Props) {
+  const slug = ctx.institution.slug
+  const limit = institutionEntitlements({ plan: ctx.institution.plan }).partnerGroupLimit
+  const [groups, partners] = await Promise.all([
+    prisma.partnerGroup.findMany({
+      where: { institutionId: ctx.institution.id },
+      orderBy: { createdAt: 'asc' },
+      take: 50,
+      select: { id: true, name: true, purpose: true, members: { take: 100, select: { partnerId: true, partner: { select: { name: true } } } }, posts: { orderBy: { createdAt: 'desc' }, take: MAX_POSTS_SHOWN, select: { id: true, body: true, authorLabel: true, createdAt: true } } },
+    }),
+    prisma.ecosystemPartner.findMany({ where: { institutionId: ctx.institution.id, status: { not: 'DECLINED' } }, orderBy: { name: 'asc' }, take: 300, select: { id: true, name: true, kind: true } }),
+  ])
+  const choices = partners.map((p) => ({ id: p.id, name: p.name, kind: ecoKindLabel(p.kind) }))
+  const room = canStartGroup(limit, groups.length)
+  const edit = !ctx.readOnly
+  return (
+    <div className="space-y-8">
+      <p className="max-w-3xl text-sm text-muted-foreground">
+        A group is a table of partners that work together: a coordination council, a funders table, an economic-development roundtable. Choose its members from your partners and post updates; members read them under Your partnership. Partners are added under Partners and Your network.
+      </p>
+      {edit && (
+        room.allowed ? (
+          <details className="rounded-lg border border-border bg-card p-4" open={groups.length === 0}>
+            <summary className="cursor-pointer text-sm font-medium text-primary">Start a group</summary>
+            <div className="pt-3"><NewGroupForm slug={slug} /></div>
+          </details>
+        ) : (
+          <LockedFeature feature="partnerGroups" slug={slug} plan={ctx.institution.plan} trial={trialForLock(ctx.institution)} compact />
+        )
+      )}
+      {groups.length === 0 ? (
+        <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">No groups yet. Start one for each table of partners you convene.</p>
+      ) : (
+        <ul className="space-y-4">
+          {groups.map((g) => (
+            <li key={g.id} className="space-y-3 rounded-lg border border-border bg-card p-4">
+              <div>
+                <p className="font-medium">{g.name} <span className="text-sm font-normal text-muted-foreground">· {g.members.length} {g.members.length === 1 ? 'partner' : 'partners'}</span></p>
+                {g.purpose && <p className="text-sm text-muted-foreground">{g.purpose}</p>}
+              </div>
+              {g.members.length > 0 && <p className="text-sm text-muted-foreground">{g.members.map((m) => m.partner.name).join(' · ')}</p>}
+              {g.posts.length > 0 && (
+                <ul className="divide-y divide-border rounded-md border border-border">
+                  {g.posts.map((p) => (
+                    <li key={p.id} className="space-y-0.5 p-3 text-sm">
+                      <p className="whitespace-pre-line">{p.body}</p>
+                      <p className="text-xs text-muted-foreground">{p.authorLabel} · {when(p.createdAt)}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {edit && (
+                <div className="space-y-3">
+                  <PostForm slug={slug} groupId={g.id} />
+                  <details>
+                    <summary className="cursor-pointer text-sm font-medium text-primary">Choose members</summary>
+                    <div className="pt-3"><MembersForm slug={slug} groupId={g.id} partners={choices} chosen={g.members.map((m) => m.partnerId)} /></div>
+                  </details>
+                  <DeleteGroupButton slug={slug} groupId={g.id} name={g.name} />
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+/** Your partnership › Groups (a partner organization's own people): the groups my partner is in, who else is in them, and the updates. Read-only. */
+export async function PartnerGroups({ ctx }: Props) {
+  const ids = ctx.partnerIds ?? []
+  const org = ctx.institution.programBrandName ?? ctx.institution.name
+  const groups = ids.length
+    ? await prisma.partnerGroup.findMany({
+        where: { institutionId: ctx.institution.id, members: { some: { partnerId: { in: ids } } } },
+        orderBy: { createdAt: 'asc' },
+        take: 20,
+        select: { id: true, name: true, purpose: true, members: { take: 100, select: { partner: { select: { name: true } } } }, posts: { orderBy: { createdAt: 'desc' }, take: MAX_POSTS_SHOWN, select: { id: true, body: true, authorLabel: true, createdAt: true } } },
+      })
+    : []
+  return (
+    <div className="max-w-3xl space-y-6">
+      <p className="text-sm text-muted-foreground">The groups {org} has put your organization in, who else is at the table, and the latest updates.</p>
+      {groups.length === 0 ? (
+        <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">You are not in a group yet. {org} adds partners to groups as they convene them.</p>
+      ) : (
+        <ul className="space-y-4">
+          {groups.map((g) => (
+            <li key={g.id} className="space-y-3 rounded-lg border border-border bg-card p-4">
+              <div>
+                <p className="font-medium">{g.name}</p>
+                {g.purpose && <p className="text-sm text-muted-foreground">{g.purpose}</p>}
+              </div>
+              <p className="text-sm text-muted-foreground">At the table: {g.members.map((m) => m.partner.name).join(' · ')}</p>
+              {g.posts.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No updates yet.</p>
+              ) : (
+                <ul className="divide-y divide-border rounded-md border border-border">
+                  {g.posts.map((p) => (
+                    <li key={p.id} className="space-y-0.5 p-3 text-sm">
+                      <p className="whitespace-pre-line">{p.body}</p>
+                      <p className="text-xs text-muted-foreground">{p.authorLabel} · {when(p.createdAt)}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
 }

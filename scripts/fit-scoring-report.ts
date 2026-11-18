@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- ad hoc analysis over raw rows */
 // Fit-scoring report: per real member, how many live board jobs are good-or-better,
 // strong, very strong and "really good" (very strong + the job match rates it
 // strong/good) under the frozen pre-v2 scorer (what the emails use while
