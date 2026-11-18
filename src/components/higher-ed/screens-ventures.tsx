@@ -126,8 +126,9 @@ export async function VentureShareCard({ ctx }: Props) {
         {snap.buying ? 'Buying a business?' : 'Building something of your own?'} {center.name} can help
       </h2>
       <p className="text-sm text-muted-foreground">
-        Office hours, programs, investors and alumni customers. Share your venture&apos;s name, stage, kind, customers, team and funding with them. Never
-        your runway, hours or money. You can switch it off any time under Privacy.
+        Office hours, programs, investors and alumni customers. Share your venture&apos;s name, stage, kind, customers, team and funding with{' '}
+        {center.name} and the {ctx.institution.name} offices that work with founders (Alumni Relations, Advancement, Career Services, lifelong learning
+        and faculty). Never your runway, hours or money. You can switch it off any time under Privacy.
       </p>
       <div className="flex flex-wrap items-center gap-3">
         <ActionButton label={`Share with ${center.name}`} variant="default" done="Shared. They’ll be in touch." run={shareVenture.bind(null, ctx.institution.slug, true)} />
@@ -163,8 +164,9 @@ export async function YourVentureCard({ ctx }: Props) {
   )
   const intro = (
     <p className="text-sm text-muted-foreground">
-      {center.name} supports alumni founders with office hours, programs, investors and fellow alumni as customers. What you share here is seen by {ctx.institution.name}’s
-      offices, and you can stop sharing any time under Privacy.
+      {center.name} supports alumni founders with office hours, programs, investors and fellow alumni as customers. What you share here is seen by {center.name}
+      and the {ctx.institution.name} offices that work with founders (Alumni Relations, Advancement, Career Services, lifelong learning and faculty). You can stop
+      sharing any time under Privacy.
     </p>
   )
   if (shared && flag)
