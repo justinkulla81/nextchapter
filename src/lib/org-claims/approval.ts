@@ -86,6 +86,20 @@ async function loadOpen(claimId: string) {
   })
 }
 
+// The CRM has no economic development type (One Louisville is NONPROFIT there), so an organization linked to its public page
+// takes the portal for that page: an economic development page opens the economic development workspace, a board page the board's.
+// Owner decision 2026-11-18. Fail-soft: without the link, the CRM type decides as before.
+const PAGE_WORKSPACE: Record<string, string> = { ECON_DEV: 'ECONOMIC_DEVELOPMENT', WORKFORCE_BOARD: 'WORKFORCE_BOARD' }
+async function pageWorkspaceType(crmOrgId: string): Promise<string | null> {
+  try {
+    const links = await prisma.publicOrgPage.findMany({ where: { crmOrgId, kind: { in: Object.keys(PAGE_WORKSPACE) } }, select: { kind: true } })
+    const kinds = new Set(links.map((l) => l.kind))
+    return kinds.has('ECON_DEV') ? PAGE_WORKSPACE.ECON_DEV : kinds.has('WORKFORCE_BOARD') ? PAGE_WORKSPACE.WORKFORCE_BOARD : null
+  } catch {
+    return null
+  }
+}
+
 // Approve: create the free workspace (or reuse it) with the claimant as its administrator. provisionFreeWorkspace sends the
 // sign-in email. The claim is marked approved only once the workspace exists, so a failure can simply be retried.
 export async function approveOrgClaim(claimId: string, adminEmail: string): Promise<DecisionResult> {
@@ -96,11 +110,12 @@ export async function approveOrgClaim(claimId: string, adminEmail: string): Prom
   if (isEmployerSectionKey(claim.section)) return approveEmployerSection(claim, claim.section, adminEmail)
   const type = freeWorkspaceType(claim.crmOrganization.orgTypes.map(String))
   if (!type) return { ok: false, error: 'This kind of organization has no free workspace, so there is nothing to approve.' }
-  const r = await provisionFreeWorkspace({ crmOrganizationId: claim.crmOrganizationId, name: claim.crmOrganization.name, orgType: type, claimantEmail: claim.email })
+  const workspaceType = (await pageWorkspaceType(claim.crmOrganizationId)) ?? type
+  const r = await provisionFreeWorkspace({ crmOrganizationId: claim.crmOrganizationId, name: claim.crmOrganization.name, orgType: workspaceType, claimantEmail: claim.email })
   if (!r.ok) return { ok: false, error: r.error }
   await prisma.orgClaim.update({ where: { id: claim.id }, data: { approvedAt: new Date(), approvedBy: adminEmail } })
   const connected = await connectRelated({ crmOrgId: claim.crmOrganizationId, institutionId: r.institutionId, referredByPartnerId: claim.referredByPartnerId })
-  captureServerEvent(`org-claim:${claim.crmOrganizationId}`, 'org_claim_approved', { orgId: claim.crmOrganizationId, claimId: claim.id, orgType: type, institutionId: r.institutionId, workspaceCreated: r.created, relatedConnected: connected, referredByPartnerId: claim.referredByPartnerId })
+  captureServerEvent(`org-claim:${claim.crmOrganizationId}`, 'org_claim_approved', { orgId: claim.crmOrganizationId, claimId: claim.id, orgType: workspaceType, institutionId: r.institutionId, workspaceCreated: r.created, relatedConnected: connected, referredByPartnerId: claim.referredByPartnerId })
   return { ok: true, slug: r.slug }
 }
 
