@@ -44,12 +44,14 @@ function FindOrg({ defaults, admin, onManual }: { defaults?: Defaults; admin: bo
   const [state, action] = useActionState<DemoFormState, FormData>(createDemoFromOrg, undefined)
   const seq = useRef(0)
   const listId = useId()
+  // Results only show for a term long enough to search; set state from the search callback, never in the effect body.
+  const shown = q.trim().length < 2 ? null : results
 
   // Search after a pause in typing; only the latest answer is kept.
   useEffect(() => {
     const term = q.trim()
     if (term.length < 2) {
-      setResults(null)
+      seq.current++ // drop any answer still in flight; a short term shows no results (see shown below)
       return
     }
     const n = ++seq.current
@@ -143,11 +145,11 @@ function FindOrg({ defaults, admin, onManual }: { defaults?: Defaults; admin: bo
         </p>
       </div>
       <div id={listId} aria-live="polite" className={searching ? 'cursor-progress' : undefined}>
-        {searching && results === null && <p className="text-sm text-muted-foreground">Searching…</p>}
-        {results !== null && results.length === 0 && !searching && <p className="text-sm text-muted-foreground">Nothing on file matches &ldquo;{q.trim()}&rdquo;.</p>}
-        {results !== null && results.length > 0 && (
+        {searching && shown === null && <p className="text-sm text-muted-foreground">Searching…</p>}
+        {shown !== null && shown.length === 0 && !searching && <p className="text-sm text-muted-foreground">Nothing on file matches &ldquo;{q.trim()}&rdquo;.</p>}
+        {shown !== null && shown.length > 0 && (
           <ul className="divide-y divide-border rounded-xl border border-border">
-            {results.map((r) => (
+            {shown.map((r) => (
               <li key={`${r.kind}:${r.id}`}>
                 <button
                   type="button"

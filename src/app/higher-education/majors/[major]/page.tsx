@@ -15,6 +15,11 @@ import { editionLabel } from '@/lib/rankings/build-edition'
 // (the monthly rankings build's stored row), and the colleges that award the most of its degrees. No scan on a page view.
 export const revalidate = 86400
 export const dynamicParams = true
+// A tracked link on a major page; at module level so React does not rebuild it on every render.
+function L({ cip, href, children }: { cip: string; href: string; children: React.ReactNode }) {
+  return <TrackedLink href={href} event="majors_link_clicked" properties={{ from: 'major_page', cip, to: href }} className={LINK}>{children}</TrackedLink>
+}
+
 export function generateStaticParams() {
   return []
 }
@@ -65,8 +70,6 @@ export default async function MajorPage({ params }: { params: Promise<{ major: s
   const ch = majorChange(m)
   const path = majorPath(m)
   const related = MAJORS.filter((x) => x.cip !== m.cip && (m.field ? x.field === m.field : x.fam === m.fam)).sort((a, b) => b.total - a.total).slice(0, 10)
-  const track = (to: string) => ({ from: 'major_page', cip: m.cip, to })
-  const L = ({ href, children }: { href: string; children: React.ReactNode }) => <TrackedLink href={href} event="majors_link_clicked" properties={track(href)} className={LINK}>{children}</TrackedLink>
 
   const faq: { q: string; a: string }[] = [
     { q: `How many people graduate in ${m.title} each year?`, a: `${n0(m.total)} degrees at bachelor's level and above in ${MAJOR_YEAR}: ${n0(m.bach)} bachelor's, ${n0(m.master)} master's and ${n0(m.doctoral)} doctoral, from the federal IPEDS Completions survey.` },
@@ -97,12 +100,12 @@ export default async function MajorPage({ params }: { params: Promise<{ major: s
           {ch != null && <Stat value={signed(ch)} label={`change since ${MAJOR_BASE_YEAR}`} />}
           {m.assoc > 0 && <Stat value={n0(m.assoc)} label="associate degrees a year" note="Not counted above" />}
         </ul>
-        <p className="mt-3 text-sm"><L href={`/rankings/${FIELD_LIST_SLUGS.majors}`}>Majors with the most graduates</L> · <L href={`/rankings/${FIELD_LIST_SLUGS.schools}`}>offered at the most colleges</L> · <L href={`/rankings/${FIELD_LIST_SLUGS.majorGrow}`}>growing fastest</L></p>
+        <p className="mt-3 text-sm"><L cip={m.cip} href={`/rankings/${FIELD_LIST_SLUGS.majors}`}>Majors with the most graduates</L> · <L cip={m.cip} href={`/rankings/${FIELD_LIST_SLUGS.schools}`}>offered at the most colleges</L> · <L cip={m.cip} href={`/rankings/${FIELD_LIST_SLUGS.majorGrow}`}>growing fastest</L></p>
       </section>
 
       <section aria-labelledby="market" className="mt-12">
         <h2 id="market" className={H2}>{m.field ? `The job market for ${lc(m.field)}` : 'Where its graduates work'}</h2>
-        {!m.field && <p className="mt-2 max-w-3xl text-sm">{m.title} graduates go into many kinds of work rather than one field, so we do not match it to one set of jobs. <L href={`${MAJORS_PATH}#fields`}>Compare the degree fields</L> to see where open jobs outnumber graduates.</p>}
+        {!m.field && <p className="mt-2 max-w-3xl text-sm">{m.title} graduates go into many kinds of work rather than one field, so we do not match it to one set of jobs. <L cip={m.cip} href={`${MAJORS_PATH}#fields`}>Compare the degree fields</L> to see where open jobs outnumber graduates.</p>}
         {m.field && !f && <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Open jobs and pay for {lc(m.field)} appear after the next monthly rankings build.</p>}
         {f && f.covered === false && (
           <>
@@ -136,7 +139,7 @@ export default async function MajorPage({ params }: { params: Promise<{ major: s
                 </tbody>
               </table>
             </div>
-            <p className="mt-3 text-sm"><L href={fieldMajorsPath(f.field)}>Compare {lc(f.field)} with other fields</L> · <L href={`/rankings/${FIELD_LIST_SLUGS.ratio}`}>open jobs per graduate</L> · <L href={`/rankings/${FIELD_LIST_SLUGS.earlyPay}`}>early-career pay</L> · <L href={`/rankings/${FIELD_LIST_SLUGS.latePay}`}>late-career pay</L></p>
+            <p className="mt-3 text-sm"><L cip={m.cip} href={fieldMajorsPath(f.field)}>Compare {lc(f.field)} with other fields</L> · <L cip={m.cip} href={`/rankings/${FIELD_LIST_SLUGS.ratio}`}>open jobs per graduate</L> · <L cip={m.cip} href={`/rankings/${FIELD_LIST_SLUGS.earlyPay}`}>early-career pay</L> · <L cip={m.cip} href={`/rankings/${FIELD_LIST_SLUGS.latePay}`}>late-career pay</L></p>
           </>
         )}
       </section>
@@ -148,7 +151,7 @@ export default async function MajorPage({ params }: { params: Promise<{ major: s
             {colleges.map((c, i) => (
               <li key={c.unitid} className="flex gap-2">
                 <span className="w-5 shrink-0 text-right tabular-nums text-muted-foreground">{i + 1}.</span>
-                <span>{c.href ? <L href={c.href}>{c.name}</L> : c.name} <span className="text-muted-foreground">{c.state}, {n0(c.n)} degrees</span></span>
+                <span>{c.href ? <L cip={m.cip} href={c.href}>{c.name}</L> : c.name} <span className="text-muted-foreground">{c.state}, {n0(c.n)} degrees</span></span>
               </li>
             ))}
           </ol>
@@ -159,8 +162,8 @@ export default async function MajorPage({ params }: { params: Promise<{ major: s
         <section aria-labelledby="related" className="mt-12">
           <h2 id="related" className={H2}>{m.field ? `Other majors that lead to ${lc(m.field)}` : `Other majors in ${MAJOR_FAMILIES[m.fam] ?? 'this family'}`}</h2>
           <ul className="mt-4 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
-            {related.map((x) => <li key={x.cip}><L href={majorPath(x)}>{x.title}</L> <span className="text-muted-foreground tabular-nums">{n0(x.total)} degrees</span></li>)}
-            <li><L href={`${MAJORS_PATH}#${familyAnchor(m.fam)}`}>All majors in {MAJOR_FAMILIES[m.fam] ?? 'this family'}</L></li>
+            {related.map((x) => <li key={x.cip}><L cip={m.cip} href={majorPath(x)}>{x.title}</L> <span className="text-muted-foreground tabular-nums">{n0(x.total)} degrees</span></li>)}
+            <li><L cip={m.cip} href={`${MAJORS_PATH}#${familyAnchor(m.fam)}`}>All majors in {MAJOR_FAMILIES[m.fam] ?? 'this family'}</L></li>
           </ul>
         </section>
       )}
