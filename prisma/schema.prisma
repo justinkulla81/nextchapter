@@ -13073,6 +13073,7 @@ model Institution {
   trialStartedAt    DateTime?
   trialEndsAt       DateTime?
   trainingOfferings TrainingOffering[]
+  fundingCommitments FundingPartnerCommitment[]
   alumniCount       Int?
   includedSeats     Int                @default(0)
   licenseStartAt    DateTime?
@@ -16087,6 +16088,8 @@ model FundingApplication {
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
+  commitments     FundingPartnerCommitment[]
+
   @@index([institutionId, status])
 }
 
@@ -18852,4 +18855,27 @@ model TrainingOffering {
   updatedAt     DateTime    @updatedAt
 
   @@index([institutionId, status])
+}
+
+// Workforce Hub: a partner's part in one funding application. role: LEAD | PARTNER | MATCH | EVIDENCE; status: ASKED | COMMITTED | DECLINED;
+// amount is the match in dollars (MATCH role). partnerId is the EcosystemPartner when it is one of the organization's partners.
+model FundingPartnerCommitment {
+  id            String             @id @default(cuid())
+  institutionId String
+  institution   Institution        @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  applicationId String
+  application   FundingApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  partnerId     String?
+  partnerName   String
+  partnerKind   String             @default("OTHER")
+  role          String             @default("PARTNER")
+  amount        Int?
+  status        String             @default("ASKED")
+  note          String?
+  createdBy     String
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@index([applicationId])
+  @@index([institutionId])
 }

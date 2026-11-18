@@ -26,6 +26,8 @@ export type WorkspaceKey =
   | 'business'
   // A workforce customer's training catalog: universities, third-party training and training offered locally, curated and assigned.
   | 'education'
+  // A workforce customer's team of partners (owner, 2026-11-18): funding with partners and match, every sister organization, nonprofit and funder, and a feed.
+  | 'wfhub'
 
 // What a person holds at one institution. Staff roles come straight from
 // InstitutionUser; a VIEWER seat is scoped to one workspace ("VIEWER:alumni");
@@ -279,7 +281,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     // confirmed in Partners > Ecosystem). Its own key, not 'partner': /i/<slug>/partner/<token> is the public claim page. They see their own partner's page and what the organization shared with it, nothing else.
     key: 'partnerview',
     label: 'Partner',
-    workforceLabel: 'Partner view',
+    workforceLabel: 'Partner Hub',
     icon: 'Landmark',
     release: 'V1',
     requiredRoles: ['PARTNER'],
@@ -288,6 +290,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     tabs: [
       { key: 'overview', label: 'Your partnership', comingIn: null },
       { key: 'shared', label: 'Shared with you', comingIn: null },
+      { key: 'feed', label: 'Feed', comingIn: null },
     ],
   },
   {
@@ -358,6 +361,20 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'incentives', label: 'Incentives and costs', comingIn: null },
       { key: 'employers', label: 'Big employers', comingIn: null },
       { key: 'small', label: 'Startups and small business', comingIn: null },
+    ],
+  },
+  {
+    key: 'wfhub',
+    label: 'Workforce Hub',
+    icon: 'HandCoins',
+    release: 'V1',
+    requiredRoles: ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'VIEWER:wfhub'],
+    homePath: 'workforce-hub',
+    orgKind: 'workforce',
+    tabs: [
+      { key: 'funding', label: 'Funding', comingIn: null },
+      { key: 'partners', label: 'Partners', comingIn: null },
+      { key: 'feed', label: 'Feed', comingIn: null },
     ],
   },
   {
