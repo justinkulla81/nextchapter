@@ -11,6 +11,8 @@ import { journeyButtons } from './journey'
 import { leadEmailContent, leadEmailText, type LeadEmailContext, type LeadEmailJob } from './content'
 import { jobsForSearch, similarLeadJobs, type LeadJob } from './similar-jobs'
 import { latestReport } from '@/lib/reports'
+import { getPublicNotices } from '@/lib/warn/layoff-pages'
+import { buildLayoffWeekBrief } from '@/lib/newsletter/layoff-week'
 
 const appUrl = () => process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com'
 const FROM = 'NextChapter <support@launchyournextchapter.com>'
@@ -84,8 +86,11 @@ export async function sendLifecycleEmail(input: LifecycleSend): Promise<boolean>
   // The newsletter welcome leads with the latest report (its link counts the click, then opens the report).
   const edition = input.variant === 'newsletter' && welcome ? latestReport() : null
   const report = edition ? { month: edition.month, title: edition.title, dek: edition.dek, url: `${appUrl()}/api/lead-report/${token}?r=${edition.slug}&step=${input.step}` } : null
-  const choices = report || input.context.journey || input.variant === 'waitlist_b2b' || jobs.length >= 3 ? [] : journeyButtons(email, input.step, input.context.detail)
-  const content = leadEmailContent(input.variant, input.step, { ...input.context, choices, jobs, report })
+  // The newsletter reminder leads with the week's layoff notices (the shared, cached copy the layoff pages read; a failed read: none).
+  const week = input.variant === 'newsletter' && input.step === 'nudge1' && !input.context.journey ? buildLayoffWeekBrief(await getPublicNotices().catch(() => [])) : null
+  const layoffs = week ? { ...week, url: `${appUrl()}/api/lead-report/${token}?r=layoffs-this-week&step=${input.step}` } : null
+  const choices = report || layoffs || input.context.journey || input.variant === 'waitlist_b2b' || jobs.length >= 3 ? [] : journeyButtons(email, input.step, input.context.detail)
+  const content = leadEmailContent(input.variant, input.step, { ...input.context, choices, jobs, report, layoffs })
   const settings = await getMailingSettings()
   const unsubscribeUrl = `${appUrl()}/updates/unsubscribe/${makeUnsubscribeToken(email, null)}`
   const directCta = profileUrl(email, input.variant, input.step, input.context.journey)
@@ -149,6 +154,6 @@ export async function sendLifecycleEmail(input: LifecycleSend): Promise<boolean>
     return false
   }
 
-  if (!input.test) captureServerEvent(email, 'lead_email_sent', { variant: input.variant, step: input.step, journey: input.context.journey ?? null, journey_choices_shown: !!content.choices?.length, similar_jobs_shown: content.jobs?.length ?? 0, report_shown: content.feature ? edition?.slug ?? null : null, jobId: input.jobId ?? null })
+  if (!input.test) captureServerEvent(email, 'lead_email_sent', { variant: input.variant, step: input.step, journey: input.context.journey ?? null, journey_choices_shown: !!content.choices?.length, similar_jobs_shown: content.jobs?.length ?? 0, report_shown: content.feature ? (edition?.slug ?? (layoffs ? 'layoffs-this-week' : null)) : null, jobId: input.jobId ?? null })
   return true
 }
