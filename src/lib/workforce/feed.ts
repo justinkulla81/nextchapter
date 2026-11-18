@@ -1,5 +1,5 @@
 import 'server-only'
-// The partner feed (Workforce Hub and Partner Hub): what is happening that a region's partners should see, in one list. Four kinds:
+// The partner feed (Partner Hub for staff, Your partnership for a partner organization): what is happening that a region's partners should see, in one list. Four kinds:
 // layoffs (the region's, and the largest filed nationally), funding (federal notices closing soon and the organization's own deadlines),
 // rankings (where the region's main city places) and data (the region's unemployment rate). Every read is narrow and bounded, and the
 // whole feed is shared for 30 minutes per organization.

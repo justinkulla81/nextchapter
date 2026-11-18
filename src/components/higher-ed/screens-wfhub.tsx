@@ -132,7 +132,7 @@ export async function WfPartners({ ctx, base }: Props) {
       </div>
       {groups.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
-          No partners yet. <a href={base.replace(/\/workforce-hub$/, '/hub/network')} className="font-medium text-primary hover:underline">Open Your network</a> to invite the people you work with.
+          No partners yet. <a href={`${base}/network`} className="font-medium text-primary hover:underline">Open Your network</a> to invite the people you work with.
         </p>
       ) : (
         groups.map((g) => (
@@ -155,7 +155,7 @@ export async function WfPartners({ ctx, base }: Props) {
   )
 }
 
-/** The feed list, shared by the Workforce Hub and the Partner Hub. */
+/** The feed list, shared by the Partner Hub (staff) and Your partnership (a partner's own people). */
 export function FeedView({ items, intro }: { items: FeedItem[]; intro: string }) {
   return (
     <div className="space-y-8">
@@ -193,10 +193,10 @@ export function FeedView({ items, intro }: { items: FeedItem[]; intro: string })
 
 export async function WfFeed({ ctx }: Props) {
   const items = await loadFeed(ctx.institution.id).catch(() => [])
-  return <FeedView items={items} intro="What is happening, nationally and in your region: layoffs, funding closing soon, how your city ranks and the latest data. Partners see the same feed in their Partner Hub." />
+  return <FeedView items={items} intro="What is happening, nationally and in your region: layoffs, funding closing soon, how your city ranks and the latest data. Partners see the same feed under Your partnership." />
 }
 
-/** The Partner Hub's feed: the hub's own feed, read-only. */
+/** The feed a partner organization's people see (Your partnership): the same feed, read-only. */
 export async function PartnerFeed({ ctx }: Props) {
   const items = await loadFeed(ctx.institution.id).catch(() => [])
   const org = ctx.institution.programBrandName ?? ctx.institution.name
