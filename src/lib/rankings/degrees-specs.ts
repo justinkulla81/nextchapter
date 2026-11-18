@@ -93,6 +93,25 @@ type Ranked = Parameters<typeof editionFor>[1][number]
 const payOf = (s: { paid: number; payMed: number | null }) => (s.payMed != null && s.paid >= 20 ? usdK(s.payMed) : 'Not enough pay data')
 
 const GROWTH_NOTE = 'Projected growth is the Bureau of Labor Statistics\' change in employment from 2025 to 2035 for the occupation, a national forecast and not a promise for any one city.'
+/** Workers in a degree field's occupations (Bureau of Labor Statistics employment), for the coverage check. */
+export function fieldWorkers(field: string): number {
+  let n = 0
+  for (const [c, o] of Object.entries(OCCUPATIONS)) if (o.emp && fieldOf(c, o.e) === field) n += o.emp * 1000
+  return n
+}
+/**
+ * Our board holds professional roles from the employers we track. In a few fields (nursing, education, health professions, social
+ * work) nearly all openings are posted on hospital, school-district and agency sites we do not read, so the board holds under one
+ * open job for every 1,000 workers there, against 1.4 to 18 in the rest. Open-job counts, jobs per graduate and posted pay are not
+ * shown for those fields: a low count there means we do not see the jobs, not that there are none.
+ */
+export const MIN_FIELD_COVERAGE = 0.001
+export const fieldCovered = (field: string, open: number) => {
+  const w = fieldWorkers(field)
+  return w > 0 && open / w >= MIN_FIELD_COVERAGE
+}
+const COVERAGE_NOTE = 'Fields where our job data holds fewer than 1 open job for every 1,000 people working in the field are left out, because their openings are mostly posted on hospital, school-district and agency sites we do not track (nursing, education, health professions and social work): a low count there would mean we do not see the jobs, not that there are none.'
+
 const EDU_NOTE = 'A posting does not state a degree. Each is matched to its standard occupation, and the education shown is what the Bureau of Labor Statistics lists as typical for entering that occupation. Some employers ask for more or less, and about one posting in a hundred has an occupation we could not match, which is left out.'
 
 // ---- Specs ---------------------------------------------------------------------------------------------------------
@@ -216,7 +235,8 @@ export function rankFields(spec: Spec, groups: GroupStat[], edition: string, bui
   const total = fields.reduce((s, g) => s + g.n, 0)
   const measure = spec.measure
   const mode = spec.fn as string
-  const pool = fields.filter((g) => g.n >= 300 && (measure !== 'dg_fieldpay' || (g.paid >= 50 && g.payMed != null)))
+  // Projected growth is a federal forecast and holds for every field; counts and pay need our board to see the field's jobs.
+  const pool = fields.filter((g) => g.n >= 300 && (measure === 'dg_fieldgrow' || fieldCovered(g.key, g.n)) && (measure !== 'dg_fieldpay' || (g.paid >= 50 && g.payMed != null)))
   const ranked: Ranked[] = pool.flatMap((g): Ranked[] => {
     const growth = weightedGrowth(fieldCodes(g.key))
     const v = measure === 'dg_fieldpay' ? (g.payMed as number) : measure === 'dg_fieldgrow' ? growth : g.n
@@ -234,7 +254,7 @@ export function rankFields(spec: Spec, groups: GroupStat[], edition: string, bui
       : `${name} has the ${asc ? 'fewest' : 'most'} open jobs of the degree fields: ${v} in our data.`,
     method: [
       `A degree field is a group of occupations that are usually reached through the same kind of study, such as Nursing, Engineering or Accounting. The grouping is our own judgment on the occupation code, and only occupations that typically need a bachelor's, master's or doctoral degree are included. ${measure === 'dg_fieldpay' ? 'A field\'s score is the median advertised annual salary of its roles that post a salary range.' : measure === 'dg_fieldgrow' ? 'A field\'s score is the Bureau of Labor Statistics\' projected change in employment from 2025 to 2035, averaged across its occupations and weighted by their employment.' : 'A field\'s score is the number of its open professional roles.'}`,
-      `${EDU_NOTE} ${measure === 'dg_fieldgrow' ? GROWTH_NOTE : ''} Only fields with at least 300 open jobs${measure === 'dg_fieldpay' ? ' and 50 that post pay' : ''} are ranked.`.trim(),
+      `${EDU_NOTE} ${measure === 'dg_fieldgrow' ? GROWTH_NOTE : ''} Only fields with at least 300 open jobs${measure === 'dg_fieldpay' ? ' and 50 that post pay' : ''} are ranked.${measure === 'dg_fieldgrow' ? '' : ` ${COVERAGE_NOTE}`}`.trim(),
     ],
   })
 }
@@ -406,7 +426,7 @@ export function rankMajors(spec: Spec, groups: GroupStat[], edition: string, bui
 export function rankFieldRatio(spec: Spec, groups: GroupStat[], edition: string, builtAt: string, prev: Map<string, number> | null): RankingEdition | null {
   const supply = fieldSupply()
   const asc = spec.fn === 'fewest'
-  const fields = groups.filter((g) => g.kind === 'field' && supply.has(g.key) && g.n >= 300 && (supply.get(g.key)?.total ?? 0) >= 5000)
+  const fields = groups.filter((g) => g.kind === 'field' && supply.has(g.key) && g.n >= 300 && (supply.get(g.key)?.total ?? 0) >= 5000 && fieldCovered(g.key, g.n))
   const ranked: Ranked[] = fields.map((g) => {
     const sup = supply.get(g.key)!
     const v = (g.n / sup.total) * 100
@@ -422,7 +442,7 @@ export function rankFieldRatio(spec: Spec, groups: GroupStat[], edition: string,
     lead: (name, v, _s, b) => `${name} has the ${asc ? 'fewest' : 'most'} open jobs for each new graduate of the degree fields: ${v} graduates a year${b ? `, against ${b} across all fields` : ''}.`,
     method: [
       "A field's score is the number of its open professional roles for every 100 degrees awarded a year in the majors that lead to it. Open jobs are the roles on our board today whose occupation typically needs a bachelor's, master's or doctoral degree; graduates are a year of new degrees. The figure compares fields with each other: it is not the chance that any one graduate is hired.",
-      `${SUPPLY_NOTE} Each major is matched to the field its graduates usually enter, our own judgment on the program code, and majors such as English, history or the arts that lead to many kinds of work are left out. ${EDU_NOTE} Only fields with at least 300 open jobs and 5,000 degrees a year are ranked.`,
+      `${SUPPLY_NOTE} Each major is matched to the field its graduates usually enter, our own judgment on the program code, and majors such as English, history or the arts that lead to many kinds of work are left out. ${EDU_NOTE} Only fields with at least 300 open jobs and 5,000 degrees a year are ranked. ${COVERAGE_NOTE}`,
     ],
   })
 }
@@ -434,7 +454,7 @@ export function rankFieldStage(spec: Spec, groups: GroupStat[], edition: string,
   const label = STAGE_LABEL[st]
   const rows = groups.filter((g) => g.kind === 'stage' && g.key.endsWith(`|${st}`))
   const all = new Map(groups.filter((g) => g.kind === 'field').map((g) => [g.key, g]))
-  const pool = rows.filter((g) => g.n >= 100 && (!pay || (g.paid >= 30 && g.payMed != null)))
+  const pool = rows.filter((g) => g.n >= 100 && fieldCovered(g.key.split('|')[0], all.get(g.key.split('|')[0])?.n ?? 0) && (!pay || (g.paid >= 30 && g.payMed != null)))
   const ranked: Ranked[] = pool.map((g) => {
     const field = g.key.split('|')[0]
     const v = pay ? (g.payMed as number) : g.n
@@ -454,7 +474,7 @@ export function rankFieldStage(spec: Spec, groups: GroupStat[], edition: string,
     lead: (name, v) => pay ? `${name} has the highest median posted pay for ${label.name.toLowerCase()} roles of the degree fields: ${v} a year.` : `${name} has the most ${label.name.toLowerCase()} open jobs of the degree fields: ${v} in our data.`,
     method: [
       `A career stage comes from each posting's seniority level. ${label.name} covers ${label.desc}. ${pay ? `A field's score is the median advertised annual salary of its ${label.name.toLowerCase()} roles that post a salary range.` : `A field's score is the number of its open ${label.name.toLowerCase()} professional roles.`}`,
-      `A degree field is a group of occupations usually reached through the same kind of study, and only occupations that typically need a bachelor's, master's or doctoral degree are included. ${EDU_NOTE} Only fields with at least 100 such jobs${pay ? ' and 30 that post pay' : ''} are ranked.`,
+      `A degree field is a group of occupations usually reached through the same kind of study, and only occupations that typically need a bachelor's, master's or doctoral degree are included. ${EDU_NOTE} Only fields with at least 100 such jobs${pay ? ' and 30 that post pay' : ''} are ranked. ${COVERAGE_NOTE}`,
     ],
   })
 }
@@ -463,6 +483,8 @@ export function rankFieldStage(spec: Spec, groups: GroupStat[], edition: string,
 export interface DegreeFieldFigure {
   field: string
   open: number
+  /** False when our board sees too few of the field's jobs to report it (fieldCovered); its pay and jobs per graduate are then null. Missing on rows built before 2026-11-18. */
+  covered?: boolean
   /** Median posted pay, or null when fewer than 20 roles post pay. */
   pay: number | null
   growth: number | null
@@ -473,15 +495,29 @@ export interface DegreeFieldFigure {
 }
 export interface DegreeFieldFigures { edition: string; fields: DegreeFieldFigure[] }
 
+/** A stored row as the pages read it: a field our board does not cover shows no pay or jobs per graduate, whenever it was built. */
+export function withCoverage(f: DegreeFieldFigures): DegreeFieldFigures {
+  return {
+    ...f,
+    fields: f.fields.map((x) => {
+      const covered = x.covered ?? fieldCovered(x.field, x.open)
+      if (covered) return { ...x, covered }
+      const stages = Object.fromEntries(Object.entries(x.stages).map(([k, v]) => [k, { ...v, pay: null }])) as DegreeFieldFigure['stages']
+      return { ...x, covered, pay: null, perHundred: null, stages }
+    }),
+  }
+}
+
 export function degreeFieldFigures(groups: GroupStat[], edition: string): DegreeFieldFigures {
   const supply = fieldSupply()
   const payOrNull = (g: GroupStat | undefined) => (g && g.payMed != null && g.paid >= 20 ? Math.round(g.payMed) : null)
   const fields = groups.filter((g) => g.kind === 'field').map((g): DegreeFieldFigure => {
     const grads = supply.get(g.key)?.total ?? 0
     const st = (x: Stage) => groups.find((y) => y.kind === 'stage' && y.key === `${g.key}|${x}`)
+    const cov = fieldCovered(g.key, g.n)
     return {
-      field: g.key, open: g.n, pay: payOrNull(g), growth: weightedGrowth(fieldCodes(g.key)), grads, perHundred: grads >= 1000 ? Math.round((g.n / grads) * 1000) / 10 : null,
-      stages: Object.fromEntries(STAGES.map((x) => [x, { open: st(x)?.n ?? 0, pay: payOrNull(st(x)) }])) as DegreeFieldFigure['stages'],
+      field: g.key, open: g.n, covered: cov, pay: cov ? payOrNull(g) : null, growth: weightedGrowth(fieldCodes(g.key)), grads, perHundred: cov && grads >= 1000 ? Math.round((g.n / grads) * 1000) / 10 : null,
+      stages: Object.fromEntries(STAGES.map((x) => [x, { open: st(x)?.n ?? 0, pay: cov ? payOrNull(st(x)) : null }])) as DegreeFieldFigure['stages'],
     }
   })
   return { edition, fields: fields.sort((a, b) => b.open - a.open) }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { OCCUPATIONS, STAGE_LEVELS, degreeFieldFigures, degreeSpecs, fieldOf, rankFieldRatio, rankFieldStage, rankMajors, rankDegreeCities, rankDegreeShare, rankDegrees, rankFields, rankLevels, rankOccupations, type GroupStat, type SocStat } from '@/lib/rankings/degrees-specs'
+import { OCCUPATIONS, STAGE_LEVELS, degreeFieldFigures, withCoverage, degreeSpecs, fieldOf, rankFieldRatio, rankFieldStage, rankMajors, rankDegreeCities, rankDegreeShare, rankDegrees, rankFields, rankLevels, rankOccupations, type GroupStat, type SocStat } from '@/lib/rankings/degrees-specs'
 import { profileSpecs } from '@/lib/rankings/wave5-specs'
 import { supportSpecs } from '@/lib/rankings/wave6-specs'
 import { collegeSpecs, compositeSpecs, functionSpecs, industryCitySpecs, industrySpecs, skillSpecs, wave1Specs, wave2PlaceSpecs, workforceSpecs } from '@/lib/rankings/build-edition'
@@ -7,9 +7,11 @@ import { MEASURE_GUIDE } from '@/lib/rankings/guides'
 import { MEASURE_SOURCES } from '@/lib/rankings/measures'
 
 const E = '2026-11'
-const fields = ['Nursing', 'Engineering', 'Law', 'Education', 'Accounting', 'Computer science and IT', 'Finance and economics']
+// Open jobs by field at a realistic scale: our board barely covers nursing and education (fieldCovered), the rest it does.
+const FIELD_N: [string, number][] = [['Nursing', 333], ['Education', 464], ['Engineering', 30_000], ['Law', 4000], ['Accounting', 5000], ['Computer science and IT', 45_000], ['Finance and economics', 20_000], ['Marketing and communications', 30_000]]
+const fields = FIELD_N.map(([k]) => k)
 const groups: GroupStat[] = [
-  ...fields.map((k, i) => ({ kind: 'field' as const, key: k, n: 400 + i * 500, paid: 100, payMed: 70_000 + i * 5000 })),
+  ...FIELD_N.map(([k, n], i) => ({ kind: 'field' as const, key: k, n, paid: 100, payMed: 70_000 + i * 5000 })),
   ...(['hs', 'bach', 'master', 'doctoral', 'assoc', 'none'] as const).map((k, i) => ({ kind: 'level' as const, key: k, n: 1000 + i * 700, paid: 200, payMed: 50_000 + i * 9000 })),
 ]
 
@@ -33,11 +35,15 @@ describe('degree lists', () => {
     const s = (slug: string) => degreeSpecs().find((x) => x.slug === slug)!
     const most = rankFields(s('degree-fields-with-the-most-open-jobs'), groups, E, 'x', null)!
     const few = rankFields(s('degree-fields-with-the-fewest-open-jobs'), groups, E, 'x', null)!
-    expect(most.rows[0].name).toBe('Finance and economics')
-    expect(few.rows[0].name).toBe('Nursing')
+    expect(most.rows[0].name).toBe('Computer science and IT')
+    expect(few.rows[0].name).toBe('Law')
     expect(most.placeNoun).toBe('degrees')
-    expect(rankFields(s('degree-fields-with-the-highest-posted-pay'), groups, E, 'x', null)!.rows[0].valueLabel).toBe('$100k')
-    expect(rankFields(s('degree-fields-projected-to-grow-fastest'), groups, E, 'x', null)!.rows[0].valueLabel).toMatch(/^[+−]/)
+    expect(rankFields(s('degree-fields-with-the-highest-posted-pay'), groups, E, 'x', null)!.rows[0].valueLabel).toBe('$105k')
+    // Fields our board barely covers stay out of the count and pay lists, but keep the federal growth projection.
+    for (const e of [most, few]) expect(e.rows.map((r) => r.name)).not.toContain('Nursing')
+    const grow = rankFields(s('degree-fields-projected-to-grow-fastest'), groups, E, 'x', null)!
+    expect(grow.rows[0].valueLabel).toMatch(/^[+−]/)
+    expect(grow.rows.map((r) => r.name)).toContain('Nursing')
   })
   it('ranks education levels and needs the minimum count of levels', () => {
     const e = rankLevels(degreeSpecs().find((x) => x.slug === 'education-levels-with-the-most-open-jobs')!, groups, E, 'x', null)!
@@ -84,7 +90,7 @@ describe('degree lists', () => {
     expect(rankMajors(s('college-majors-offered-at-the-most-colleges'), groups, E, 'x', null)!.rows[0].valueLabel).toMatch(/colleges$/)
   })
   it('ranks fields by open jobs per 100 graduates against the same field grouping', () => {
-    const big = groups.map((g) => (g.kind === 'field' ? { ...g, n: g.n * 20 } : g))
+    const big = groups
     const spec = degreeSpecs().find((x) => x.slug === 'degree-fields-with-the-most-open-jobs-per-graduate')!
     const e = rankFieldRatio(spec, big, E, 'x', null)!
     expect(e.rows[0].valueLabel).toMatch(/per 100$/)
@@ -92,19 +98,32 @@ describe('degree lists', () => {
     expect(e.baseline?.label).toBe('all fields')
     const lo = rankFieldRatio(degreeSpecs().find((x) => x.slug === 'degree-fields-with-the-fewest-open-jobs-per-graduate')!, big, E, 'x', null)!
     expect(lo.rows[0].name).toBe(e.rows[e.rows.length - 1].name)
+    expect(e.rows.map((r) => r.name)).not.toContain('Education')
   })
   it('ranks fields at one career stage and writes the figures the majors pages read', () => {
     const stages = fields.flatMap((f, i) => (Object.keys(STAGE_LEVELS) as (keyof typeof STAGE_LEVELS)[]).map((st, j) => ({ kind: 'stage' as const, key: `${f}|${st}`, n: 150 + i * 40 + j, paid: 60, payMed: 60_000 + j * 40_000 + i * 1000 })))
     const all = [...groups, ...stages]
     const pay = rankFieldStage(degreeSpecs().find((x) => x.slug === 'degree-fields-with-the-highest-late-career-pay')!, all, E, 'x', null)!
-    expect(pay.rows[0].name).toBe('Finance and economics')
-    expect(pay.rows[0].valueLabel).toBe('$146k')
+    expect(pay.rows[0].name).toBe('Marketing and communications')
+    expect(pay.rows[0].valueLabel).toBe('$147k')
     const early = rankFieldStage(degreeSpecs().find((x) => x.slug === 'degree-fields-with-the-most-early-career-jobs')!, all, E, 'x', null)!
-    expect(early.rows[0].value).toBe(150 + 6 * 40)
+    expect(early.rows[0].value).toBe(150 + 7 * 40)
+    expect(early.rows.map((r) => r.name)).not.toContain('Nursing')
     const fig = degreeFieldFigures(all, E)
+    const cs = fig.fields.find((f) => f.field === 'Computer science and IT')!
+    expect(cs.covered).toBe(true)
+    expect(cs.stages.late.pay).toBe(145_000)
+    expect(cs.perHundred).toBeCloseTo((45_000 / cs.grads) * 100, 1)
     const nursing = fig.fields.find((f) => f.field === 'Nursing')!
     expect(nursing.grads).toBeGreaterThan(100_000)
-    expect(nursing.stages.late.pay).toBe(140_000)
-    expect(nursing.perHundred).toBeCloseTo((400 / nursing.grads) * 100, 1)
+    expect(nursing.covered).toBe(false)
+    expect(nursing.perHundred).toBeNull()
+    expect(nursing.stages.late.pay).toBeNull()
+  })
+  it('reads a row stored before the coverage flag as uncovered where the board sees too few jobs', () => {
+    const old = { edition: E, fields: [{ field: 'Nursing', open: 333, pay: 130_000, growth: 5, grads: 200_000, perHundred: 0.2, stages: { early: { open: 1, pay: 1 }, mid: { open: 1, pay: 1 }, late: { open: 1, pay: 1 } } }] }
+    const f = withCoverage(old).fields[0]
+    expect(f.covered).toBe(false)
+    expect([f.pay, f.perHundred, f.stages.early.pay]).toEqual([null, null, null])
   })
 })

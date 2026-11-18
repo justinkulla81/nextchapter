@@ -21,9 +21,10 @@ export const RANKING_METHOD: Record<BuildGroup, string> = {
   skills: 'v0',
   workforce: 'v0',
   college: 'v0',
-  // 2026-11-17: degree lists add majors, open jobs per graduate and career stage. Back from v0 (#1675) now that the group's
-  // reads fit the connection pool (#1678), so the first hourly refresh after deploy builds it.
-  profile: '2026-11-17',
+  // 2026-11-17: degree lists add majors, open jobs per graduate and career stage (built 2026-11-18 02:55 with #1678).
+  // 2026-11-18: fields our board barely covers (nursing, education, health professions, social work) leave the count, pay,
+  // jobs-per-graduate and career-stage lists (fieldCovered).
+  profile: '2026-11-18',
   support: 'v0',
 }
 

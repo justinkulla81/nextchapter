@@ -2,7 +2,7 @@ import 'server-only'
 import { readBoardFigure, writeBoardFigure } from '@/lib/jobs/stored-board-figures'
 import { memoTtl } from '@/lib/db/heavy'
 import { AWARD_BUCKETS, awardEntries, bucketEntries, bucketOf, mergeAwards, type Award, type AwardBook } from '@/lib/rankings/awards'
-import type { DegreeFieldFigures } from '@/lib/rankings/degrees-specs'
+import { withCoverage, type DegreeFieldFigures } from '@/lib/rankings/degrees-specs'
 import type { BuildGroup, PlaceRanks, RankingEdition, RankingIndexEntry } from '@/lib/rankings/types'
 
 // Editions are stored one row each, `ranking:<slug>:<yyyy-mm>`, and never change after the month ends. The index row lists
@@ -27,7 +27,10 @@ export async function recordRankingMethod(group: BuildGroup, version: string): P
 
 /** Each degree field's open jobs, pay by career stage and graduates, written by the monthly profile build for the majors pages. */
 export const writeDegreeFields = (f: DegreeFieldFigures) => writeBoardFigure('degree-fields', f)
-const loadDegreeFields = memoTtl(60 * 60_000, () => 'all', async () => (await readBoardFigure<DegreeFieldFigures>('degree-fields')) ?? null)
+const loadDegreeFields = memoTtl(60 * 60_000, () => 'all', async () => {
+  const f = await readBoardFigure<DegreeFieldFigures>('degree-fields')
+  return f ? withCoverage(f) : null
+})
 /** The shared hourly copy; null before the first build or when the read fails. */
 export const getDegreeFields = (): Promise<DegreeFieldFigures | null> => loadDegreeFields().catch(() => null)
 

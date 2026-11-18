@@ -72,15 +72,21 @@ export default async function MajorsPage() {
                     <tr key={f.field} id={fieldAnchor(f.field)} className="scroll-mt-24 border-b border-border last:border-0">
                       <th scope="row" className="p-3 font-medium text-navy">{f.field}</th>
                       <td className="p-3 text-right tabular-nums">{n0(f.grads)}</td>
-                      <td className="p-3 text-right tabular-nums">{n0(f.open)}</td>
-                      <td className="p-3 text-right font-semibold tabular-nums">{f.perHundred != null ? f.perHundred.toFixed(1) : '–'}</td>
-                      {(['early', 'mid', 'late'] as const).map((s) => <td key={s} className="p-3 text-right tabular-nums">{usdK(f.stages[s].pay)}</td>)}
+                      {f.covered === false ? (
+                        <td colSpan={5} className="p-3 text-right text-muted-foreground">Not measured: most of these jobs are posted where our data does not reach</td>
+                      ) : (
+                        <>
+                          <td className="p-3 text-right tabular-nums">{n0(f.open)}</td>
+                          <td className="p-3 text-right font-semibold tabular-nums">{f.perHundred != null ? f.perHundred.toFixed(1) : '–'}</td>
+                          {(['early', 'mid', 'late'] as const).map((s) => <td key={s} className="p-3 text-right tabular-nums">{usdK(f.stages[s].pay)}</td>)}
+                        </>
+                      )}
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <p className="mt-2 text-xs text-muted-foreground">Pay is the median of the salary ranges employers post. Early career is about 0 to 5 years, mid-career covers mid-level, senior and manager roles, late career senior manager to executive. A dash means too few postings show pay.</p>
+            <p className="mt-2 text-xs text-muted-foreground">Pay is the median of the salary ranges employers post. Early career is about 0 to 5 years, mid-career covers mid-level, senior and manager roles, late career senior manager to executive. A dash means too few postings show pay. Nursing, education, health professions and social work are not measured: their jobs are mostly posted on hospital, school-district and agency sites our job data does not cover, so a count would understate them.</p>
           </>
         ) : (
           <p className="mt-2 max-w-3xl text-sm text-muted-foreground">The open-job figures for each field appear after the next monthly rankings build. The graduate counts below are current.</p>

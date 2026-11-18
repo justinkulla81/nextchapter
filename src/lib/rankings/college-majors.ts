@@ -43,7 +43,7 @@ export function collegeMajorsView(raw: RawCollegeMajor[], figures: DegreeFieldFi
       field: major.field ? byField.get(major.field) ?? null : null,
     }]
   })
-  const withGrads = (figures?.fields ?? []).filter((f) => f.grads > 0)
+  const withGrads = (figures?.fields ?? []).filter((f) => f.grads > 0 && f.covered !== false)
   const grads = withGrads.reduce((s, f) => s + f.grads, 0)
   return {
     rows: rows.sort((a, b) => b.total - a.total),
