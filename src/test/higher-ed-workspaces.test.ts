@@ -140,3 +140,16 @@ describe('branding', () => {
     expect(initials('Demo College')).toBe('DC')
   })
 })
+
+describe('workspace addresses', () => {
+  it('opens every workspace by its address (homePath) as well as its key, so a rail link never 404s', async () => {
+    const { WORKSPACES, getWorkspaceByPath } = await import('@/lib/higher-ed/workspaces')
+    for (const w of WORKSPACES.filter((x) => x.release === 'V1')) {
+      expect(getWorkspaceByPath(w.homePath)?.key, w.homePath).toBe(w.key)
+      expect(getWorkspaceByPath(w.key)?.key, w.key).toBe(w.key)
+    }
+    expect(getWorkspaceByPath('workforce-hub')?.key).toBe('wfhub')
+    expect(getWorkspaceByPath('partner-hub')?.key).toBe('partnerhub')
+    expect(getWorkspaceByPath('nope')).toBeUndefined()
+  })
+})

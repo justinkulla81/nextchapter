@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import { Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { requireWorkspace } from '@/lib/higher-ed/access'
-import { getWorkspace, MOVED_TABS, labelFor, officeLabel, officeNamesOf, orgBasePath, orgKindOf, tabsFor, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
+import { getWorkspace, getWorkspaceByPath, MOVED_TABS, labelFor, officeLabel, officeNamesOf, orgBasePath, orgKindOf, tabsFor, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
 import { loadModules } from '@/components/higher-ed/screens-community'
 import { LockedFeature } from '@/components/plans/LockedFeature'
 import { PLAN_CONTACT_EMAIL, blockedScreen, trialForLock, trialState } from '@/lib/plans/entitlements'
@@ -24,7 +24,7 @@ export default async function WorkspacePage({
   searchParams: Promise<ScreenSearchParams>
 }) {
   const { slug, workspace, tab } = await params
-  const config = getWorkspace(workspace)
+  const config = getWorkspaceByPath(workspace)
   if (!config || config.release !== 'V1') notFound()
 
   const ctx = await requireWorkspace(slug, config.key as WorkspaceKey)
