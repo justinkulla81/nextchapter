@@ -13080,6 +13080,7 @@ model Institution {
   trainingOfferings TrainingOffering[]
   fundingCommitments FundingPartnerCommitment[]
   partnerGroups      PartnerGroup[]
+  talentCohorts      TalentCohort[]
   alumniCount       Int?
   includedSeats     Int                @default(0)
   licenseStartAt    DateTime?
@@ -18995,4 +18996,37 @@ model PartnerGroupPost {
   createdAt   DateTime     @default(now())
 
   @@index([groupId, createdAt])
+}
+
+// Talent Hub: a cohort of people, defined by a rule (industry, experience band, function, weeks out of work) rather than a list of names,
+// so it stays current as people join. Staff see anonymous counts; members see the updates posted to the cohort. Empty lists = everyone.
+model TalentCohort {
+  id            String      @id @default(cuid())
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  name          String
+  purpose       String?
+  industries    String[]    @default([])
+  functions     String[]    @default([])
+  levels        String[]    @default([])
+  minWeeksOut   Int?
+  createdBy     String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  posts TalentCohortPost[]
+
+  @@index([institutionId])
+}
+
+model TalentCohortPost {
+  id          String       @id @default(cuid())
+  cohortId    String
+  cohort      TalentCohort @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  body        String       @db.Text
+  authorLabel String
+  createdBy   String
+  createdAt   DateTime     @default(now())
+
+  @@index([cohortId, createdAt])
 }

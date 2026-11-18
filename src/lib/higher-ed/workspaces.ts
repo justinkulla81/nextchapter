@@ -348,6 +348,8 @@ export const WORKSPACES: WorkspaceConfig[] = [
       // The first thing a new organization does: link the organizations it knows, each link an invitation to claim a free page.
       // Everyone the organization helps, by track, with the benefits matched to each person (src/lib/workforce/people-crm.ts).
       { key: 'participants', label: 'People', comingIn: null, group: 'People' },
+      // Groups of people defined by a rule (industry, experience, function, time out of work), with anonymous counts and updates they see in Learn.
+      { key: 'cohorts', label: 'Cohorts', comingIn: null, group: 'People' },
       { key: 'pipeline', label: 'Pipeline', comingIn: null, demoOnly: true, group: 'People' },
       { key: 'attract', label: 'Attract', comingIn: null, demoOnly: true, group: 'People' },
       { key: 'benefits', label: 'Benefits', comingIn: null, demoOnly: true, group: 'People' },

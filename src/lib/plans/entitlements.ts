@@ -29,12 +29,14 @@ export const FREE_VISIBLE_GRANTS = 2
 export const FREE_VISIBLE_SKILL_GAPS = 3
 // How many partner groups a free organization can run (Partner Hub); more is a paid step.
 export const FREE_PARTNER_GROUPS = 1
+// How many talent cohorts a free organization can run (Talent Hub); more cohorts, and posting updates to them, are paid.
+export const FREE_TALENT_COHORTS = 1
 
 // Where a free organization asks for the paid plan: the support address the
 // portal already shows (RegionScreen). There is no self-serve billing.
 export const PLAN_CONTACT_EMAIL = 'support@launchyournextchapter.com'
 
-export type EntitlementFeature = 'reporting' | 'exports' | 'crmExchange' | 'staffRoles' | 'auditLog' | 'sso' | 'nextchapterServices' | 'wioa' | 'members' | 'grants' | 'publicPage' | 'partnerViews' | 'skillsGaps' | 'trainingAssign' | 'fundingPartners' | 'partnerGroups'
+export type EntitlementFeature = 'reporting' | 'exports' | 'crmExchange' | 'staffRoles' | 'auditLog' | 'sso' | 'nextchapterServices' | 'wioa' | 'members' | 'grants' | 'publicPage' | 'partnerViews' | 'skillsGaps' | 'trainingAssign' | 'fundingPartners' | 'partnerGroups' | 'talentCohorts'
 
 export type Entitlements = {
   // Most members the organization can hold; null = no cap.
@@ -49,6 +51,8 @@ export type Entitlements = {
   visibleSkillRows: number | null
   // How many partner groups it can run; null = no limit.
   partnerGroupLimit: number | null
+  // How many talent cohorts it can run, and whether it can post updates to them; null = no limit.
+  cohortLimit: number | null
   reporting: boolean
   exports: boolean
   crmExchange: boolean
@@ -80,9 +84,9 @@ export function institutionEntitlements(input: { plan: string | null | undefined
   // the wioa switch). Accepted so callers can pass one institution row; unused
   // here on purpose, so the plan can only restrict, never grant.
   if (planOf(input.plan) === 'PAID') {
-    return { memberCap: null, visibleMembers: null, adminLimit: null, visibleGrants: null, visibleSkillRows: null, partnerGroupLimit: null, reporting: true, exports: true, crmExchange: true, staffRoles: true, auditLog: true, sso: true, nextchapterServices: true, wioa: true, publicPage: true, partnerViews: true, trainingAssign: true, fundingPartners: true }
+    return { memberCap: null, visibleMembers: null, adminLimit: null, visibleGrants: null, visibleSkillRows: null, partnerGroupLimit: null, cohortLimit: null, reporting: true, exports: true, crmExchange: true, staffRoles: true, auditLog: true, sso: true, nextchapterServices: true, wioa: true, publicPage: true, partnerViews: true, trainingAssign: true, fundingPartners: true }
   }
-  return { memberCap: FREE_MEMBER_CAP, visibleMembers: FREE_VISIBLE_MEMBERS, adminLimit: FREE_ADMIN_LIMIT, visibleGrants: FREE_VISIBLE_GRANTS, visibleSkillRows: FREE_VISIBLE_SKILL_GAPS, partnerGroupLimit: FREE_PARTNER_GROUPS, reporting: false, exports: false, crmExchange: false, staffRoles: false, auditLog: false, sso: false, nextchapterServices: false, wioa: false, publicPage: false, partnerViews: false, trainingAssign: false, fundingPartners: false }
+  return { memberCap: FREE_MEMBER_CAP, visibleMembers: FREE_VISIBLE_MEMBERS, adminLimit: FREE_ADMIN_LIMIT, visibleGrants: FREE_VISIBLE_GRANTS, visibleSkillRows: FREE_VISIBLE_SKILL_GAPS, partnerGroupLimit: FREE_PARTNER_GROUPS, cohortLimit: FREE_TALENT_COHORTS, reporting: false, exports: false, crmExchange: false, staffRoles: false, auditLog: false, sso: false, nextchapterServices: false, wioa: false, publicPage: false, partnerViews: false, trainingAssign: false, fundingPartners: false }
 }
 
 const WHAT: Record<EntitlementFeature, string> = {
@@ -100,6 +104,7 @@ const WHAT: Record<EntitlementFeature, string> = {
   trainingAssign: 'Assigning training to the right people is',
   fundingPartners: 'Tracking partners and match on a funding application is',
   partnerGroups: 'Running more than one partner group is',
+  talentCohorts: 'More cohorts, and posting updates to them, are',
   publicPage: 'Writing your own section on your public page is',
   partnerViews: 'Sharing a live view of your region’s data with a partner is',
 }
@@ -119,6 +124,7 @@ export const LOCKED_TITLES: Record<EntitlementFeature, string> = {
   trainingAssign: 'Assign training',
   fundingPartners: 'Funding partners and match',
   partnerGroups: 'More partner groups',
+  talentCohorts: 'More cohorts and updates',
   publicPage: 'Your public page',
   partnerViews: 'Partner views',
 }
@@ -184,6 +190,7 @@ export function featureOn(e: Entitlements, feature: EntitlementFeature): boolean
   if (feature === 'grants') return e.visibleGrants === null
   if (feature === 'skillsGaps') return e.visibleSkillRows === null
   if (feature === 'partnerGroups') return e.partnerGroupLimit === null
+  if (feature === 'talentCohorts') return e.cohortLimit === null
   return e[feature]
 }
 
@@ -310,6 +317,12 @@ export const LOCK_PITCH: Record<EntitlementFeature, LockPitch> = {
     bullets: ['See who is in on each application and in what role', 'Track every partner’s match against what the funder requires', 'Draft the ask to each partner in one click, and send it yourself'],
     sampleTitle: 'Match (sample)',
     sample: [['Match required', '$150,000'], ['Committed so far', '$90,000'], ['Still to find', '$60,000']],
+  },
+  talentCohorts: {
+    headline: 'Reach each group of people with what they need',
+    bullets: ['Define a cohort by industry, experience, function or time out of work: it stays current as people join', 'See its size and mix without names', 'Post updates the people in it see in their own Learn page'],
+    sampleTitle: 'Cohorts (sample)',
+    sample: [['Operations managers', '38 people'], ['Out 26 weeks or more', '21 people'], ['Finance, new to the region', '14 people']],
   },
   partnerGroups: {
     headline: 'Give every table of partners a home of its own',
