@@ -24,10 +24,9 @@ export interface StateFieldRow {
   /** Degrees a year in the field at every college in the state, and this college's share of them. */
   stateGrads: number
   shareOfState: number
-  /** Open jobs in the state, per 100 of the state's graduates, and the national figure beside it; null when not measured. */
+  /** Open jobs in the state and per 100 of the state's graduates; null when not measured. Read against the state's own all-fields figure (stateAllPerHundred), never the national one: a national count also holds remote roles and postings with no state. */
   stateOpen: number | null
   statePerHundred: number | null
-  usPerHundred: number | null
   statePay: number | null
   covered: boolean
 }
@@ -139,7 +138,6 @@ export function programsMarket(input: {
       field, here: byField[field] ?? 0, stateGrads: grads, shareOfState: pct(byField[field] ?? 0, grads),
       stateOpen: covered ? jobs?.[0] ?? 0 : null,
       statePerHundred: covered && grads >= 100 ? Math.round(((jobs?.[0] ?? 0) / grads) * 1000) / 10 : null,
-      usPerHundred: covered ? f?.perHundred ?? null : null,
       statePay: jobs?.[1] ?? null,
       covered,
     }

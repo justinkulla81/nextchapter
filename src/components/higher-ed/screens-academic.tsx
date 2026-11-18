@@ -164,7 +164,7 @@ export function StateView({ d }: { d: ProgramsMarket }) {
                 <th scope="col" className={`${TH} text-right`}>Your share</th>
                 <th scope="col" className={`${TH} text-right`}>Open jobs in {d.state}</th>
                 <th scope="col" className={`${TH} text-right`}>{d.state} jobs per 100 graduates</th>
-                <th scope="col" className={`${TH} text-right`}>US jobs per 100 graduates</th>
+                <th scope="col" className={TH}>Against the {d.state} average</th>
                 <th scope="col" className={`${TH} text-right`}>{d.state} median pay</th>
               </tr>
             </thead>
@@ -179,7 +179,7 @@ export function StateView({ d }: { d: ProgramsMarket }) {
                     <>
                       <td className="p-3 text-right tabular-nums">{f.stateOpen == null ? '–' : n0(f.stateOpen)}</td>
                       <td className="p-3 text-right font-medium tabular-nums">{per(f.statePerHundred)}</td>
-                      <td className="p-3 text-right tabular-nums">{per(f.usPerHundred)}</td>
+                      <td className="p-3">{f.statePerHundred != null && d.stateAllPerHundred != null ? <Standing s={f.statePerHundred >= d.stateAllPerHundred ? 'above' : 'below'} /> : <span className="text-muted-foreground">–</span>}</td>
                       <td className="p-3 text-right tabular-nums">{usdK(f.statePay)}</td>
                     </>
                   ) : (
@@ -190,7 +190,7 @@ export function StateView({ d }: { d: ProgramsMarket }) {
             </tbody>
           </table>
         </div>
-        <p className="text-xs text-muted-foreground">Graduates are a year of degrees at every college in {st} in the majors that lead to each field. Open jobs are roles located in {st}; remote roles count in the state the employer lists. A dash means too few graduates or postings to read.</p>
+        <p className="text-xs text-muted-foreground">Graduates are a year of degrees at every college in {st} in the majors that lead to each field. Open jobs are roles located in {st}; remote roles count in the state the employer lists. Each field is compared with {st}&apos;s own average across measured fields{d.stateAllPerHundred != null ? ` (${per(d.stateAllPerHundred)} open jobs per 100 graduates)` : ''}, not with the national figure: a national count also holds remote roles and postings with no state, so it runs higher than any one state&apos;s. A dash means too few graduates or postings to read.</p>
       </section>
       <Sources d={d} />
     </div>
