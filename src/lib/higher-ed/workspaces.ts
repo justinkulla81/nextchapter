@@ -199,9 +199,10 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'home', label: 'ROI dashboard', comingIn: null },
       { key: 'transition', label: 'In transition', comingIn: null },
       { key: 'signals', label: 'Signals', comingIn: null },
-      { key: 'fund', label: 'Resilience Fund', comingIn: null },
+      // The university's one fund and its whole-roster data exchange stay with the whole institution.
+      { key: 'fund', label: 'Resilience Fund', comingIn: null, institutionOnly: true },
       { key: 'grants', label: 'Grants and RFPs', comingIn: null },
-      { key: 'crm', label: 'CRM exchange', comingIn: null },
+      { key: 'crm', label: 'CRM exchange', comingIn: null, institutionOnly: true },
     ],
   },
   {

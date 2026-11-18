@@ -4,7 +4,9 @@
 // consent-respecting by construction. Aggregates leave this file, never rows.
 
 import 'server-only'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { unitMemberSql, type UnitFilter } from '@/lib/plans/visible-members'
 import { computeRoi, fiscalYear, type FiscalYear, type Roi, type RoiRow } from './roi-math'
 
 export function fiscalStartMonth(enabledFeatures: unknown): number {
@@ -12,7 +14,8 @@ export function fiscalStartMonth(enabledFeatures: unknown): number {
   return v && v >= 1 && v <= 12 ? v : 7
 }
 
-export async function roiRows(institutionId: string, fy: FiscalYear, last: FiscalYear): Promise<RoiRow[]> {
+// `units`: a school or department's staff count only their unit's alumni and those alumni's gifts (owner decision 2026-11-18).
+export async function roiRows(institutionId: string, fy: FiscalYear, last: FiscalYear, units?: UnitFilter[] | null): Promise<RoiRow[]> {
   return prisma.$queryRaw<RoiRow[]>`
     with g as (
       select "memberId", "giftDate", "amountCents" from public."InstitutionGift"
@@ -33,19 +36,19 @@ export async function roiRows(institutionId: string, fy: FiscalYear, last: Fisca
       exists (select 1 from g where g."memberId" = m.id and m."claimedAt" is not null and g."giftDate" >= m."claimedAt"
         and g."giftDate" >= ${fy.start} and g."giftDate" < ${fy.end}) as "gaveThisFyAfterClaim"
     from public."InstitutionMember" m
-    where m."institutionId" = ${institutionId} and m.affiliation in ('ALUM', 'STAFF_ALUM')`
+    where m."institutionId" = ${institutionId} and m.affiliation in ('ALUM', 'STAFF_ALUM') ${unitMemberSql(units, Prisma.sql`m`)}`
 }
 
 export type RoiReport = { fy: FiscalYear; last: FiscalYear; roi: Roi; lastImportAt: Date | null; fund: { raisedCents: number; awards: number; awardedCents: number } }
 
 // The current FY so far, or the one just closed (offset -1).
-export async function roiReport(institutionId: string, now = new Date(), offset = 0): Promise<RoiReport> {
+export async function roiReport(institutionId: string, now = new Date(), offset = 0, units?: UnitFilter[] | null): Promise<RoiReport> {
   const inst = await prisma.institution.findUniqueOrThrow({ where: { id: institutionId }, select: { enabledFeatures: true } })
   const startMonth = fiscalStartMonth(inst.enabledFeatures)
   const fy = fiscalYear(now, startMonth, offset)
   const last = fiscalYear(now, startMonth, offset - 1)
   const [rows, run, funds, awards] = await Promise.all([
-    roiRows(institutionId, fy, last),
+    roiRows(institutionId, fy, last, units),
     prisma.crmExchangeRun.findFirst({
       where: { institutionId, direction: 'IMPORT_GIFTS', status: { in: ['SUCCEEDED', 'PARTIAL'] } },
       orderBy: { completedAt: 'desc' },

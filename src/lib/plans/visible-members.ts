@@ -27,6 +27,16 @@ export function unitMemberWhere(units: UnitFilter[] | null | undefined): Prisma.
   }
 }
 
+// The same unit filter in raw SQL, on a member table alias (e.g. Prisma.sql`m`): empty for the whole institution.
+export function unitMemberSql(units: UnitFilter[] | null | undefined, alias: Prisma.Sql): Prisma.Sql {
+  if (!units?.length) return Prisma.empty
+  const one = (u: UnitFilter) =>
+    u.department
+      ? Prisma.sql`(lower(${alias}."school") = lower(${u.school}) and lower(${alias}."department") = lower(${u.department}))`
+      : Prisma.sql`lower(${alias}."school") = lower(${u.school})`
+  return Prisma.sql`and (${Prisma.join(units.map(one), ' or ')})`
+}
+
 const unitsKey = (units: UnitFilter[] | null | undefined) => (units?.length ? JSON.stringify(units.map((u) => [u.school, u.department])) : '')
 
 // The ids staff may see, or null when there is no limit (the paid plan for the whole institution). One read per request.
