@@ -52,7 +52,7 @@ const TRAFFIC_OVERRIDE: Record<string, { monthlyVisits: number; trafficNote: str
   'ACT (WorkKeys / ACT Workforce Solutions)': { monthlyVisits: 1_233_000, trafficNote: 'Similarweb Sep 2026 shows 3.7M labelled "last 3 months"; about 1.2M a month if that is a 3-month total. Mostly admissions-test traffic. Estimate.' },
 }
 
-type R = Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
+type R = Record<string, any>
 const s = (v: unknown, max: number) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, max) : null)
 const n = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.round(v) : null)
 

@@ -10,7 +10,7 @@ import { Prisma, PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 const apply = process.argv.includes('--apply')
-type C = Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
+type C = Record<string, any>
 const int = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? Math.round(v) : null)
 
 async function main() {

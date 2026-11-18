@@ -29,6 +29,12 @@ const eslintConfig = defineConfig([
     files: ['**/*.cjs'],
     rules: { '@typescript-eslint/no-require-imports': 'off' },
   },
+  // One-off ops scripts read untyped data (Hunter API JSON, raw SQL rows, saved JSON files) and are not shipped:
+  // typing every response is churn with no safety gain. App code under src/ keeps the rule.
+  {
+    files: ['scripts/**'],
+    rules: { '@typescript-eslint/no-explicit-any': 'off' },
+  },
   // Email HTML can't use next/image — mail clients need a plain <img>.
   {
     files: ['src/emails/**'],

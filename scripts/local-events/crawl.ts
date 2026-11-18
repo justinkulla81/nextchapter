@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- scraped JSON and ad-hoc SQL rows have no schema */
 // Reads the events pages of chambers, workforce boards, economic-development orgs, state agencies and colleges and imports upcoming job fairs,
 // hiring events, career workshops and business / entrepreneurship events. No model calls: structured data only (schema.org Event JSON-LD,
 // The Events Calendar REST API, iCal and RSS feeds). Politeness: one request at a time per host (a 24-thread probe once got our IP blocked).
