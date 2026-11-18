@@ -34,17 +34,19 @@ export interface Prospect {
   lede: string
   /** The one-sentence ask behind the claim button. */
   claimLine: string
+  /** The address shown in the hub preview, when it differs from the page's own slug. */
+  hubSlug?: string
 }
 
 export const PROSPECTS: Record<string, Prospect> = {
   'live-in-lou': {
-    slug: 'live-in-lou', name: 'Live in Lou', kind: 'talent', orgType: 'NONPROFIT',
+    slug: 'live-in-lou', name: 'One Louisville', hubSlug: 'one-louisville', kind: 'talent', orgType: 'NONPROFIT',
     places: ['Louisville, KY%', 'Louisville, Kentucky%', '%, Louisville, KY%'], placeLabel: 'Louisville', state: 'KY', counties: [], areaId: '21111', stayLabel: 'Landed in Louisville',
     boardCounties: ['jefferson'], collegeAreaIds: ['21111'],
     welcome: { who: 'Louisville job seekers', title: 'Your next chapter can start in Louisville', body: 'Whether a layoff brought you here or you are ready for a change, this is a home for your search: jobs near you, the skills employers are paying for, and people who can help.' },
     headline: 'Louisville is hiring. Keep the people it already has.',
-    lede: 'Live in Lou brings talent to Louisville. When a layoff sends skilled people looking, the cheapest talent win is the one already here. This page shows what we see in the local market today, and what it would take to keep every laid-off professional in the region.',
-    claimLine: 'Activate this page and we will set up a Louisville workspace for Live in Lou, with a sign-up link you can share with any employer in a layoff.',
+    lede: 'One Louisville brings talent to Louisville. When a layoff sends skilled people looking, the cheapest talent win is the one already here. This page shows what we see in the local market today, and what it would take to keep every laid-off professional in the region.',
+    claimLine: 'Activate this page and we will set up a Louisville workspace for One Louisville, with a sign-up link you can share with any employer in a layoff.',
   },
   'washington-jefferson': {
     slug: 'washington-jefferson', name: 'Washington & Jefferson College', kind: 'college', orgType: 'UNIVERSITY',

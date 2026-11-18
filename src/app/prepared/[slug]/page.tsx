@@ -89,7 +89,7 @@ export default async function ProspectPage({ params }: { params: Promise<{ slug:
         <div className="overflow-hidden rounded-2xl border border-border bg-off-white shadow-sm">
           <div className="flex items-center gap-2 border-b border-border bg-white px-4 py-2" aria-hidden>
             <span className="size-2.5 rounded-full bg-border" /><span className="size-2.5 rounded-full bg-border" /><span className="size-2.5 rounded-full bg-border" />
-            <span className="ml-3 truncate rounded-md bg-off-white px-3 py-1 text-xs text-muted-foreground">launchyournextchapter.com/hub/{p.slug}</span>
+            <span className="ml-3 truncate rounded-md bg-off-white px-3 py-1 text-xs text-muted-foreground">launchyournextchapter.com/hub/{p.hubSlug ?? p.slug}</span>
           </div>
           <div className="flex flex-wrap items-center justify-between gap-2 bg-navy px-5 py-3 text-white">
             <p className="font-serif text-lg font-semibold">{p.name} <span className="font-sans text-sm font-normal text-white/70">Career hub</span></p>
@@ -104,7 +104,7 @@ export default async function ProspectPage({ params }: { params: Promise<{ slug:
           <LongSearchCard />
           <div className="rounded-2xl border border-border bg-white p-5 text-sm text-muted-foreground">
             {p.kind === 'employer' && <><p className="font-semibold text-navy">What Brown-Forman announced in January 2025</p><ul className="mt-2 list-inside list-disc space-y-1"><li>A reduction of about 12% of its global workforce: about 650 of 5,400 employees</li><li>The closure of its Louisville cooperage, about 210 roles</li><li>Severance, outplacement and benefits for those affected</li></ul><p className="mt-2 text-xs">From <a className="underline underline-offset-4" href="https://www.businesswire.com/news/home/20250114888794/en" target="_blank" rel="noopener noreferrer">Brown-Forman&apos;s release</a>. Outplacement typically runs about 90 days; many of these searches ran longer.</p></>}
-            {p.kind === 'talent' && <p>The Greater Louisville workforce area grew 2.1% from 2020 to 2024 (Census estimates), against 7.0% for Northern Middle Tennessee. Every professional who leaves for a faster-growing metro after a layoff is a loss Live in Lou then has to win back. Its goal is to add 41,000 working-age people to the region by 2030 (<a className="underline underline-offset-4" href="https://greaterlouisvillepartnership.com/talent-attraction-retention-development" target="_blank" rel="noopener noreferrer">Greater Louisville Inc.</a>).</p>}
+            {p.kind === 'talent' && <p>The Greater Louisville workforce area grew 2.1% from 2020 to 2024 (Census estimates), against 7.0% for Northern Middle Tennessee. Every professional who leaves for a faster-growing metro after a layoff is a loss One Louisville then has to win back. Its goal is to add 41,000 working-age people to the region by 2030 (<a className="underline underline-offset-4" href="https://greaterlouisvillepartnership.com/talent-attraction-retention-development" target="_blank" rel="noopener noreferrer">One Louisville</a>).</p>}
             {p.kind === 'college' && college && <p>W&amp;J enrolls about {n0(college.enrollment ?? 0)} students in {college.city}, and we estimate about {n0(college.alumniEstimate ?? 0)} living alumni (our estimate from enrollment and completions, not a count you gave us). Alumni in the region are the ones layoffs reach first.</p>}
           </div>
         </div>
