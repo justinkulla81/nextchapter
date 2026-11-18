@@ -3,9 +3,9 @@ import { prisma } from '@/lib/prisma'
 import { createResend, isUndeliverableAddress } from '@/lib/email/resend-client'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { searchPublicBoard, type PublicBoardJob } from '@/lib/jobs/public-board'
-import { getPersona } from '@/lib/constants/personas'
 import { inferJourney } from '@/lib/leads/infer-journey'
 import { parseScope } from '@/lib/leads/alert-scope'
+import { placeForSearch } from '@/lib/leads/lifecycle/similar-jobs'
 import { JOB_ALERT_MAX_JOBS, jobAlertDailyCap, jobAlertEmailsOn } from '@/lib/leads/job-alert-config'
 import JobAlertConfirmEmail from '@/emails/job-alert-confirm'
 import JobAlertDigestEmail from '@/emails/job-alert-digest'
@@ -223,7 +223,6 @@ export async function runJobAlerts(): Promise<JobAlertRunSummary> {
     const primary = group[0]
     const label = group.length === 1 ? searchLabel(primary) : 'your saved searches'
     const guess = inferJourney({ q: primary.searchQ, loc: primary.searchLoc }, primary.journeySlug || null)
-    const persona = getPersona(guess.slug)
     const base = `${APP_URL()}/api/job-alerts`
     try {
       const { error } = await createResend(process.env.RESEND_API_KEY, 'candidate').emails.send({
@@ -233,9 +232,9 @@ export async function runJobAlerts(): Promise<JobAlertRunSummary> {
         subject: `${picked.length} new ${picked.length === 1 ? 'job' : 'jobs'}: ${label}`,
         react: JobAlertDigestEmail({
           searchLabel: label,
-          jobs: picked.map((j) => ({ title: j.title, company: j.company, location: j.location, href: `${base}/click/${primary.unsubscribeToken}?j=${encodeURIComponent(j.id)}` })),
+          jobs: picked.map((j) => ({ title: j.title, company: j.company, location: placeForSearch(j.location, primary.searchLoc), href: `${base}/click/${primary.unsubscribeToken}?j=${encodeURIComponent(j.id)}` })),
           startUrl: `${base}/journey/${primary.unsubscribeToken}?p=${encodeURIComponent(guess.slug)}&via=email`,
-          startLabel: persona ? 'See how I fit' : 'See how I fit',
+          startLabel: 'Create my free profile',
           unsubscribeUrl: `${APP_URL()}/api/unsubscribe/lead/${primary.unsubscribeToken}`,
         }),
         headers: { 'List-Unsubscribe': `<${APP_URL()}/api/unsubscribe/lead/${primary.unsubscribeToken}>` },

@@ -34,7 +34,7 @@ export default function JobAlertDigestEmail({ searchLabel, jobs, startUrl, start
       }
     >
       <Card pad="28px 32px 36px">
-        <Wordmark label="Job alert digest" />
+        <Wordmark label="Your job alert" />
         <Headline>{headline}</Headline>
         <div style={{ textAlign: 'left', margin: '0 0 28px' }}>
           {jobs.map((j) => (
@@ -49,7 +49,7 @@ export default function JobAlertDigestEmail({ searchLabel, jobs, startUrl, start
           ))}
         </div>
         <Lead>
-          These are in the order posted, with no ranking. Add your résumé and the same jobs come back ranked for you, with a fit score and the reason. Free, about five minutes.
+          These are in the order posted. Make a free profile and the same jobs come back ranked by how well you fit, with the reason. No résumé needed to start.
         </Lead>
         <Button campaign="job_alert_digest" href={startUrl}>{startLabel}</Button>
       </Card>
