@@ -14,4 +14,22 @@ The owner has decided this order. Do not design against another order or re-add 
 7. Payoff: what the scan found, what you gained, and the starting grade only if there is a résumé.
 8. Welcome.
 
+## Light accounts: an account before the questions (owner decision, 2026-11-18)
+
+Most people who give us an email on a public page (the Apply box on a job, a saved job, a job alert, the newsletter) never start
+the questions above: 330 Apply clicks a month, 71 emails, 2 accounts (30 days to 2026-11-17). So the follow-up emails' main button,
+"Open my free account", opens `/onboarding/account-ready?t=<token>`: their saved job, first and last name, one button.
+
+- The link is a signed, dated token good for 30 days (`src/lib/leads/light-account.ts`); the button press, not the link, opens the
+  account, so a mail scanner that follows the link opens nothing.
+- The account is an email user with no password (`signInVerifiedEmail`, the same path as the Google join), with the name and email
+  on the profile (so "no account without a name and an email" still holds), `lightAccountAt` stamped, saved jobs claimed and the
+  CRM record linked. A full member is sent to sign in instead; an account still waiting for its own confirmation is never entered.
+- A light member lands on `/onboarding/your-jobs`: their saved jobs and one action, "See my fit", which is step 1 above. The full
+  member area stays closed until the questions are done.
+- Registration (`registrationCompletedAt`) waits until every question before the account step is answered
+  (`lightAccountQuestionsDone`, checked in `syncRegistrationCompletion`), then the order continues at 7. The account step itself
+  is skipped: they already have one. To get back in later they use the newest email's button, or "Forgot password" on the sign-in
+  page to set a password.
+
 While Google connect is on, people with no personal Gmail leave their email on a waitlist, and connecting is limited to testers until Google approves the app. Setup: `docs/SETUP.md`.
