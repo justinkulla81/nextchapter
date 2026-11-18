@@ -36,8 +36,8 @@ export default async function SituationPickerPage({ searchParams }: { searchPara
   // A situation already picked before onboarding (a /start page's button, an email's situation button), carried on the link because
   // session storage does not cross from the main site to the candidate host. A place or board link carries its own (`arrived`).
   const linkedSituation = typeof sp.situation === 'string' && sp.situation in SITUATION_TO_JOURNEY ? (sp.situation as SituationKey) : null
-  // Picked in an email: they have answered twice already (the email, and before that the job page's own ask), so it is sent on.
-  const answeredInEmail = !!linkedSituation && from === 'lead_email'
+  // Picked in an email or on an alert page or tool (their own tap, not our guess): they have answered already, so it is sent on.
+  const answeredInEmail = !!linkedSituation && (from === 'lead_email' || from === 'alert_pick')
   const user = await getCurrentUser()
 
   // Arrived from the /after-a-layoff form (its source rides on the link): recorded here, on the server, so it is not lost to the browser.
