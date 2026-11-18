@@ -30,3 +30,11 @@ describe('Your partnership is not in the staff rail', () => {
     expect(workspacesFor(new Set(['PARTNER'] as const), undefined, {}, 'workforce')).toEqual(['partnerview'])
   })
 })
+
+describe('the Workforce Hub comes first', () => {
+  it('is the first workspace a workforce organization opens, ahead of Talent Hub', () => {
+    const order = workspacesFor(ALL_TOKENS, undefined, {}, 'workforce')
+    expect(order.indexOf('wfhub')).toBeLessThan(order.indexOf('hub'))
+    expect(order.indexOf('wfhub')).toBeLessThan(order.indexOf('business'))
+  })
+})

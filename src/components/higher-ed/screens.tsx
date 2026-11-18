@@ -74,7 +74,8 @@ import { LockedFeature } from '@/components/plans/LockedFeature'
 import { EducationAssign, EducationCatalog, EducationGaps } from './screens-education'
 import { HubCohorts } from './screens-cohorts'
 import { PartnerReferrals, WfReferrals } from './screens-referrals'
-import { PartnerFeed, PartnerGroups, WfFeed, WfFunding, WfGroups, WfPartners } from './screens-wfhub'
+import { PartnerFeed, PartnerGroups, WfFeed, WfGroups, WfPartners } from './screens-wfhub'
+import { WfHome } from './screens-wfhome'
 import { institutionEntitlements, trialForLock } from '@/lib/plans/entitlements'
 import { AlumniEngagement, AlumniLayoffs, AlumniOutreach, CareerCheckIns, WaitingForYou } from './screens-outreach'
 import { AlumniData } from './screens-alumni-data'
@@ -1854,7 +1855,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'wfhub:applications': HubApplications,
   'hub:report': HubReport,
   'hub:skillsgap': HubSkillsGaps,
-  'wfhub:funding': WfFunding,
+  'wfhub:home': WfHome,
   'partnerhub:partners': WfPartners,
   'partnerhub:groups': WfGroups,
   'partnerhub:referrals': WfReferrals,

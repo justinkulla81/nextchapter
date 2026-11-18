@@ -43,7 +43,9 @@ describe('Program workspace tabs', () => {
     const ph = getWorkspace('partnerhub')!
     for (const key of ['publicpage', 'branding', 'board']) expect(wf.tabs.find((t) => t.key === key)!.from).toEqual({ workspace: 'admin', tab: key })
     expect(ph.tabs.find((t) => t.key === 'related')!.from).toEqual({ workspace: 'admin', tab: 'related' })
-    expect(wf.tabs.find((t) => t.key === 'funding')!.requiredRoles).toEqual(['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'VIEWER:wfhub'])
+    // The empty Funding page is gone (owner, 2026-11-18): Home is first, then the page with the grants on it.
+    expect(wf.tabs.map((t) => t.key).slice(0, 2)).toEqual(['home', 'opportunities'])
+    expect(wf.tabs.some((t) => t.key === 'funding')).toBe(false)
     for (const key of ['partners', 'feed']) expect(ph.tabs.find((t) => t.key === key)!.requiredRoles).toEqual(['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'VIEWER:wfhub'])
   })
   it('the moved pages open for everyone who opened them in Talent Hub', () => {
