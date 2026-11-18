@@ -13079,6 +13079,7 @@ model Institution {
   trialEndsAt       DateTime?
   trainingOfferings TrainingOffering[]
   fundingCommitments FundingPartnerCommitment[]
+  partnerGroups      PartnerGroup[]
   alumniCount       Int?
   includedSeats     Int                @default(0)
   licenseStartAt    DateTime?
@@ -15958,6 +15959,7 @@ model EcosystemPartner {
 
   contacts         EcosystemPartnerContact[]
   partnerViews     PartnerView[]
+  groupMemberships PartnerGroupMember[]
 
   @@unique([institutionId, source, refId])
   @@index([institutionId, status])
@@ -18951,4 +18953,46 @@ model VentureFlag {
 
   @@unique([institutionId, memberId])
   @@index([institutionId, status])
+}
+
+// Workforce Hub: a group of partners that work together (a coordination council, a funders table, an economic-development roundtable).
+// The organization makes it, chooses its members from its ecosystem partners, and posts updates the members read in their Partner Hub.
+model PartnerGroup {
+  id            String      @id @default(cuid())
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  name          String
+  purpose       String?
+  createdBy     String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  members PartnerGroupMember[]
+  posts   PartnerGroupPost[]
+
+  @@index([institutionId])
+}
+
+model PartnerGroupMember {
+  id        String           @id @default(cuid())
+  groupId   String
+  group     PartnerGroup     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  partnerId String
+  partner   EcosystemPartner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now())
+
+  @@unique([groupId, partnerId])
+  @@index([partnerId])
+}
+
+model PartnerGroupPost {
+  id          String       @id @default(cuid())
+  groupId     String
+  group       PartnerGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  body        String       @db.Text
+  createdBy   String
+  authorLabel String
+  createdAt   DateTime     @default(now())
+
+  @@index([groupId, createdAt])
 }

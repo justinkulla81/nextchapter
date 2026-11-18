@@ -329,6 +329,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     tabs: [
       { key: 'overview', label: 'Your partnership', comingIn: null },
       { key: 'shared', label: 'Shared with you', comingIn: null },
+      { key: 'groups', label: 'Groups', comingIn: null },
       { key: 'feed', label: 'Feed', comingIn: null },
     ],
   },
@@ -426,6 +427,8 @@ export const WORKSPACES: WorkspaceConfig[] = [
     orgKind: 'workforce',
     tabs: [
       { key: 'partners', label: 'Partners', comingIn: null, requiredRoles: WFHUB_OWN },
+      // Groups of partners (a council, a funders table) with members and updates; partners read them under Your partnership.
+      { key: 'groups', label: 'Groups', comingIn: null, requiredRoles: WFHUB_OWN },
       { key: 'network', label: 'Your network', comingIn: null },
       { key: 'ecosystem', label: 'Ecosystem', comingIn: null },
       { key: 'views', label: 'Partner views', comingIn: null },
@@ -705,6 +708,7 @@ export const MOVED_TABS: Partial<Record<WorkspaceKey, Record<string, { workspace
     views: { workspace: 'partnerhub', tab: 'views' },
     system: { workspace: 'partnerhub', tab: 'system' },
     feed: { workspace: 'partnerhub', tab: 'feed' },
+    groups: { workspace: 'partnerhub', tab: 'groups' },
   },
   admin: {
     branding: { workspace: 'wfhub', tab: 'branding', orgKind: 'workforce' },
