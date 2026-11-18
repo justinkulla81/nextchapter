@@ -418,7 +418,7 @@ async function AlumniHome({ ctx, base }: ScreenProps) {
         </p>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {mix.map((m) => (
-            <StatTile key={m.journey} label={getJourney(m.journey).label} value={m.count === null ? `Under ${MIN_CELL_SIZE}` : m.count.toLocaleString()} />
+            <StatTile key={m.journey} label={getJourney(m.journey).label} value={m.count === null ? `<${MIN_CELL_SIZE}` : m.count.toLocaleString()} />
           ))}
         </div>
       </section>
