@@ -5,6 +5,13 @@ export const ECO_KINDS = [
   { key: 'COLLEGE', label: 'College or university' },
   { key: 'EMPLOYER', label: 'Employer' },
   { key: 'PROVIDER', label: 'Training provider' },
+  // Sister organizations (owner, 2026-11-18): the people a region's partners work alongside.
+  { key: 'ECON_DEV', label: 'Economic development' },
+  { key: 'WORKFORCE_BOARD', label: 'Workforce board' },
+  { key: 'JOB_CENTER', label: 'American Job Center' },
+  { key: 'CHAMBER', label: 'Chamber of commerce' },
+  { key: 'NONPROFIT', label: 'Nonprofit' },
+  { key: 'FUNDER', label: 'Funder or foundation' },
   { key: 'COMMUNITY', label: 'Community group' },
   { key: 'OTHER', label: 'Other' },
 ] as const

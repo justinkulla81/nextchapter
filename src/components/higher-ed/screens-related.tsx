@@ -130,7 +130,7 @@ export async function AdminRelatedOrgs({ ctx, searchParams }: Props) {
       {ctx.workspaces.includes('hub') && (
         <p className="text-xs text-muted-foreground">
           Linked organizations also show on the Talent Hub&apos;s{' '}
-          <Link href={`${orgBasePath(slug, ctx.institution.orgType)}/partners/ecosystem`} className="underline">
+          <Link href={`${orgBasePath(slug, ctx.institution.orgType)}/workforce-hub/ecosystem`} className="underline">
             Ecosystem
           </Link>{' '}
           tab.

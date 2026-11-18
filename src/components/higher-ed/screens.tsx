@@ -68,6 +68,7 @@ import { RECRUITING_DATE_LABELS, EARLY_CAREER_LABELS, splitUpcoming, deadlinePas
 import { StaffInviteForm } from './StaffInviteForm'
 import { LockedFeature } from '@/components/plans/LockedFeature'
 import { EducationAssign, EducationCatalog, EducationGaps } from './screens-education'
+import { PartnerFeed, WfFeed, WfFunding, WfPartners } from './screens-wfhub'
 import { institutionEntitlements, trialForLock } from '@/lib/plans/entitlements'
 import { AlumniEngagement, AlumniLayoffs, AlumniOutreach, CareerCheckIns, WaitingForYou } from './screens-outreach'
 import { AlumniData } from './screens-alumni-data'
@@ -1791,8 +1792,8 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'hub:wioa': WorkforceHome,
   'education:etpl': WorkforceEtpl,
   'hub:responses': WorkforceRapid,
-  'partners:system': HubSystem,
-  'funding:opportunities': HubFunding,
+  'wfhub:system': HubSystem,
+  'wfhub:opportunities': HubFunding,
   'hub:public': HubPublic,
   'business:home': BusinessHome,
   'business:leads': BusinessLeads,
@@ -1800,19 +1801,23 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'business:incentives': BusinessIncentives,
   'business:employers': BusinessEmployers,
   'business:small': BusinessSmall,
-  'funding:applications': HubApplications,
+  'wfhub:applications': HubApplications,
   'hub:report': HubReport,
   'hub:skillsgap': HubSkillsGaps,
+  'wfhub:funding': WfFunding,
+  'wfhub:partners': WfPartners,
+  'wfhub:feed': WfFeed,
+  'partnerview:feed': PartnerFeed,
   'education:catalog': EducationCatalog,
   'education:assign': EducationAssign,
   'education:gaps': EducationGaps,
-  'funding:grantlist': DevelopmentGrants,
+  'wfhub:grantlist': DevelopmentGrants,
   'hub:talent': HubTalent,
   'hub:regionjobs': HubRegionJobs,
   'hub:groupjobs': HubGroupJobs,
   'hub:employerjobs': HubEmployerJobs,
-  'partners:views': HubPartnerViews,
-  'partners:ecosystem': HubEcosystem,
+  'wfhub:views': HubPartnerViews,
+  'wfhub:ecosystem': HubEcosystem,
   'hub:network': HubNetwork,
   'partnerview:overview': PartnerOverview,
   'partnerview:shared': PartnerShared,

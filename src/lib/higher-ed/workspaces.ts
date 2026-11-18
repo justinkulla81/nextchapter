@@ -26,9 +26,8 @@ export type WorkspaceKey =
   | 'business'
   // A workforce customer's training catalog: universities, third-party training and training offered locally, curated and assigned.
   | 'education'
-  // A workforce customer's grants and its partner organizations, shared by every hub (owner, 2026-11-18).
-  | 'funding'
-  | 'partners'
+  // A workforce customer's team of partners (owner, 2026-11-18): funding with partners and match, every sister organization, nonprofit and funder, and a feed.
+  | 'wfhub'
 
 // What a person holds at one institution. Staff roles come straight from
 // InstitutionUser; a VIEWER seat is scoped to one workspace ("VIEWER:alumni");
@@ -125,6 +124,9 @@ export const ORG_TYPE_LABELS: Record<InstitutionOrgType, string> = {
 // truth for the actions; these lists only decide which tabs show).
 const POST_JOBS: AccessToken[] = ['INSTITUTION_ADMIN', 'CAREER_SERVICES', 'EMPLOYER_RELATIONS', 'ALUMNI_RELATIONS']
 const TARGET_COMPANIES: AccessToken[] = ['INSTITUTION_ADMIN', 'CAREER_SERVICES', 'EMPLOYER_RELATIONS']
+
+// The Workforce Hub's own pages (funding with partners and match, partners by type, feed) keep the roles they were built for.
+const WFHUB_OWN: AccessToken[] = ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'VIEWER:wfhub']
 
 export const WORKSPACES: WorkspaceConfig[] = [
   {
@@ -282,7 +284,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     // confirmed in Partners > Ecosystem). Its own key, not 'partner': /i/<slug>/partner/<token> is the public claim page. They see their own partner's page and what the organization shared with it, nothing else.
     key: 'partnerview',
     label: 'Partner',
-    workforceLabel: 'Partner view',
+    workforceLabel: 'Partner Hub',
     icon: 'Landmark',
     release: 'V1',
     requiredRoles: ['PARTNER'],
@@ -291,6 +293,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     tabs: [
       { key: 'overview', label: 'Your partnership', comingIn: null },
       { key: 'shared', label: 'Shared with you', comingIn: null },
+      { key: 'feed', label: 'Feed', comingIn: null },
     ],
   },
   {
@@ -354,6 +357,30 @@ export const WORKSPACES: WorkspaceConfig[] = [
     ],
   },
   {
+    key: 'wfhub',
+    label: 'Workforce Hub',
+    icon: 'HandCoins',
+    release: 'V1',
+    // CAREER_SERVICES, EMPLOYER_RELATIONS and VIEWER:hub opened the funding and partner pages when they were Talent Hub tabs (moved
+    // here 2026-11-18); the Workforce Hub's own pages stay with the roles they had.
+    requiredRoles: ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'CAREER_SERVICES', 'EMPLOYER_RELATIONS', 'VIEWER:wfhub', 'VIEWER:hub'],
+    homePath: 'workforce-hub',
+    orgKind: 'workforce',
+    tabs: [
+      { key: 'funding', label: 'Funding', comingIn: null, group: 'Funding', requiredRoles: WFHUB_OWN },
+      // Moved from Talent Hub (owner, 2026-11-18): funding serves every hub, not only Talent Hub.
+      { key: 'applications', label: 'Applications', comingIn: null, group: 'Funding' },
+      { key: 'grantlist', label: 'Grants to apply for', comingIn: null, group: 'Funding' },
+      { key: 'opportunities', label: 'Grants and funding', comingIn: null, demoOnly: true, group: 'Funding' },
+      { key: 'partners', label: 'Partners', comingIn: null, group: 'Partners', requiredRoles: WFHUB_OWN },
+      // Moved from Talent Hub (owner, 2026-11-18): the organizations every hub works with. Training partners are in the Education Hub.
+      { key: 'ecosystem', label: 'Ecosystem', comingIn: null, group: 'Partners' },
+      { key: 'views', label: 'Partner views', comingIn: null, group: 'Partners' },
+      { key: 'system', label: 'Board and job centers', comingIn: null, demoOnly: true, group: 'Partners' },
+      { key: 'feed', label: 'Feed', comingIn: null, group: 'Feed', requiredRoles: WFHUB_OWN },
+    ],
+  },
+  {
     // The region's training (owner, 2026-11-18): universities, third-party providers and what Louisville offers itself (including
     // courses NextChapter builds for it), curated here and assigned to people by industry, experience and function.
     key: 'education',
@@ -373,37 +400,6 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'programs', label: 'Programs', comingIn: null, from: { workspace: 'execed', tab: 'home' } },
       { key: 'enrollments', label: 'Enrollments', comingIn: null, from: { workspace: 'execed', tab: 'enrollments' } },
       { key: 'etpl', label: 'Eligible training list', comingIn: null, from: { workspace: 'workforce', tab: 'etpl' } },
-    ],
-  },
-  {
-    // Funding (owner, 2026-11-18, moved out of Talent Hub): grants pay for work in every hub (training, attraction, layoff response).
-    key: 'funding',
-    label: 'Funding',
-    icon: 'HandCoins',
-    release: 'V1',
-    requiredRoles: ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'CAREER_SERVICES', 'EMPLOYER_RELATIONS', 'VIEWER:hub', 'VIEWER:funding'],
-    homePath: 'funding',
-    orgKind: 'workforce',
-    tabs: [
-      { key: 'applications', label: 'Applications', comingIn: null },
-      { key: 'grantlist', label: 'Grants to apply for', comingIn: null },
-      { key: 'opportunities', label: 'Grants and funding', comingIn: null, demoOnly: true },
-    ],
-  },
-  {
-    // Partners (owner, 2026-11-18, moved out of Talent Hub): the organizations the region works with, shared by every hub.
-    // Training partners are in the Education Hub.
-    key: 'partners',
-    label: 'Partners',
-    icon: 'Users',
-    release: 'V1',
-    requiredRoles: ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'CAREER_SERVICES', 'EMPLOYER_RELATIONS', 'VIEWER:hub', 'VIEWER:partners'],
-    homePath: 'partners',
-    orgKind: 'workforce',
-    tabs: [
-      { key: 'ecosystem', label: 'Ecosystem', comingIn: null },
-      { key: 'views', label: 'Partner views', comingIn: null },
-      { key: 'system', label: 'Board and job centers', comingIn: null, demoOnly: true },
     ],
   },
   {
@@ -608,14 +604,14 @@ export function brandingEditPath(ctx: { institution: { slug: string; orgType: In
   return `${orgBasePath(ctx.institution.slug, ctx.institution.orgType)}/admin/branding`
 }
 
-/** Talent Hub pages that moved to their own sections (owner, 2026-11-18): the old address redirects to the new one. */
+/** Talent Hub pages that moved to the Workforce Hub or the Education Hub (owner, 2026-11-18): the old address redirects to the new one. */
 export const HUB_MOVED_TABS: Record<string, { workspace: WorkspaceKey; tab: string }> = {
-  applications: { workspace: 'funding', tab: 'applications' },
-  grantlist: { workspace: 'funding', tab: 'grantlist' },
-  funding: { workspace: 'funding', tab: 'opportunities' },
-  ecosystem: { workspace: 'partners', tab: 'ecosystem' },
-  views: { workspace: 'partners', tab: 'views' },
-  system: { workspace: 'partners', tab: 'system' },
+  applications: { workspace: 'wfhub', tab: 'applications' },
+  grantlist: { workspace: 'wfhub', tab: 'grantlist' },
+  funding: { workspace: 'wfhub', tab: 'opportunities' },
+  ecosystem: { workspace: 'wfhub', tab: 'ecosystem' },
+  views: { workspace: 'wfhub', tab: 'views' },
+  system: { workspace: 'wfhub', tab: 'system' },
   learning: { workspace: 'education', tab: 'learning' },
   programs: { workspace: 'education', tab: 'programs' },
   enrollments: { workspace: 'education', tab: 'enrollments' },

@@ -28,11 +28,11 @@ export default async function WorkspacePage({
   if (!config || config.release !== 'V1') notFound()
 
   const ctx = await requireWorkspace(slug, config.key as WorkspaceKey)
-  // A Talent Hub page that moved to Funding, Partners or the Education Hub (owner, 2026-11-18): the old address still works.
+  // A Talent Hub page that moved to the Workforce Hub or the Education Hub (owner, 2026-11-18): the old address still works.
   const moved = config.key === 'hub' && tab?.length === 1 ? HUB_MOVED_TABS[tab[0]] : undefined
   if (moved) {
     const qs = new URLSearchParams(Object.entries(await searchParams).flatMap(([k, v]): [string, string][] => (typeof v === 'string' ? [[k, v]] : []))).toString()
-    redirect(`${orgBasePath(slug, ctx.institution.orgType)}/${moved.workspace}/${moved.tab}${qs ? `?${qs}` : ''}`)
+    redirect(`${orgBasePath(slug, ctx.institution.orgType)}/${getWorkspace(moved.workspace)!.homePath}/${moved.tab}${qs ? `?${qs}` : ''}`)
   }
   const kind = orgKindOf(ctx.institution.orgType)
   // A workforce program's staff open the participant and employer views as previews ("See it as"), drawn in the
@@ -114,7 +114,7 @@ export default async function WorkspacePage({
           cn('-mb-px shrink-0 border-b-2 px-3 py-2 text-sm font-medium transition-colors', isActive ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground')
         return (
           // Talent Hub's areas and pages are in the left rail on wide screens (WorkspaceRail); phones keep these rows.
-          <div className={cn('space-y-3', ['hub', 'business', 'education', 'funding', 'partners'].includes(config.key) && kind === 'workforce' && 'lg:hidden')}>
+          <div className={cn('space-y-3', ['hub', 'business', 'education', 'wfhub'].includes(config.key) && kind === 'workforce' && 'lg:hidden')}>
             {groups.length > 1 && (
               <nav aria-label={`${labelFor(config, kind)} areas`} className="flex flex-wrap gap-2">
                 {groups.map((g) => {
