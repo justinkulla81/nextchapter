@@ -24,6 +24,8 @@ const ROLES: InstitutionUserRole[] = [
   'COACH',
   'FACULTY',
   'EXEC_ED',
+  'ACADEMIC_AFFAIRS',
+  'ENTREPRENEURSHIP',
 ]
 
 export async function createCollege(_prev: InstitutionFormState, formData: FormData): Promise<InstitutionFormState> {

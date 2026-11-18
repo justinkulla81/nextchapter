@@ -13,7 +13,11 @@ export type WorkspaceKey =
   | 'development'
   | 'career'
   | 'teaching'
+  // The entrepreneurship center (CMU: Swartz Center): alumni starting or running a business. Every office can read it.
+  | 'ventures'
   | 'execed'
+  // A college's provost and academic affairs office: every major against the job market, the college's state and its peers.
+  | 'academic'
   | 'employer'
   // A person at a confirmed ecosystem partner (college, provider, employer, group): only their own partner's page.
   | 'partnerview'
@@ -78,7 +82,7 @@ export type WorkspaceConfig = {
   key: WorkspaceKey
   label: string
   // A lucide-react icon name, resolved by the rail.
-  icon: 'GraduationCap' | 'Users' | 'HandCoins' | 'Compass' | 'Building2' | 'Settings' | 'BookOpen' | 'Presentation' | 'Landmark' | 'MessagesSquare' | 'MapPin'
+  icon: 'GraduationCap' | 'Users' | 'HandCoins' | 'Compass' | 'Building2' | 'Settings' | 'BookOpen' | 'Presentation' | 'Landmark' | 'MessagesSquare' | 'MapPin' | 'Rocket' | 'TrendingUp'
   release: Release
   requiredRoles: AccessToken[]
   // Path under /i/[slug]; the first tab is the workspace home.
@@ -224,6 +228,18 @@ export const WORKSPACES: WorkspaceConfig[] = [
     ],
   },
   {
+    key: 'ventures',
+    label: 'Entrepreneurship',
+    icon: 'Rocket',
+    release: 'V1',
+    // The center's own staff act on it; the other offices read the same list (one view of an alum's venture for every office).
+    requiredRoles: ['ENTREPRENEURSHIP', 'INSTITUTION_ADMIN', 'ALUMNI_RELATIONS', 'DEVELOPMENT', 'CAREER_SERVICES', 'EXEC_ED', 'VIEWER:ventures'],
+    homePath: 'ventures',
+    minTier: 'INSTITUTION',
+    orgKind: 'college',
+    tabs: [{ key: 'home', label: 'Founders', comingIn: null }],
+  },
+  {
     key: 'teaching',
     label: 'Teaching',
     icon: 'Presentation',
@@ -253,6 +269,23 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'enrollments', label: 'Enrollments', comingIn: null },
       { key: 'clients', label: 'Corporate clients', comingIn: null },
       { key: 'bridge', label: 'Skills bridge', comingIn: null },
+    ],
+  },
+  {
+    // Academic affairs (owner, 2026-11-18): every major the college awards against the job market, nationally and in its own
+    // state, beside similar colleges. Institution tier only.
+    key: 'academic',
+    label: 'Academic Affairs',
+    icon: 'TrendingUp',
+    release: 'V1',
+    requiredRoles: ['ACADEMIC_AFFAIRS', 'INSTITUTION_ADMIN', 'VIEWER:academic'],
+    homePath: 'academic',
+    minTier: 'INSTITUTION',
+    orgKind: 'college',
+    tabs: [
+      { key: 'home', label: 'Programs vs. market', comingIn: null },
+      { key: 'state', label: 'Your state', comingIn: null },
+      { key: 'peers', label: 'Peers', comingIn: null },
     ],
   },
   {
@@ -615,6 +648,8 @@ export const STAFF_ROLE_LABELS: Record<InstitutionUserRole, string> = {
   COACH: 'Coach',
   FACULTY: 'Faculty',
   EXEC_ED: 'Exec Ed',
+  ACADEMIC_AFFAIRS: 'Academic Affairs',
+  ENTREPRENEURSHIP: 'Entrepreneurship center',
   WORKFORCE_PARTNER: 'Workforce board partner',
   VIEWER: 'Viewer',
 }

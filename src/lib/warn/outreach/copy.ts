@@ -1,7 +1,8 @@
 /**
  * Layoff outreach copy v2 (owner, 2026-11-13): short, one number, one link, one ask. Pure, so the words and the ask split are tested.
  * Employer HR, job centers, workforce boards and Rapid Response get these; economic development keeps the older note.
- * The only difference between the two arms of the ask test is the last line.
+ * The only difference between the two arms of the ask test is the last line. One subject per audience (owner, 2026-11-18: the eight
+ * backfill headline styles split 136 sends too thin to read; the audience's own line is the one subject now).
  */
 import { STATE_NAMES } from '@/lib/workforce/places'
 import type { LocalPicture } from '@/lib/warn/layoff-picture'
@@ -19,13 +20,13 @@ export function askArm(email: string, audience: CopyAudience): AskArm {
   return h % 2 === 0 ? 'A' : 'B'
 }
 
-const ASK: Record<AskArm, Record<'hr' | 'partner', string>> = {
-  A: {
-    hr: 'Reply "send it" and I\'ll email you a short note to forward to them, plus the pilot details.',
-    partner: 'Reply "send it" and I\'ll email you a short note you can hand to anyone who comes in.',
-  },
-  B: { hr: 'Worth 15 minutes this week?', partner: 'Worth 15 minutes this week?' },
-}
+/**
+ * The ask test (owner, 2026-11-18): A is a yes/no referral question, the easiest cold email to answer; B is the call. The first test
+ * (A was 'Reply "send it"') got no replies in either arm from the first 136 sends. Every audience gets the same two lines.
+ */
+export const referralAsk = (org: string) => `Are you the right person to talk to about the ${org} layoff, or should I send this to someone else?`
+export const CALL_ASK = 'Worth 15 minutes this week?'
+const askLine = (arm: AskArm, org: string) => (arm === 'A' ? referralAsk(org) : CALL_ASK)
 
 export interface CopyInput {
   audience: CopyAudience
@@ -91,7 +92,7 @@ export function outreachCopy(i: CopyInput): { subject: string; body: string } {
       ? `For your employer meeting, here is a free page for them. Each person adds their email and gets roles matched to the work they did at ${org}: ${i.link}.`
       : `This is a free page for them. Each person adds their email and gets${older && open ? ` the ${n(p.openInState!)} professional roles open in ${state}` : ' roles'} matched to the work they did at ${org}: ${i.link}. Hand it out as is.`
   }
-  const ask = ASK[i.arm][hr ? 'hr' : 'partner']
+  const ask = askLine(i.arm, org)
   // The board hears first and convenes the rest: name who else serves these people, so the board can bring them in.
   const others = i.audience === 'workforce_board' && i.partners?.length ? othersLine(i.partners) : null
   return { subject, body: [hello, first, others ? `${second} ${others}` : second, ask, i.signOff].join('\n\n') }

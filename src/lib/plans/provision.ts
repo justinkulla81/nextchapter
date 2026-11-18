@@ -1,4 +1,5 @@
 import 'server-only'
+import { seedRegion } from './region-from-page'
 import type { InstitutionOrgType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { uniqueSlug } from '@/lib/organizations/slug'
@@ -82,6 +83,8 @@ export async function provisionFreeWorkspace(input: ProvisionInput): Promise<Pro
     if (r.error) return { ok: false, error: r.error }
   }
 
-  if (created) captureServerEvent(email, 'free_workspace_provisioned', { institutionId: institution.id, slug: institution.slug, crmOrganizationId, orgType: institutionOrgTypeFor(input.orgType) })
+  // A new portal starts with the region its public page shows, so jobs, the local market and layoffs fill in on day one.
+  const region = created ? await seedRegion(institution.id, crmOrganizationId) : null
+  if (created) captureServerEvent(email, 'free_workspace_provisioned', { institutionId: institution.id, slug: institution.slug, crmOrganizationId, orgType: institutionOrgTypeFor(input.orgType), regionCitySet: region?.local ?? false, regionCounties: region?.counties ?? 0 })
   return { ok: true, institutionId: institution.id, slug: institution.slug, created }
 }
