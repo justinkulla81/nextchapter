@@ -14,7 +14,7 @@ type Props = { ctx: WorkspaceContext; base: string }
 
 const fmt = (n: number) => n.toLocaleString()
 const pct = (n: number, d: number) => (d ? `${Math.round((n / d) * 100)}%` : '–')
-const orFew = (n: number | null) => (n === null ? `Under ${MIN_CELL_SIZE}` : fmt(n))
+const orFew = (n: number | null) => (n === null ? `<${MIN_CELL_SIZE}` : fmt(n))
 
 function BreakdownPanel({ title, b, of, ofLabel, id }: { title: string; b: Breakdown; of: number; ofLabel: string; id: string }) {
   const max = Math.max(...b.slices.map((s) => s.n), b.other, 1)
