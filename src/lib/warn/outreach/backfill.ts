@@ -3,7 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { CAMPAIGN } from './plan'
 import { queueOutreachForNotice } from './for-notice'
-import { releaseTime, modeForAge, BACKFILL_DAYS, BACKFILL_MIN_EMPLOYEES, BATCH, SUPPRESSION_MARK_BEFORE, assignDaysByCap, assignArms, sendDayTimes } from './backfill-rules'
+import { BLUE_COLLAR_SKIP } from './queue'
+import { releaseTime, modeForAge, BACKFILL_DAYS, BACKFILL_HEADLINE, BACKFILL_MIN_EMPLOYEES, BATCH, SUPPRESSION_MARK_BEFORE, assignDaysByCap, sendDayTimes } from './backfill-rules'
 import { LAYOFF_RAMP } from '@/lib/mailing/layoff-pacing-rules'
 import { addressQuality, isVerifyBlocked, needsVerification } from './quality'
 import { ensureVerified } from './verify'
@@ -48,8 +49,8 @@ export async function createHeldDrafts(now = new Date()): Promise<BatchResult> {
     const r = await queueOutreachForNotice(c.id, { hold: true, mode: modeForAge(c.noticeDate, now) })
     if (r.skipped) {
       out.skipped[r.skipped] = (out.skipped[r.skipped] ?? 0) + 1
-      // A layoff with nobody to email must not be picked again every batch: leave a marker the next query skips.
-      if (r.skipped === 'no contact with a verified address') await prisma.warnNotice.update({ where: { id: c.id }, data: { outreachCheckedAt: now } }).catch(() => undefined)
+      // A layoff with nobody to email, or a blue-collar one, must not be picked again every batch: leave a marker the next query skips.
+      if (r.skipped === 'no contact with a verified address' || r.skipped === BLUE_COLLAR_SKIP) await prisma.warnNotice.update({ where: { id: c.id }, data: { outreachCheckedAt: now } }).catch(() => undefined)
     } else { out.queued++; out.editions += r.editions; out.recipients += r.recipients }
   }
   captureServerEvent('admin', 'layoff_backfill_drafts_created', { looked: out.looked, queued: out.queued, editions: out.editions, recipients: out.recipients })
@@ -166,9 +167,8 @@ export async function scheduleBackfillWeek(now = new Date()): Promise<{ days: Da
   const days: DayPlan[] = times.map((at, day) => ({ day, at, editions: 0, recipients: 0, arms: {} }))
   for (let day = 0; day < times.length; day++) {
     const today = sized.filter((e) => dayOf.get(e.id) === day)
-    const arms = assignArms(today.map((e) => ({ id: e.id, audience: e.audience ?? 'other' })), day)
     for (const e of today) {
-      const code = arms.get(e.id)! as HeadlineCode
+      const code: HeadlineCode = BACKFILL_HEADLINE
       const notice = e.warnNoticeId ? notices.get(e.warnNoticeId) : undefined
       const hf: HeadlineFacts = {
         org: notice?.employer ?? e.title.split(' · ')[0], employees: notice?.employees ?? null, state: notice?.state ?? null, county: notice?.county ?? null,
@@ -202,7 +202,7 @@ export async function runBackfillAuto(now = new Date()): Promise<{ drafted: { lo
   while (pending > 0 && Date.now() < end) {
     const r = await createHeldDrafts(now)
     out.drafted.looked += r.looked; out.drafted.queued += r.queued; out.drafted.editions += r.editions; out.drafted.recipients += r.recipients
-    if (r.looked === 0 || r.queued + (r.skipped['no contact with a verified address'] ?? 0) === 0) { out.note = 'a batch made nothing; stopped'; break }
+    if (r.looked === 0 || r.queued + (r.skipped['no contact with a verified address'] ?? 0) + (r.skipped[BLUE_COLLAR_SKIP] ?? 0) === 0) { out.note = 'a batch made nothing; stopped'; break }
     pending = Math.max(0, r.remaining - r.looked)
   }
   out.pending = pending

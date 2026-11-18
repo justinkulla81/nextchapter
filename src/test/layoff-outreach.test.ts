@@ -25,7 +25,7 @@ describe('planOutreach', () => {
       expect(p.bodyHtml.startsWith('<p>Hi {{firstName}},')).toBe(true)
       expect(p.bodyHtml).toContain('utm_source=layoff_outreach')
       expect(p.bodyHtml).toContain('<div data-signature>')
-      expect(p.bodyHtml).toMatch(/15 minutes this week|send it/)
+      expect(p.bodyHtml).toMatch(/15 minutes this week|the right person to talk to/)
       expect(p.bodyHtml).toMatch(/>https:\/\/launchyournextchapter\.com\/network\/company\/acme<\/a>/)
     }
   })
@@ -136,7 +136,8 @@ describe('outreach copy v2', async () => {
         expect(strip(a.body)).toBe(strip(b.body))
         expect(a.body.split('\n\n').at(-2)).not.toBe(b.body.split('\n\n').at(-2))
         expect(b.body).toContain('Worth 15 minutes this week?')
-        expect(a.body).toContain('Reply "send it"')
+        expect(a.body).toContain('Are you the right person to talk to about the Acme layoff, or should I send this to someone else?')
+        expect(a.body).not.toContain('send it')
       }
     }
   })
@@ -198,7 +199,7 @@ describe('the backfill rules', async () => {
 })
 
 describe('the backfill week', async () => {
-  const { assignDays, assignArms, weekSendTimes, HEADLINE_DAYS, SUPPRESSION_MARK_BEFORE } = await import('@/lib/warn/outreach/backfill-rules')
+  const { assignDays, weekSendTimes, BACKFILL_HEADLINE, SUPPRESSION_MARK_BEFORE } = await import('@/lib/warn/outreach/backfill-rules')
   const { headlineFor, HEADLINE_CODES } = await import('@/lib/warn/outreach/copy')
   const { headlineOf } = await import('@/lib/warn/outreach/stats')
 
@@ -214,13 +215,10 @@ describe('the backfill week', async () => {
     expect(Math.max(...load) - Math.min(...load)).toBeLessThanOrEqual(5)
     expect(day.size).toBe(40)
   })
-  it('runs two headline styles a day, split evenly inside each audience, and uses all eight over the four days', () => {
-    expect(HEADLINE_DAYS.flat().sort()).toEqual([...HEADLINE_CODES].sort())
-    const items = ['hr', 'hr', 'hr', 'hr', 'job_center', 'job_center', 'workforce_board'].map((audience, i) => ({ id: `i${i}`, audience }))
-    const arms = assignArms(items, 1)
-    expect([...arms.values()].filter((c) => c === 'loc').length).toBe(4)
-    expect(new Set(arms.values())).toEqual(new Set(['loc', 'pg']))
-    expect(arms.get('i0')).not.toBe(arms.get('i1'))
+  it('gives every backfill email one subject, the audience line the live emails use', () => {
+    expect(BACKFILL_HEADLINE).toBe('aud')
+    const f = { org: 'Acme', employees: 1200, state: 'KY', county: 'Warren County', audience: 'job_center' as const, mode: 'new' as const }
+    expect(headlineFor(BACKFILL_HEADLINE, f)).toBe('if someone from Acme walks in')
   })
   it('writes every headline from the employer, the headcount and the place only', () => {
     const f = { org: 'Acme', employees: 1200, state: 'KY', county: 'Warren County', audience: 'hr' as const, mode: 'new' as const }

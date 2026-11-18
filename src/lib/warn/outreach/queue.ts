@@ -10,6 +10,10 @@ import { cleanEmployerName } from './employer-name'
 import { ensureVerified } from './verify'
 import { loadAddressFacts } from './quality-data'
 import type { CopyMode } from './copy'
+import { layoffCollar } from './collar'
+
+/** The skip reason for a layoff that cut blue-collar jobs (collar.ts). */
+export const BLUE_COLLAR_SKIP = 'blue-collar layoff'
 
 /** A layoff older than this when its alert finally goes out (a held alert) is not emailed about. */
 const MAX_NOTICE_AGE_DAYS = 5
@@ -27,16 +31,25 @@ export interface QueueOptions { mode?: CopyMode; hold?: boolean }
  * workforce board, job center, economic development) with the layoff's contacts as the recipients, and starts it sending: the
  * layoff send window (every day 8 a.m. to noon Eastern; an overnight layoff waits for the morning), hourly rate and daily cap, suppression list and unsubscribe handling all apply,
  * and opens, clicks, replies and unsubscribes are tracked on the edition. Justin is copied (BCC) on each send.
- * Reads: one notice, one settings row, up to ~14 addresses against the suppression table and last week's outreach.
+ * Reads: one notice (with its company's industry), one settings row, up to ~14 addresses against the suppression table and last week's outreach.
  * Never throws; a failure here must not undo the alert.
  */
 export async function queueLayoffOutreach(input: { noticeId: string; employer: string; groups: ContactGroup[]; ctx: DraftContext; opts?: QueueOptions }): Promise<OutreachResult> {
   const none = (skipped: string): OutreachResult => ({ editions: 0, recipients: 0, skipped })
   try {
     if (!outreachEnabled()) return none('switched off')
-    const notice = await prisma.warnNotice.findUnique({ where: { id: input.noticeId }, select: { fetchedAt: true, dismissedAt: true } })
+    const notice = await prisma.warnNotice.findUnique({
+      where: { id: input.noticeId },
+      select: { fetchedAt: true, dismissedAt: true, employer: true, division: true, workCollar: true, industry: true, source: true, company: { select: { industry: true } } },
+    })
     if (!notice || notice.dismissedAt) return none('notice dismissed or missing')
     if (!input.opts?.hold && Date.now() - notice.fetchedAt.getTime() > MAX_NOTICE_AGE_DAYS * 86_400_000) return none('notice too old')
+    // The emails offer professional roles; a plant, warehouse or food-service layoff is not who the page serves (owner, 2026-11-18).
+    const collar = layoffCollar({ ...notice, companyIndustry: notice.company?.industry ?? null })
+    if (collar === 'blue') {
+      captureServerEvent('system', 'layoff_outreach_skipped_blue_collar', { noticeId: input.noticeId, employer: input.employer, industry: notice.industry, companyIndustry: notice.company?.industry ?? null, source: notice.source, held: !!input.opts?.hold })
+      return none(BLUE_COLLAR_SKIP)
+    }
     // One set of emails per layoff, ever.
     if (await prisma.mailingEdition.findFirst({ where: { campaign: CAMPAIGN, warnNoticeId: input.noticeId }, select: { id: true } })) return none('already queued')
 
