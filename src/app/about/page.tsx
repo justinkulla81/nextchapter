@@ -118,6 +118,20 @@ export default function AboutPage() {
           </div>
         </section>
 
+        {/* Mission and vision: the owner's wording (CLAUDE.md), word for word */}
+        <section aria-labelledby="mission">
+          <div className="mx-auto max-w-6xl px-6 pt-8 pb-8">
+            <p className={EYEBROW}>Our mission</p>
+            <h2 id="mission" className={H2}>Our mission is to ensure every person knows the dignity of work.</h2>
+            <p className={`${EYEBROW} mt-8`}>Our vision</p>
+            <p className="mt-2 max-w-2xl text-base leading-relaxed text-foreground/85">
+              Jobs sustain people, communities and economies. But work is changing faster than anyone can keep up with alone. We
+              envision a job market where communities come together, so every person has the support, resources and opportunities
+              to take their next step.
+            </p>
+          </div>
+        </section>
+
         {/* The problem */}
         <section>
           <div className="mx-auto max-w-6xl px-6 pt-8 pb-16">
