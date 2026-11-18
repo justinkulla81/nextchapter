@@ -72,7 +72,14 @@ async function fillEmptyDemoPlaceholders(): Promise<string[]> {
     select: { slug: true },
   })
   const filled: string[] = []
-  for (const { slug } of rows) if (await fillDemoIfEmpty(slug, 'nightly_placeholder')) filled.push(slug)
+  // One demo that fails to fill (as CMU did on 2026-11-18) must not stop the others: each is tried on its own.
+  for (const { slug } of rows) {
+    try {
+      if (await fillDemoIfEmpty(slug, 'nightly_placeholder')) filled.push(slug)
+    } catch (err) {
+      console.error('[higher-ed-nightly] demo placeholder', slug, err)
+    }
+  }
   // A workforce or economic development demo row with a region and no people yet (one NextChapter set up by hand): seed it
   // the way the demo generator does, keeping its name, region and address. At most a few a night.
   const workforce = await prisma.institution.findMany({
@@ -81,7 +88,7 @@ async function fillEmptyDemoPlaceholders(): Promise<string[]> {
     take: 5,
   })
   for (const { slug } of workforce) {
-    const r = await reseedWorkforceDemo(slug)
+    const r = await reseedWorkforceDemo(slug).catch((err: unknown) => ({ error: err instanceof Error ? err.message : String(err) }))
     if ('ok' in r) {
       captureServerEvent('cron', 'institution_demo_reset', { slug, source: 'nightly_placeholder', kind: 'workforce' })
       filled.push(slug)
