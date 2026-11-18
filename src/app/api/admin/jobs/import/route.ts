@@ -311,7 +311,11 @@ function changed(before: Record<string, unknown>, after: RowData): boolean {
 
 // The company's job-opening history (CompanyJobOpening) and each job's market pay.
 // Best-effort: a history write must never fail the import itself.
-async function recordOpenings(kept: Screened[], companyIdOf: (k: Screened) => string | null, now: Date) {
+// Market pay is priced here only for `priceUrls`: jobs new to the board, jobs whose content changed and jobs that just got their
+// company (so their opening is new). A job seen again unchanged already carries its price, and an opening whose fields change is
+// repriced by the nightly hiring-index pass (it reprices openings updated since the last run). Pricing every job in every batch was
+// ~1,000 statements a day that changed ~32 rows each: #41 and #59 by database time in the 2026-11-18 statement stats.
+async function recordOpenings(kept: Screened[], companyIdOf: (k: Screened) => string | null, now: Date, priceUrls: Set<string>) {
   try {
     const rows: OpeningRow[] = []
     for (const k of kept) {
@@ -322,7 +326,8 @@ async function recordOpenings(kept: Screened[], companyIdOf: (k: Screened) => st
       if (row) rows.push(row)
     }
     await upsertOpenings(rows)
-    await applyMarketPay(rows.map((r) => r.url))
+    const toPrice = rows.map((r) => r.url).filter((u) => priceUrls.has(u))
+    if (toPrice.length > 0) await applyMarketPay(toPrice)
   } catch (error) {
     console.error('jobs import: could not record company openings', error)
   }
@@ -581,6 +586,7 @@ export async function POST(request: NextRequest) {
 
   // Every row still in the feed is reconfirmed in one statement; only rows
   // whose content actually changed get their own update.
+  let edits: Screened[] = []
   if (toUpdate.length > 0) {
     await prisma.exclusiveJobPosting.updateMany({
       where: { id: { in: toUpdate.map((k) => existingByUrl.get(k.job.url)!.id) } },
@@ -590,7 +596,7 @@ export async function POST(request: NextRequest) {
       const companyId = companyIds.get(rowData(k).companyName)
       if (companyId) await prisma.exclusiveJobPosting.updateMany({ where: { url: k.job.url, companyId: null }, data: { companyId } })
     }
-    const edits = toUpdate.filter((k) => changed(existingByUrl.get(k.job.url)!, rowData(k)))
+    edits = toUpdate.filter((k) => changed(existingByUrl.get(k.job.url)!, rowData(k)))
     for (let i = 0; i < edits.length; i += 100) {
       await prisma.$transaction(
         edits.slice(i, i + 100).map((k) => {
@@ -612,7 +618,8 @@ export async function POST(request: NextRequest) {
     return at ? [{ url: k.job.url, at }] : []
   }))
   const collapsed = await collapseDuplicates(collapsePlan, now)
-  await recordOpenings(kept.filter((k) => !staysClosed(k)), (k) => existingByUrl.get(k.job.url)?.companyId ?? companyIds.get(rowData(k).companyName) ?? null, now)
+  const priceUrls = new Set([...toCreate, ...edits, ...unlinked].map((k) => k.job.url))
+  await recordOpenings(kept.filter((k) => !staysClosed(k)), (k) => existingByUrl.get(k.job.url)?.companyId ?? companyIds.get(rowData(k).companyName) ?? null, now, priceUrls)
   await recordBenefits(kept)
 
   let archived = 0
