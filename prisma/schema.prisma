@@ -12855,6 +12855,7 @@ enum InstitutionUserRole {
   EXEC_ED // Exec Ed: executive / continuing education staff
   VIEWER // assigned workspace, read-only
   WORKFORCE_PARTNER // the local workforce board's staff: Workforce board workspace, read-only (needs enabledFeatures.wioa)
+  ENTREPRENEURSHIP // the entrepreneurship center (CMU: Swartz Center): Entrepreneurship workspace
 }
 
 enum InstitutionAffiliation {
@@ -12900,6 +12901,7 @@ enum InstitutionConsentScope {
   SHARE_DOSSIER_WITH_EMPLOYERS // default off
   LIST_IN_DIRECTORY // default off: appear in the alumni directory
   SHARE_NEEDS // default off: workforce programs see the help a member said they need (childcare, housing...), to match benefits
+  SHARE_VENTURE // default off: the college's entrepreneurship center sees that the member is building or buying a business, and its name and stage
 }
 
 enum TransitionFlagState {
@@ -18923,4 +18925,27 @@ model FundingPartnerCommitment {
 
   @@index([applicationId])
   @@index([institutionId])
+}
+
+// One row per member a college's entrepreneurship center should know about (src/lib/higher-ed/ventures.ts). CONSIDERING: the
+// member told the college they are starting a company (check-in) or shares their venture (SHARE_VENTURE). STARTED: the venture
+// has launched, or a shared new job is as a founder or owner. Plain ids (no relations); the foreign keys cascade in SQL
+// (prisma/manual/venture-flags.sql). Venture name and stage are copied only when the member shares them.
+model VentureFlag {
+  id             String    @id @default(cuid())
+  institutionId  String
+  memberId       String
+  status         String // CONSIDERING | STARTED
+  source         String // CHECK_IN | SHARED | OUTCOME
+  ventureName    String?
+  ventureStage   String? // idea | validate | build | launch | grow, or buying
+  firstFlaggedAt DateTime  @default(now())
+  startedAt      DateTime?
+  contactedAt    DateTime?
+  contactedBy    String?
+  isSampleData   Boolean   @default(false)
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([institutionId, memberId])
+  @@index([institutionId, status])
 }

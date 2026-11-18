@@ -13,6 +13,8 @@ export type WorkspaceKey =
   | 'development'
   | 'career'
   | 'teaching'
+  // The entrepreneurship center (CMU: Swartz Center): alumni starting or running a business. Every office can read it.
+  | 'ventures'
   | 'execed'
   | 'employer'
   // A person at a confirmed ecosystem partner (college, provider, employer, group): only their own partner's page.
@@ -76,7 +78,7 @@ export type WorkspaceConfig = {
   key: WorkspaceKey
   label: string
   // A lucide-react icon name, resolved by the rail.
-  icon: 'GraduationCap' | 'Users' | 'HandCoins' | 'Compass' | 'Building2' | 'Settings' | 'BookOpen' | 'Presentation' | 'Landmark' | 'MessagesSquare' | 'MapPin'
+  icon: 'GraduationCap' | 'Users' | 'HandCoins' | 'Compass' | 'Building2' | 'Settings' | 'BookOpen' | 'Presentation' | 'Landmark' | 'MessagesSquare' | 'MapPin' | 'Rocket'
   release: Release
   requiredRoles: AccessToken[]
   // Path under /i/[slug]; the first tab is the workspace home.
@@ -220,6 +222,18 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'region', label: 'Local market', comingIn: null },
       { key: 'employers', label: 'Employers', comingIn: null },
     ],
+  },
+  {
+    key: 'ventures',
+    label: 'Entrepreneurship',
+    icon: 'Rocket',
+    release: 'V1',
+    // The center's own staff act on it; the other offices read the same list (one view of an alum's venture for every office).
+    requiredRoles: ['ENTREPRENEURSHIP', 'INSTITUTION_ADMIN', 'ALUMNI_RELATIONS', 'DEVELOPMENT', 'CAREER_SERVICES', 'EXEC_ED', 'VIEWER:ventures'],
+    homePath: 'ventures',
+    minTier: 'INSTITUTION',
+    orgKind: 'college',
+    tabs: [{ key: 'home', label: 'Founders', comingIn: null }],
   },
   {
     key: 'teaching',
@@ -594,6 +608,7 @@ export const STAFF_ROLE_LABELS: Record<InstitutionUserRole, string> = {
   COACH: 'Coach',
   FACULTY: 'Faculty',
   EXEC_ED: 'Exec Ed',
+  ENTREPRENEURSHIP: 'Entrepreneurship center',
   WORKFORCE_PARTNER: 'Workforce board partner',
   VIEWER: 'Viewer',
 }

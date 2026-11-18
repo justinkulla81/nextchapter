@@ -28,6 +28,7 @@ const ROLE_OPTIONS = [
   ['COACH', 'Coach'],
   ['FACULTY', 'Faculty (Teaching)'],
   ['EXEC_ED', 'Executive education'],
+  ['ENTREPRENEURSHIP', 'Entrepreneurship center'],
 ] as const
 
 function Status({ state }: { state: InstitutionFormState }) {

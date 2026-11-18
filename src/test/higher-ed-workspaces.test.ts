@@ -18,25 +18,26 @@ const set = (...t: AccessToken[]) => new Set<AccessToken>(t)
 
 describe('workspacesFor (spec §2/§4: each role sees exactly its workspaces)', () => {
   it.each([
-    [['INSTITUTION_ADMIN'], ['alumni', 'development', 'career', 'teaching', 'execed', 'admin']],
+    [['INSTITUTION_ADMIN'], ['alumni', 'development', 'career', 'ventures', 'teaching', 'execed', 'admin']],
     [['COACH'], ['career']],
     [['FACULTY'], ['teaching', 'execed']],
-    [['EXEC_ED'], ['teaching', 'execed']],
-    [['ALUMNI_RELATIONS'], ['alumni']],
-    [['DEVELOPMENT'], ['development']],
-    [['CAREER_SERVICES'], ['career']],
+    [['EXEC_ED'], ['ventures', 'teaching', 'execed']],
+    [['ENTREPRENEURSHIP'], ['ventures']],
+    [['ALUMNI_RELATIONS'], ['alumni', 'ventures']],
+    [['DEVELOPMENT'], ['development', 'ventures']],
+    [['CAREER_SERVICES'], ['career', 'ventures']],
     [['EMPLOYER_RELATIONS'], ['career']],
     [['VIEWER:development'], ['development']],
     [['MEMBER'], ['candidate']],
     [['EMPLOYER'], ['employer']],
-    [['MEMBER', 'ALUMNI_RELATIONS'], ['candidate', 'alumni']],
+    [['MEMBER', 'ALUMNI_RELATIONS'], ['candidate', 'alumni', 'ventures']],
     [[], []],
   ] as [AccessToken[], string[]][])('%j → %j', (tokens, expected) => {
     expect(workspacesFor(set(...tokens))).toEqual(expected)
   })
 
   it('never opens a V2 workspace, even with every token', () => {
-    expect(workspacesFor(ALL_TOKENS)).toEqual(['candidate', 'alumni', 'development', 'career', 'teaching', 'execed', 'employer', 'admin'])
+    expect(workspacesFor(ALL_TOKENS)).toEqual(['candidate', 'alumni', 'development', 'career', 'ventures', 'teaching', 'execed', 'employer', 'admin'])
   })
 
   it('a VIEWER seat for another workspace opens nothing', () => {
@@ -52,7 +53,7 @@ describe('license tiers (product design, Packaging)', () => {
     expect(workspacesFor(ALL_TOKENS, 'ADVANCEMENT')).toEqual(['candidate', 'alumni', 'development', 'career', 'employer', 'admin'])
   })
   it('Institution adds Teaching and Exec Ed', () => {
-    expect(workspacesFor(ALL_TOKENS, 'INSTITUTION')).toEqual(['candidate', 'alumni', 'development', 'career', 'teaching', 'execed', 'employer', 'admin'])
+    expect(workspacesFor(ALL_TOKENS, 'INSTITUTION')).toEqual(['candidate', 'alumni', 'development', 'career', 'ventures', 'teaching', 'execed', 'employer', 'admin'])
   })
   it('the Workforce board appears only when the college turns WIOA on', () => {
     expect(workspacesFor(set('INSTITUTION_ADMIN'), 'INSTITUTION')).not.toContain('workforce')
@@ -61,7 +62,7 @@ describe('license tiers (product design, Packaging)', () => {
     expect(workspacesFor(set('WORKFORCE_PARTNER'), 'INSTITUTION')).toEqual([])
   })
   it('admins see what a higher tier would add', () => {
-    expect(lockedWorkspacesFor(set('INSTITUTION_ADMIN'), 'ADVANCEMENT').map((w) => w.key)).toEqual(['teaching', 'execed'])
+    expect(lockedWorkspacesFor(set('INSTITUTION_ADMIN'), 'ADVANCEMENT').map((w) => w.key)).toEqual(['ventures', 'teaching', 'execed'])
   })
 })
 
