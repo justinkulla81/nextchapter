@@ -35,6 +35,10 @@ export interface LeadEmailContext {
   report?: { month: string; title: string; dek: string; url: string } | null
   /** The last seven days of layoff notices, for the newsletter reminder, with the (tracked) link to the week's page. */
   layoffs?: { notices: number; workers: number; states: number; top: { name: string; workers: number; state: string | null }[]; url: string } | null
+  /** The résumé match from a job page's match box (src/lib/leads/resume-match.ts): its welcome leads with the score and the gaps. */
+  match?: { score: number; bandLabel: string; missing: string[] } | null
+  /** A résumé dropped on a layoff company page: the employer it named. */
+  layoffCompany?: string | null
 }
 
 export interface LeadEmailJob {
@@ -63,6 +67,50 @@ export function leadEmailContent(variant: LeadVariant, step: LeadStep, c: LeadEm
   if (variant === 'waitlist_b2b' || !base.ctaLabel) return base
   const followUp = variant === 'applied_job' && step === 'nudge1'
   const persona = c.journey ? getPersona(c.journey) : null
+
+  // A résumé matched on a job page: the welcome is the report they asked for (score, then what the posting asks for that the
+  // résumé does not say), then jobs like it, then the account, which ranks every job against that résumé.
+  if (c.match && variant === 'saved_job' && step === 'welcome') {
+    const jobs = (c.jobs?.length ?? 0) >= 3 ? c.jobs!.slice(0, 3) : undefined
+    return {
+      ...base,
+      subject: c.detail ? `Your résumé match for ${c.detail}: ${c.match.score}%` : `Your résumé match: ${c.match.score}%`,
+      headline: `${c.match.score}% match: ${c.match.bandLabel.toLowerCase()}`,
+      paragraphs: [
+        hello(c),
+        c.detail ? `Your résumé says ${c.match.score}% of what ${c.detail} asks for.` : `Your résumé says ${c.match.score}% of what the posting asks for.`,
+        c.match.missing.length
+          ? `The posting stresses these and your résumé does not say them: ${c.match.missing.join(', ')}. Add each one where it is true, in the bullet where you did it, with the result.`
+          : 'Your résumé already says what the posting stresses. Lead with the results behind them.',
+        ...(jobs ? ['Three more jobs like it are open now:'] : []),
+      ],
+      jobs,
+      benefits: [],
+      choices: undefined,
+      choicesPrompt: undefined,
+      ctaLabel: 'Open my free account',
+      afterJobs: 'Your free account ranks every open job by how well you fit, so you read the ones you match first.',
+    }
+  }
+
+  // A résumé dropped on a layoff company page.
+  if (c.layoffCompany && variant === 'waitlist' && step === 'welcome') {
+    return {
+      ...base,
+      subject: 'Your résumé is in: see the jobs you fit',
+      headline: 'Your résumé is in',
+      paragraphs: [
+        hello(c),
+        `We have your résumé. After ${c.layoffCompany}, the fastest way back is the jobs you already fit.`,
+        'Open your free account and every open job comes back ranked by how well you fit, with what to add for the ones you nearly fit.',
+        FREE,
+      ],
+      benefits: BENEFITS,
+      choices: undefined,
+      choicesPrompt: undefined,
+      ctaLabel: 'See the jobs I fit',
+    }
+  }
 
   // Someone who just went to apply for a job, or saved one, wants jobs, so the welcome shows three open ones like it and makes one ask
   // under them. Without three to show it falls through to the situation question below. (2026-11-17: 57 application welcomes with the

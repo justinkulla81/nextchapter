@@ -10,6 +10,7 @@ import { NoExperienceLine } from '@/components/jobs/NoExperienceLine'
 import { TrainingProvidedLine } from '@/components/jobs/TrainingProvidedLine'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { ApplyAndSave } from '@/components/jobs/ApplyAndSave'
+import { ExitIntentCapture } from '@/components/capture/ExitIntentCapture'
 import { ReturningMemberBanner } from '@/components/jobs/ReturningMemberBanner'
 import { ReadFullPostingLink } from '@/components/jobs/ReadFullPostingLink'
 import { applySaveEmailOn } from '@/lib/leads/apply-save-config'
@@ -183,6 +184,8 @@ export default async function PublicJobPage({ params }: { params: Params }) {
             <ReturningMemberBanner jobId={job.id} company={job.companyName} />
 
             <ApplyAndSave jobId={job.id} company={job.companyName} jobTitle={job.title} industry={industry} applyUrl={job.url} emailOn={applySaveEmailOn() || lifecycleEmailsOn()} reminderOn={lifecycleEmailsOn()} />
+
+            {!stale && <ExitIntentCapture jobId={job.id} company={job.companyName} jobTitle={job.title} industry={industry} />}
 
             <p className="mt-4 text-sm text-muted-foreground">
               Just laid off?{' '}

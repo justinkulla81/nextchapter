@@ -12,6 +12,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { runResumeParse } from '@/lib/resume/background-parse'
 import { claimParse, clearParse, readParseState } from '@/lib/resume/parse-state'
 import { PARSE_STALE_MS, type ResumeParseState } from '@/lib/resume/parse-view'
+import { leadResumeFor } from '@/lib/onboarding/lead-resume'
 
 export type StartUploadState = { error?: string } | undefined
 
@@ -104,5 +105,51 @@ export async function discardResumeParse(): Promise<void> {
   await clearParse(profile.id)
   // The unfinished Resume row of a failed reading is removed so it cannot linger as a half-read version.
   if (state?.resumeId) await prisma.resume.deleteMany({ where: { id: state.resumeId, candidateId: profile.id, looksLikeResume: false } })
+  revalidatePath('/onboarding/resume')
+}
+
+// "Use the résumé you sent us": the file a public page stored (leads/...) is copied into the member's own folder and read exactly as an
+// upload is, so nobody uploads twice. Only a lead filed under this profile's own email is used.
+export async function reuseLeadResume(): Promise<StartUploadState> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'Please sign in again.' }
+  const profile = await getOrCreateCandidateProfile(user.id)
+  const email = profile.email || user.email
+  const found = await leadResumeFor(email)
+  if (!found) return { error: 'We could not find the résumé you sent. Upload it here instead.' }
+  const lead = await prisma.resumeSubmissionLead.findUnique({ where: { id: found.id }, select: { filePath: true, fileName: true } })
+  if (!lead?.filePath) return { error: 'We could not find the résumé you sent. Upload it here instead.' }
+
+  const current = readParseState(profile.journeyDetails)
+  if (current?.status === 'processing' && Date.now() - new Date(current.startedAt).getTime() < PARSE_STALE_MS) {
+    revalidatePath('/onboarding/resume')
+    return
+  }
+  const ext = lead.filePath.endsWith('.pdf') ? 'pdf' : 'docx'
+  const path = `${profile.id}/${crypto.randomUUID()}.${ext}`
+  const admin = createAdminClient()
+  const { error: copyError } = await admin.storage.from('resumes').copy(lead.filePath, path)
+  if (copyError) return { error: 'Something went wrong reading the résumé you sent. Upload it here instead.' }
+
+  const state: ResumeParseState = {
+    attempt: crypto.randomUUID(),
+    status: 'processing',
+    startedAt: new Date().toISOString(),
+    path,
+    fileName: lead.fileName || `resume.${ext}`,
+    fileType: ext,
+    includeInResumeBook: false,
+  }
+  if (!(await claimParse(profile.id, state))) {
+    await admin.storage.from('resumes').remove([path])
+    revalidatePath('/onboarding/resume')
+    return
+  }
+  await prisma.resumeSubmissionLead.update({ where: { id: found.id }, data: { candidateId: profile.id } }).catch(() => {})
+  captureServerEvent(profile.id, 'lead_resume_reused', { fileType: ext })
+  after(() => runResumeParse(profile.id, state.attempt))
   revalidatePath('/onboarding/resume')
 }
