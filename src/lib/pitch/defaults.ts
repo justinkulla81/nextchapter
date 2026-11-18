@@ -32,11 +32,12 @@ const BASE: S[] = [
   ['about', 'Opening', 'bullets', {
     title: 'Who we are', kicker: 'Background',
     bullets: [
+      'Our mission is to ensure every person knows the dignity of work.',
       'NextChapter is the leading job transition platform for laid-off white-collar workers.',
       'It pairs each person with a coach and a recruiter, and gives employers a hiring portal.',
       'We publish the NextChapter White Collar Employment Report each month, with the method and code open.',
     ],
-    why: 'Establishes who is speaking, in three sentences.',
+    why: 'Establishes who is speaking: the mission (word for word, as in CLAUDE.md), then three sentences.',
   }],
   ['local-data', 'Data', 'stats', { title: 'What is happening in {{area}}', kicker: 'The data', bullets: ['White-collar unemployment in {{area}} is an estimated {{wcEst}}, against {{bcEst}} for blue-collar work.', '{{layoffs12}} workers were named in layoff notices in the last 12 months, {{layoffs90}} of them in the last 90 days.'], needsGeo: true, why: 'Their own numbers first. Nothing persuades like the buyer\'s county.' }],
   ['layoffs', 'Data', 'warn', { title: 'Recent layoff announcements near you', kicker: 'The data', needsGeo: true, why: 'Names the employers. Real state layoff filings, with dates.' }],
