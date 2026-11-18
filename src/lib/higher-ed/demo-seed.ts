@@ -64,6 +64,35 @@ const STAGE_FOR: Partial<Record<JourneyType, JourneyStage[]>> = {
   PROMOTION: ['PREPARING'],
   CAREER_CHANGE: ['EXPLORING', 'PREPARING'],
 }
+// A complete sample person (owner, 2026-11-18: "show whole students"): where they live, how long they have worked, at
+// what level, their latest title and employer, confirmed skills, target industries, how they like to work and how
+// confident they are, on top of the function and keywords. Students read as students: no years, an internship title.
+const CITIES: [string, string][] = [['Pittsburgh', 'PA'], ['Pittsburgh', 'PA'], ['Philadelphia', 'PA'], ['Washington', 'DC'], ['New York', 'NY'], ['Chicago', 'IL'], ['Columbus', 'OH']]
+const INDUSTRIES = ['Technology', 'Healthcare', 'Financial services', 'Manufacturing', 'Consulting', 'Education', 'Energy', 'Government']
+const REMOTE = ['hybrid', 'remote', 'onsite', 'flexible']
+function wholeProfile(slug: string, i: number, k: number, m: { classYear?: number | null; affiliation?: string | null; lastKnownTitle?: string | null; lastKnownEmployer?: string | null }, now: Date) {
+  const base = demoProfile(slug, i)
+  const student = m.affiliation === 'STUDENT'
+  const years = student ? 0 : Math.max(0, Math.min(40, now.getUTCFullYear() - (m.classYear ?? now.getUTCFullYear())))
+  const level = student || years < 4 ? 'IC' : years < 10 ? (k % 3 === 0 ? 'Manager' : 'IC') : years < 20 ? (k % 2 ? 'Manager' : 'Director') : (['Director', 'VP', 'C-Suite'] as const)[k % 3]
+  const [city, state] = CITIES[(i * 3) % CITIES.length]
+  return {
+    ...base,
+    currentCity: city,
+    currentState: state,
+    yearsExperience: years,
+    highestLevelReached: level,
+    resumeLatestJobTitle: student ? (k % 2 ? `${base.primaryFunction} Intern` : 'Student') : (m.lastKnownTitle ?? null),
+    displayCompany: student ? null : (m.lastKnownEmployer ?? null),
+    confirmedSkillsHave: base.resumeKeywords.slice(0, 4),
+    targetIndustries: [INDUSTRIES[i % INDUSTRIES.length], INDUSTRIES[(i + 3) % INDUSTRIES.length]],
+    remotePreference: REMOTE[k % REMOTE.length],
+    functionSkillConfidence: student ? 34 : [34, 67, 67, 100][k % 4],
+    aiFlexibilityLevel: [0, 34, 67, 100][(i + k) % 4],
+    networkingLevel: 1 + (k % 4),
+  }
+}
+
 const DOSSIER_LINES = [
   'Operations leader who has run three plant turnarounds; looking for a COO-track role in regional manufacturing.',
   'Healthcare finance analyst moving into FP&A; strongest at turning messy data into a budget people trust.',
@@ -186,12 +215,15 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
     (await db.warnNotice.findFirst({ where: recent, orderBy: { noticeDate: 'desc' }, select: { id: true, employer: true, companyId: true } }))
 
   // ── Members ──────────────────────────────────────────────────────────────
-  const n = tenant.memberCount ?? 200
-  const isJoined = (i: number) => [1, 4, 8].includes(i % 10)
+  const n = Math.min(tenant.memberCount ?? 200, 400) // names stay unique up to 400 people
+  // A full demo (owner, 2026-11-18): about one in eight are current students, most of whom have joined, and six in ten
+  // alumni have joined, each with a complete profile.
+  const students = Math.max(8, tenant.studentCount ?? Math.round(n / 8))
+  const isJoined = (i: number) => (i >= n - students ? i % 10 !== 3 : [1, 2, 4, 5, 7, 8].includes(i % 10))
   const isParent = (i: number) => i % 20 === 7
   const dnc = (i: number) => i % 23 === 11
-  // Alumni classes span the first n - 8 people; the last eight are students.
-  const classOf = (i: number) => FIRST_CLASS + Math.min(LAST_CLASS - FIRST_CLASS, Math.round((i * (LAST_CLASS - FIRST_CLASS)) / (n - 9)))
+  // Alumni classes span the first n - students people; the rest are current students.
+  const classOf = (i: number) => FIRST_CLASS + Math.min(LAST_CLASS - FIRST_CLASS, Math.round((i * (LAST_CLASS - FIRST_CLASS)) / (n - students - 1)))
   const firstAfter = (from: number, ok: (i: number) => boolean) => {
     for (let i = Math.floor(from); i < n; i++) if (ok(i)) return i
     return -1
@@ -211,11 +243,11 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
     // Unique for up to 400 people: same first name → a different last name.
     const firstName = FIRST[i % FIRST.length]
     const lastName = LAST[(i * 7 + Math.floor(i / FIRST.length)) % LAST.length]
-    // The last eight are current students (classes of next year onward).
-    const student = i >= n - 8
-    const classYear = student ? now.getUTCFullYear() + 1 + (i % 3) : classOf(i)
-    const affiliation: InstitutionAffiliation = isParent(i) ? 'PARENT' : student ? 'STUDENT' : 'ALUM'
-    const joined = isJoined(i) && !isParent(i) && !student
+    // The last `students` are current students (classes of this year through three years out).
+    const student = i >= n - students
+    const classYear = student ? now.getUTCFullYear() + (i % 4) : classOf(i)
+    const affiliation: InstitutionAffiliation = isParent(i) && !student ? 'PARENT' : student ? 'STUDENT' : 'ALUM'
+    const joined = isJoined(i) && (student || !isParent(i))
     if (joined) joinedIdx.push(i)
     const status: InstitutionMemberStatus = joined ? 'CLAIMED' : i % 5 === 0 ? 'INVITED' : 'IMPORTED'
     const employer = atWarn.has(i) && notice ? notice.employer : classYear >= now.getUTCFullYear() - 1 ? null : pick(rosterEmployers, i, 5)
@@ -264,7 +296,7 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
       journeyStageChangedAt: row(i).claimedAt as Date,
       currentJobStatus: getJourney(journey).jobStatus,
       positioningStatementText: k % 7 === 0 || i === featured ? pick(DOSSIER_LINES, k, 1) : null,
-      ...demoProfile(slug, i),
+      ...wholeProfile(slug, i, k, row(i), now),
       metroArea: i === featured ? 'Pittsburgh' : (['Pittsburgh', 'Pittsburgh', 'Philadelphia', 'Washington, DC', 'New York'] as const)[k % 5],
       isSampleData: true,
     }

@@ -85,7 +85,9 @@ export const CMU_TENANT: DemoTenant = {
     English: 'Dietrich College of Humanities and Social Sciences',
     'Mathematical Sciences': 'Mellon College of Science',
   },
-  memberCount: 240,
+  // A full demo (owner, 2026-11-18): enough alumni and students that every screen has people in it.
+  memberCount: 400,
+  studentCount: 60,
   // Fictional groups shaped like CMU's alumni: two chapters, then industry groups that alumni join by major.
   groups: [
     { kind: 'chapter', name: 'Pittsburgh Chapter', metro: 'Pittsburgh', description: 'Happy hours, a fall service day and the spring career night.' },
