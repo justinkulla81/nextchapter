@@ -25,6 +25,8 @@ import { ResumeParseProblem } from '@/components/onboarding/bundles/ResumeParseP
 import { readParseState } from '@/lib/resume/parse-state'
 import { parseView } from '@/lib/resume/parse-view'
 import { RESUME_NOT_REJECTED } from '@/lib/resume/not-rejected'
+import { leadResumeFor } from '@/lib/onboarding/lead-resume'
+import { UseSentResume } from '@/components/onboarding/bundles/UseSentResume'
 
 export default async function OnboardingResumePage() {
   const user = await getCurrentUser()
@@ -140,12 +142,16 @@ export default async function OnboardingResumePage() {
     }
   }
 
+  // A résumé already dropped on a public page (the match box) under this email: one click to use it.
+  const sent = await leadResumeFor(profile?.email || user?.email).catch(() => null)
+
   if (bundles) {
     // The résumé is the main action. Skipping is never required but is kept minor: a quiet link under the payoff that goes to the details step (name, email, LinkedIn).
     const marketReality = entryOf(profile?.journeyDetails) !== null
     return (
       <BundleShell id="resume" title="Start with your résumé">
         <WarmJobBoard />
+        {sent && <UseSentResume fileName={sent.fileName} />}
         <ResumeUploadForm showNarrativePicker={false} resumeBookOptIn={profile?.resumeBookOptIn ?? true} background initialError={rejectedReason} />
         <PayoffPanel payoff={computePayoff('resume', {}, { journey: null, prefilled: [] })} />
         <form action={skipResume} className="space-y-1">
@@ -204,6 +210,7 @@ export default async function OnboardingResumePage() {
         action plan, you&apos;ll be able to retake it — so don&apos;t overthink your answers here.
       </p>
 
+      {sent && <UseSentResume fileName={sent.fileName} />}
       <ResumeUploadForm showNarrativePicker={false} resumeBookOptIn={profile?.resumeBookOptIn ?? true} background initialError={rejectedReason} />
     </div>
   )

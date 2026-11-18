@@ -7,6 +7,7 @@ import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
 import { SaveJourneyStep } from '@/components/jobs/SaveJourneyStep'
 import { OPEN_APPLY_GATE_EVENT } from '@/components/jobs/ReadFullPostingLink'
+import { ResumeMatchBox } from '@/components/capture/ResumeMatchBox'
 
 // The Apply button on a public job page plus the one-field "save this job" box under it.
 // Control: Apply opens the employer's page in a new tab; this page stays open behind it and the
@@ -131,9 +132,33 @@ export function ApplyAndSave({ jobId, company, industry, applyUrl, emailOn, remi
       </div>
 
 
+      {/* The résumé ask (owner decision 2026-11-18), one box: under the buttons, and the first thing in the Apply prompt while it is
+          open (the email form below it stays the other way in). */}
+      <ResumeMatchBox
+        placement={gateOpen && variant === 'gate' ? 'apply_gate' : 'job_top'}
+        jobId={jobId}
+        company={company}
+        className="mt-4 max-w-2xl"
+        afterSaved={
+          gateOpen && variant === 'gate' ? (
+            <Button
+              type="button"
+              onClick={() => {
+                employerLinkRef.current?.click()
+                setGateOpen(false)
+              }}
+              className="mt-3 h-11 rounded-full bg-action px-5 text-action-foreground hover:brightness-95"
+            >
+              Go to {company} to apply
+            </Button>
+          ) : null
+        }
+      />
+
       {gateOpen && variant === 'gate' && (
         <div className="mt-4">
           <div role="region" aria-labelledby="apply-gate-title" className={cn('max-w-md rounded-2xl border border-border bg-white p-5', pending && 'cursor-wait')}>
+            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Or just your email</p>
             <form
               action={action}
               noValidate
