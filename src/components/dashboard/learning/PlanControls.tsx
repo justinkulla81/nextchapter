@@ -20,7 +20,7 @@ function Err({ r }: { r: PlanResult }) {
 export type PlanEntryView = { id: string; title: string; provider: string; url: string; status: string; createdAt: Date }
 
 // "Add to my plan" on a course. Once it is in the plan the button gives way to a quiet "In your plan".
-export function AddToPlanButton({ title, provider, url, slot, inPlan }: { title: string; provider: string; url: string; slot: 'featured' | 'more'; inPlan: boolean }) {
+export function AddToPlanButton({ title, provider, url, slot, inPlan, skill, source }: { title: string; provider: string; url: string; slot: 'featured' | 'more'; inPlan: boolean; skill?: string; source?: 'skills_bridge' }) {
   const [state, action] = useActionState<PlanResult, FormData>(addToPlan, undefined)
   if (inPlan) return <span className="text-sm font-medium text-success">In your plan</span>
   return (
@@ -29,6 +29,8 @@ export function AddToPlanButton({ title, provider, url, slot, inPlan }: { title:
       <input type="hidden" name="provider" value={provider} />
       <input type="hidden" name="url" value={url} />
       <input type="hidden" name="slot" value={slot} />
+      {skill && <input type="hidden" name="skill" value={skill} />}
+      {source && <input type="hidden" name="source" value={source} />}
       <SubmitButton variant="outline" className={SECONDARY} pendingLabel="Adding…" savedLabel="Added">
         Add to my plan
       </SubmitButton>

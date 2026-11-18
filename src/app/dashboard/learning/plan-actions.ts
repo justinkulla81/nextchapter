@@ -33,10 +33,13 @@ export async function addToPlan(_prev: PlanResult, f: FormData): Promise<PlanRes
   const blocked = addBlocked(count, !!existing)
   if (blocked) return { error: blocked }
   if (!existing) {
-    const skills = skillsForTitle(title)
+    // A course added from a college's skills bridge names the skill it closes, so the college can count who plans to learn it.
+    const bridgeSkill = str(f, 'skill').slice(0, 80)
+    const skills = [...new Set([...skillsForTitle(title), ...(bridgeSkill ? [bridgeSkill] : [])])]
     const slot = str(f, 'slot') === 'featured' ? 'featured' : 'more'
+    const source = str(f, 'source') === 'skills_bridge' ? 'skills_bridge' : 'learning'
     await prisma.learningPlanEntry.create({ data: { candidateId: profile.id, title, provider: str(f, 'provider').slice(0, 80) || null, url, skills, slot } })
-    captureServerEvent(profile.id, 'learning_plan_course_added', { courseTitle: title, provider: str(f, 'provider') || null, slot, skills, planSize: count + 1, maxPlan: MAX_PLAN })
+    captureServerEvent(profile.id, 'learning_plan_course_added', { courseTitle: title, provider: str(f, 'provider') || null, slot, skills, source, planSize: count + 1, maxPlan: MAX_PLAN })
   }
   revalidatePath('/dashboard/learning')
   return { ok: true }

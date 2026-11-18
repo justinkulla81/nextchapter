@@ -10,6 +10,8 @@ import { prisma } from '@/lib/prisma'
 import { bridgeReport, memberBridge, type BridgeOffering } from '@/lib/higher-ed/skills-bridge'
 import { MIN_CELL_SIZE } from '@/lib/admin/cell-suppression'
 import { EmptyState } from '@/components/ui/empty-state'
+import { AddToPlanButton } from '@/components/dashboard/learning/PlanControls'
+import { SITE_URL } from '@/lib/reports'
 
 type Props = { ctx: WorkspaceContext; base: string }
 
@@ -25,7 +27,15 @@ export async function SkillsBridgeSection({ ctx }: Props) {
   if (!ctx.memberId) return null
   const slug = ctx.institution.slug
   const row = await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } })
-  const bridge = await memberBridge({ institution: { id: ctx.institution.id, slug }, memberId: ctx.memberId, enabledFeatures: row.enabledFeatures })
+  const [bridge, member] = await Promise.all([
+    memberBridge({ institution: { id: ctx.institution.id, slug }, memberId: ctx.memberId, enabledFeatures: row.enabledFeatures }),
+    prisma.institutionMember.findUnique({ where: { id: ctx.memberId }, select: { candidateId: true } }),
+  ])
+  // Titles already in the alum's own learning plan (at most 12 rows), so a course shows "In your plan" instead of the button.
+  const planned = new Set(
+    member?.candidateId ? (await prisma.learningPlanEntry.findMany({ where: { candidateId: member.candidateId }, select: { title: true }, take: 50 })).map((e) => e.title) : [],
+  )
+  const bridgeUrl = (key: string, skill: string) => `${SITE_URL}/i/${slug}/bridge?o=${encodeURIComponent(key)}&s=${encodeURIComponent(skill)}`
   return (
     <section aria-labelledby="bridge-h" className="space-y-3">
       <div>
@@ -64,6 +74,11 @@ export async function SkillsBridgeSection({ ctx }: Props) {
                           {KIND[o.kind]}
                           {o.detail ? ` · ${o.detail}` : ''}
                         </span>
+                        {member?.candidateId && (
+                          <div className="mt-1">
+                            <AddToPlanButton title={o.name} provider={ctx.institution.name} url={bridgeUrl(o.key, r.skill)} slot="more" inPlan={planned.has(o.name)} skill={r.skill} source="skills_bridge" />
+                          </div>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -83,13 +98,14 @@ export async function SkillsBridgeSection({ ctx }: Props) {
 export async function StaffSkillsBridge({ ctx }: Props) {
   const row = await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } })
   const r = await bridgeReport({ id: ctx.institution.id, slug: ctx.institution.slug }, row.enabledFeatures)
-  const few = `Under ${MIN_CELL_SIZE}`
+  const few = `<${MIN_CELL_SIZE}`
   const untaught = r.needs.filter((n) => !n.hasOffering && n.alumni !== null)
   return (
     <div className="space-y-8">
       <p className="max-w-3xl text-sm text-muted-foreground">
         Each joined alum sees the skills jobs in their field ask for that they don’t show yet, and your offerings that teach them. Here: which skills alumni
-        need, which you don’t teach yet, and which offerings were followed by a new job. Counts only; groups under {MIN_CELL_SIZE} show as “{few}.” Tag
+        need, which you don’t teach yet, how many plan to learn each, and which offerings were followed by a new job. Planning to learn counts alumni whose own
+        learning plan has a planned or started course that teaches the skill. Counts only; groups under {MIN_CELL_SIZE} show as “{few}.” Tag
         what each offering teaches on the program, the audit course, or Admin › Services (“Skills it teaches”).
       </p>
 
@@ -120,7 +136,7 @@ export async function StaffSkillsBridge({ ctx }: Props) {
               <caption className="sr-only">Skills alumni need, and whether an offering teaches each</caption>
               <thead className="border-b border-border text-xs text-muted-foreground">
                 <tr>
-                  {['Skill', 'Alumni who need it', 'Your offering'].map((h) => (
+                  {['Skill', 'Alumni who need it', 'Planning to learn', 'Your offering'].map((h) => (
                     <th key={h} scope="col" className="px-4 py-2 font-medium">
                       {h}
                     </th>
@@ -132,6 +148,7 @@ export async function StaffSkillsBridge({ ctx }: Props) {
                   <tr key={n.skill}>
                     <td className="px-4 py-2">{n.skill}</td>
                     <td className="px-4 py-2 tabular-nums">{n.alumni ?? few}</td>
+                    <td className="px-4 py-2 tabular-nums">{n.planning ?? few}</td>
                     <td className="px-4 py-2">{n.hasOffering ? 'Yes' : 'None yet'}</td>
                   </tr>
                 ))}
