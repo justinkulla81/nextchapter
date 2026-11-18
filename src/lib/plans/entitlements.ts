@@ -32,7 +32,7 @@ export const FREE_VISIBLE_SKILL_GAPS = 3
 // portal already shows (RegionScreen). There is no self-serve billing.
 export const PLAN_CONTACT_EMAIL = 'support@launchyournextchapter.com'
 
-export type EntitlementFeature = 'reporting' | 'exports' | 'crmExchange' | 'staffRoles' | 'auditLog' | 'sso' | 'nextchapterServices' | 'wioa' | 'members' | 'grants' | 'publicPage' | 'partnerViews' | 'skillsGaps' | 'trainingAssign'
+export type EntitlementFeature = 'reporting' | 'exports' | 'crmExchange' | 'staffRoles' | 'auditLog' | 'sso' | 'nextchapterServices' | 'wioa' | 'members' | 'grants' | 'publicPage' | 'partnerViews' | 'skillsGaps' | 'trainingAssign' | 'fundingPartners'
 
 export type Entitlements = {
   // Most members the organization can hold; null = no cap.
@@ -59,6 +59,8 @@ export type Entitlements = {
   partnerViews: boolean
   // Assigning training to the people in the group by industry, experience and function (the catalog itself is free).
   trainingAssign: boolean
+  // Recording which partners are in on a funding application and the match each commits (Workforce Hub).
+  fundingPartners: boolean
 }
 
 export const isInstitutionPlan = (v: unknown): v is InstitutionPlan => v === 'FREE' || v === 'PAID'
@@ -74,9 +76,9 @@ export function institutionEntitlements(input: { plan: string | null | undefined
   // the wioa switch). Accepted so callers can pass one institution row; unused
   // here on purpose, so the plan can only restrict, never grant.
   if (planOf(input.plan) === 'PAID') {
-    return { memberCap: null, visibleMembers: null, adminLimit: null, visibleGrants: null, visibleSkillRows: null, reporting: true, exports: true, crmExchange: true, staffRoles: true, auditLog: true, sso: true, nextchapterServices: true, wioa: true, publicPage: true, partnerViews: true, trainingAssign: true }
+    return { memberCap: null, visibleMembers: null, adminLimit: null, visibleGrants: null, visibleSkillRows: null, reporting: true, exports: true, crmExchange: true, staffRoles: true, auditLog: true, sso: true, nextchapterServices: true, wioa: true, publicPage: true, partnerViews: true, trainingAssign: true, fundingPartners: true }
   }
-  return { memberCap: FREE_MEMBER_CAP, visibleMembers: FREE_VISIBLE_MEMBERS, adminLimit: FREE_ADMIN_LIMIT, visibleGrants: FREE_VISIBLE_GRANTS, visibleSkillRows: FREE_VISIBLE_SKILL_GAPS, reporting: false, exports: false, crmExchange: false, staffRoles: false, auditLog: false, sso: false, nextchapterServices: false, wioa: false, publicPage: false, partnerViews: false, trainingAssign: false }
+  return { memberCap: FREE_MEMBER_CAP, visibleMembers: FREE_VISIBLE_MEMBERS, adminLimit: FREE_ADMIN_LIMIT, visibleGrants: FREE_VISIBLE_GRANTS, visibleSkillRows: FREE_VISIBLE_SKILL_GAPS, reporting: false, exports: false, crmExchange: false, staffRoles: false, auditLog: false, sso: false, nextchapterServices: false, wioa: false, publicPage: false, partnerViews: false, trainingAssign: false, fundingPartners: false }
 }
 
 const WHAT: Record<EntitlementFeature, string> = {
@@ -92,6 +94,7 @@ const WHAT: Record<EntitlementFeature, string> = {
   grants: `Every grant that fits you, with a shortlist, is`,
   skillsGaps: `Every skill gap, with the retraining that closes it, is`,
   trainingAssign: 'Assigning training to the right people is',
+  fundingPartners: 'Tracking partners and match on a funding application is',
   publicPage: 'Writing your own section on your public page is',
   partnerViews: 'Sharing a live view of your region’s data with a partner is',
 }
@@ -109,6 +112,7 @@ export const LOCKED_TITLES: Record<EntitlementFeature, string> = {
   grants: 'Every grant that fits you',
   skillsGaps: 'The full skills-gap picture',
   trainingAssign: 'Assign training',
+  fundingPartners: 'Funding partners and match',
   publicPage: 'Your public page',
   partnerViews: 'Partner views',
 }
@@ -292,6 +296,12 @@ export const LOCK_PITCH: Record<EntitlementFeature, LockPitch> = {
     bullets: ['Choose training by industry, experience and function', 'It appears in each matching person’s Learn page, with who chose it and why', 'See how many people each assignment reaches, without names'],
     sampleTitle: 'Assignments (sample)',
     sample: [['AI for finance leaders', 'Finance · Director or above'], ['Lean Six Sigma', 'Operations · Manager']],
+  },
+  fundingPartners: {
+    headline: 'Line up your partners and your match before the deadline',
+    bullets: ['See who is in on each application and in what role', 'Track every partner’s match against what the funder requires', 'Draft the ask to each partner in one click, and send it yourself'],
+    sampleTitle: 'Match (sample)',
+    sample: [['Match required', '$150,000'], ['Committed so far', '$90,000'], ['Still to find', '$60,000']],
   },
   publicPage: {
     headline: 'Tell your story on your own public page',

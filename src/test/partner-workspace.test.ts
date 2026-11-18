@@ -15,8 +15,8 @@ describe('the partner workspace', () => {
     expect(mine).not.toContain('hub')
     expect(mine).not.toContain('admin')
   })
-  it('has the two pages, and a demo can preview it', () => {
-    expect(tabsFor(t('PARTNER'), 'partnerview', undefined, 'workforce').map((x) => x.key)).toEqual(['overview', 'shared'])
+  it('has its pages (including the feed), and a demo can preview it', () => {
+    expect(tabsFor(t('PARTNER'), 'partnerview', undefined, 'workforce').map((x) => x.key)).toEqual(['overview', 'shared', 'feed'])
     expect(getWorkspace('partnerview')?.homePath).toBe('partnerview')
     expect(ALL_TOKENS.has('PARTNER')).toBe(true)
     expect(DEMO_PERSONAS.some((p) => p.key === 'PARTNER')).toBe(true)
