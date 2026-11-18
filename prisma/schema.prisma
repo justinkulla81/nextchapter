@@ -18981,6 +18981,14 @@ model VentureFlag {
   startedAt      DateTime?
   contactedAt    DateTime?
   contactedBy    String?
+  // What the alum reports about the venture on their portal (shared under SHARE_VENTURE): funding to date and an exit.
+  website        String?
+  fundingRound   String? // none | bootstrapped | grant | pre_seed | seed | series_a | series_b_plus
+  fundingTotal   String? // under_250k | 250k_1m | 1m_5m | 5m_20m | over_20m
+  exitKind       String? // acquired | ipo | closed
+  exitAcquirer   String?
+  exitYear       Int?
+  reportedAt     DateTime?
   isSampleData   Boolean   @default(false)
   updatedAt      DateTime  @updatedAt
 

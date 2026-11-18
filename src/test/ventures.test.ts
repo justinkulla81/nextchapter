@@ -61,3 +61,25 @@ describe('office names', async () => {
     expect(officeLabel(dev, 'college', { development: 'University Advancement' })).toBe('University Advancement')
   })
 })
+
+describe('venture reports', async () => {
+  const { parseVentureReport, fundingLine } = await import('@/lib/higher-ed/ventures')
+  const fd = (o: Record<string, string>) => {
+    const f = new FormData()
+    for (const [k, v] of Object.entries(o)) f.set(k, v)
+    return f
+  }
+  it('needs a company name', () => {
+    expect(parseVentureReport(fd({ ventureName: ' ' }))).toEqual({ error: 'Add the name of your company.' })
+  })
+  it('keeps only known choices and a sane year, and the acquirer only for an acquisition', () => {
+    const r = parseVentureReport(fd({ ventureName: 'Wynwood Data Labs', website: 'wynwood.example', fundingRound: 'seed', fundingTotal: 'nonsense', exitKind: 'acquired', exitAcquirer: 'Acme', exitYear: '2025' }), 2026)
+    expect(r).toEqual({ ventureName: 'Wynwood Data Labs', website: 'https://wynwood.example/', fundingRound: 'seed', fundingTotal: null, exitKind: 'acquired', exitAcquirer: 'Acme', exitYear: 2025 })
+    const r2 = parseVentureReport(fd({ ventureName: 'X', exitKind: 'ipo', exitAcquirer: 'Acme', exitYear: '3000' }), 2026)
+    expect(r2).toMatchObject({ exitKind: 'ipo', exitAcquirer: null, exitYear: null })
+  })
+  it('says funding and exits in words', () => {
+    expect(fundingLine({ fundingRound: 'series_a', fundingTotal: '1m_5m', exitKind: null, exitAcquirer: null, exitYear: null })).toEqual(['Series A · $1M to $5M raised'])
+    expect(fundingLine({ fundingRound: null, fundingTotal: null, exitKind: 'acquired', exitAcquirer: 'Acme', exitYear: 2025 })).toEqual(['Acquired by Acme, 2025'])
+  })
+})

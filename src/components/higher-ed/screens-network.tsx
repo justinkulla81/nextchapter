@@ -79,9 +79,15 @@ export async function CandidateJobs({ ctx }: Props) {
                     <p className="mt-1 flex items-center gap-1 text-xs text-primary">
                       <Users className="size-3" aria-hidden="true" />
                       {n} {ctx.institution.name} {n === 1 ? 'alum works' : 'alumni work'} here.{' '}
-                      <Link href={`/i/${ctx.institution.slug}/candidate/mentors`} className="underline">
-                        Ask a mentor
-                      </Link>
+                      {/* Network in: the alumni there who share where they work, each with "Ask for 15 minutes or a referral". */}
+                      <TrackedLink
+                        href={`/i/${ctx.institution.slug}/candidate/network?q=${encodeURIComponent(j.companyName ?? '')}#intros`}
+                        event="he_network_in_clicked"
+                        properties={{ institutionId: ctx.institution.id, jobId: j.id, company: j.companyName ?? null, alumni: n }}
+                        className="underline"
+                      >
+                        Network in: ask one for a referral
+                      </TrackedLink>
                     </p>
                   )}
                 </div>
