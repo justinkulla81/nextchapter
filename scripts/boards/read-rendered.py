@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read people off the pages scripts/boards/render-staff.js saved. Same extractor as crawl-staff.py; writes the same JSON shape.
+"""Read people off the pages scripts/boards/render-staff.cjs saved. Same extractor as crawl-staff.py; writes the same JSON shape.
    python3 read-rendered.py rendered.json staff_results.json"""
 import importlib.util, json, sys, os
 spec = importlib.util.spec_from_file_location('crawl_staff', os.path.join(os.path.dirname(__file__), 'crawl-staff.py'))

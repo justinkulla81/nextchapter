@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- scraped markup */
 // Reads sba.gov/events, the SBA's listing of its own, SBDC, SCORE, Women's Business Center and Veterans Business Outreach Center events.
 // (score.org itself returns 403 to bots, so SCORE events come only through this listing.) robots.txt allows it; one request at a time, 1.2 s apart.
 // Usage: set -a; . ./.env.local; set +a; npx tsx scripts/local-events/crawl-sba.ts --out=/tmp/sba.json [--post=<import url>]

@@ -64,7 +64,7 @@ async function main() {
   all.sort((a, b) => (/executive director|president|ceo|chief executive|managing|partner/i.test(b.position) ? 1 : 0) - (/executive director|president|ceo|chief executive|managing|partner/i.test(a.position) ? 1 : 0) || b.conf - a.conf)
   for (const p of all) {
     const cfg = CAT[p.cat]; const key = `${p.first} ${p.last}|${p.domain}`.toLowerCase()
-    let fit = orgFit(p.cat, p.org)
+    const fit = orgFit(p.cat, p.org)
     const ofX = /\b(of|for)\b/i.test(p.position) && !/(program|workforce|career|business|employment|training|partnership|community|education|strategy|services|client|development|operations|impact|learning|industry)/i.test(p.position)
     if (ofX || seen.has(key) || fit === 'no' || !TITLE_OK[p.cat].test(p.position) || TITLE_BAD.test(p.position)) { tally.skipped++; skipped.push(`${p.org} | ${p.first} ${p.last} | ${p.position}`); continue }
     if ((perOrg.get(p.domain) ?? 0) >= cfg.cap) { tally.skipped++; continue }

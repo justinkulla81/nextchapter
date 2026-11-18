@@ -122,6 +122,13 @@ export const CMU_TENANT: DemoTenant = {
     },
   ],
   annualCheckInMonth: 10,
+  // CMU's own office names, checked on cmu.edu Nov 18, 2026 (alumni relations policy, CPDC site, Swartz Center site).
+  officeNames: {
+    alumni: 'Alumni and Constituent Engagement',
+    development: 'University Advancement',
+    career: 'Career and Professional Development Center',
+    ventures: 'Swartz Center for Entrepreneurship',
+  },
   services: {
     events: { on: true },
     reviews: { on: true },

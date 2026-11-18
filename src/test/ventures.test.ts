@@ -47,3 +47,17 @@ describe('labels', () => {
     expect(lines.join(' ')).toMatch(/Software/)
   })
 })
+
+describe('office names', async () => {
+  const { officeNamesOf, officeLabel, WORKSPACES } = await import('@/lib/higher-ed/workspaces')
+  it('keeps only renamable offices, trimmed and capped', () => {
+    const n = officeNamesOf({ officeNames: { development: '  University Advancement ', candidate: 'Nope', career: '', ventures: 'x'.repeat(80) } })
+    expect(n).toEqual({ development: 'University Advancement', ventures: 'x'.repeat(60) })
+    expect(officeNamesOf(null)).toEqual({})
+  })
+  it('falls back to our name', () => {
+    const dev = WORKSPACES.find((w) => w.key === 'development')!
+    expect(officeLabel(dev, 'college', {})).toBe('Development')
+    expect(officeLabel(dev, 'college', { development: 'University Advancement' })).toBe('University Advancement')
+  })
+})

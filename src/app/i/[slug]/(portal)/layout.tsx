@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react'
 import { headers } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import { getInstitutionAccess } from '@/lib/higher-ed/access'
-import { demoPersonasFor, orgHostKindOf, labelFor, lockedWorkspacesFor, orgBasePath, orgKindOf, tabsFor, TIER_LABELS, workspaceFeaturesOf, WORKSPACES } from '@/lib/higher-ed/workspaces'
+import { demoPersonasFor, orgHostKindOf, labelFor, lockedWorkspacesFor, officeLabel, officeNamesOf, orgBasePath, orgKindOf, tabsFor, TIER_LABELS, workspaceFeaturesOf, WORKSPACES } from '@/lib/higher-ed/workspaces'
 import { modulesFrom } from '@/lib/higher-ed/modules'
 import { signOutOrg } from './session-actions'
 import { CanonicalOrgUrl } from '@/components/higher-ed/CanonicalOrgUrl'
@@ -24,7 +24,7 @@ import { PortalTypeBar } from '@/components/partners/PortalTypeBar'
 
 async function getTaglineAndFeatures(institutionId: string) {
   const row = await prisma.institution.findUnique({ where: { id: institutionId }, select: { profile: true, enabledFeatures: true } })
-  return { tagline: readProfile(row?.profile).tagline ?? null, features: workspaceFeaturesOf(row?.enabledFeatures), modules: modulesFrom(row?.enabledFeatures), chromeColor: (row?.enabledFeatures as { demo?: { chromeColor?: string } } | null)?.demo?.chromeColor ?? null }
+  return { tagline: readProfile(row?.profile).tagline ?? null, features: workspaceFeaturesOf(row?.enabledFeatures), officeNames: officeNamesOf(row?.enabledFeatures), modules: modulesFrom(row?.enabledFeatures), chromeColor: (row?.enabledFeatures as { demo?: { chromeColor?: string } } | null)?.demo?.chromeColor ?? null }
 }
 
 export const metadata: Metadata = {
@@ -55,7 +55,7 @@ export default async function InstitutionPortalLayout({
 
   const { institution } = access
   // An organization that owns this college sets one brand for all its portals; it wins over the college's own.
-  const [{ tagline, features, chromeColor, modules }, orgBrand] = await Promise.all([
+  const [{ tagline, features, chromeColor, modules, officeNames }, orgBrand] = await Promise.all([
     getTaglineAndFeatures(institution.id),
     organizationBrandFor('HIGHER_ED', institution.id).catch(() => null),
   ])
@@ -78,7 +78,7 @@ export default async function InstitutionPortalLayout({
     (w) => access.workspaces.includes(w.key) || locked.has(w.key) || (w.release === 'V2' && institution.isDemo),
   ).map((w) => ({
     key: w.key,
-    label: labelFor(w, orgKindOf(institution.orgType)),
+    label: officeLabel(w, orgKindOf(institution.orgType), officeNames),
     icon: w.icon,
     href: `${orgBasePath(slug, institution.orgType)}/${w.homePath}`,
     badge: w.release === 'V2' ? 'Coming' : locked.has(w.key) && w.minTier ? `${TIER_LABELS[w.minTier]} tier` : null,

@@ -519,6 +519,23 @@ export const TIER_LABELS: Record<InstitutionTier, string> = { CAREER: 'Career', 
 export type WorkspaceFeatures = { wioa?: boolean }
 
 /** The feature switches in an institution's enabledFeatures JSON that gate workspaces. */
+// Each college names its offices its own way ("University Advancement", "Career & Professional Development", "Swartz Center"). Admin ›
+// Branding saves them in enabledFeatures.officeNames, keyed by workspace; a blank name keeps ours. Tabs keep their own names.
+export const RENAMABLE_OFFICES = ['alumni', 'development', 'career', 'ventures', 'teaching', 'execed', 'academic', 'workforce'] as const
+export const OFFICE_NAME_MAX = 60
+export function officeNamesOf(enabledFeatures: unknown): Record<string, string> {
+  const raw = (enabledFeatures as { officeNames?: unknown } | null)?.officeNames
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {}
+  const out: Record<string, string> = {}
+  for (const k of RENAMABLE_OFFICES) {
+    const v = (raw as Record<string, unknown>)[k]
+    if (typeof v === 'string' && v.trim()) out[k] = v.trim().slice(0, OFFICE_NAME_MAX)
+  }
+  return out
+}
+/** A workspace's name as this college calls it. */
+export const officeLabel = (w: { key: string; label: string; workforceLabel?: string }, kind: OrgKind, names: Record<string, string>) => names[w.key] ?? labelFor(w, kind)
+
 export function workspaceFeaturesOf(enabledFeatures: unknown): WorkspaceFeatures {
   return { wioa: (enabledFeatures as { wioa?: boolean } | null)?.wioa === true }
 }

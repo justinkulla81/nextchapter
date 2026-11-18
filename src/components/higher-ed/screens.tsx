@@ -37,7 +37,7 @@ import {
   listMemberDirectory,
   listOpenTransitions,
 } from '@/lib/higher-ed/views'
-import { STAFF_ROLE_LABELS, staffRoleLabel, TIER_LABELS, WORKSPACES, auditPortalOf, brandingEditPath, getWorkspace, orgKindOf, tierIncludes, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
+import { OFFICE_NAME_MAX, RENAMABLE_OFFICES, STAFF_ROLE_LABELS, labelFor, officeNamesOf, staffRoleLabel, TIER_LABELS, WORKSPACES, auditPortalOf, brandingEditPath, getWorkspace, orgKindOf, tierIncludes, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
 import { OrgHomeHero } from '@/components/partners/OrgHomeHero'
 import { HiddenMembersNote } from '@/components/plans/HiddenMembersNote'
 import { AdminRelatedOrgs } from './screens-related'
@@ -90,6 +90,7 @@ import { AdminBoard, AlumniEvents, CandidateNetwork, MilestonesFeed, StagePanel,
 import { CandidatePrograms, ExecEdClients, ExecEdEnrollments, ExecEdPrograms, MyProgramCard, TeachingCapstones, TeachingCourses, WorkforceHome } from './screens-programs'
 import { DevelopmentCrm, DevelopmentFund, DevelopmentRoi, DevelopmentSignals, PeerBenchmarkCard } from './screens-development'
 import { BrandingForm } from './BrandingForm'
+import { OfficeNamesForm } from './OfficeNamesForm'
 import {
   AdminPrivacy,
   AlumniCommunity,
@@ -128,7 +129,7 @@ import { listTargetCompanies } from '@/lib/companies/institution-targets'
 import { canAny } from '@/lib/institution/permissions'
 import { removeStaff, resendStaffInvite } from '@/app/i/[slug]/(portal)/staff-actions'
 import { ActionButton } from './CommunityForms'
-import { addEarlyCareerRoleAction, addRecruitingDateAction, archiveEarlyCareerRoleAction, removeRecruitingDateAction, saveCoreRecruiter, archiveAlumniJob, addTargetCompany, inviteStaff, postAlumniJob, removeTargetCompany, saveBranding, saveCollegeSettings, uploadCrmFile } from '@/app/i/[slug]/(portal)/staff-actions'
+import { addEarlyCareerRoleAction, addRecruitingDateAction, archiveEarlyCareerRoleAction, removeRecruitingDateAction, saveCoreRecruiter, archiveAlumniJob, addTargetCompany, inviteStaff, postAlumniJob, removeTargetCompany, saveBranding, saveCollegeSettings, saveOfficeNames, uploadCrmFile } from '@/app/i/[slug]/(portal)/staff-actions'
 
 export type ScreenSearchParams = { field?: string; purpose?: string; q?: string; page?: string; status?: string; transition?: string; industry?: string; fn?: string; edit?: string; group?: string; company?: string; track?: string; need?: string } & CommunityParams
 type ScreenProps = { ctx: WorkspaceContext; searchParams: ScreenSearchParams; base: string }
@@ -1339,10 +1340,19 @@ async function LaunchChecklist({ ctx }: { ctx: WorkspaceContext }) {
 async function AdminBranding({ ctx }: ScreenProps) {
   const i = await prisma.institution.findUnique({
     where: { id: ctx.institution.id },
-    select: { programBrandName: true, accentColor: true, logoUrl: true, profile: true },
+    select: { programBrandName: true, accentColor: true, logoUrl: true, profile: true, enabledFeatures: true },
   })
   const profile = readProfile(i?.profile)
+  // Offices this college can open (or a higher tier would add), each with our name and theirs.
+  const kind = orgKindOf(ctx.institution.orgType)
+  const names = officeNamesOf(i?.enabledFeatures)
+  const offices = WORKSPACES.filter((w) => (RENAMABLE_OFFICES as readonly string[]).includes(w.key) && (!w.orgKind || w.orgKind === kind)).map((w) => ({
+    key: w.key,
+    standard: labelFor(w, kind),
+    current: names[w.key] ?? null,
+  }))
   return (
+    <div className="space-y-6">
     <BrandingForm
       saveAction={saveBranding.bind(null, ctx.institution.slug)}
       defaults={{
@@ -1353,6 +1363,8 @@ async function AdminBranding({ ctx }: ScreenProps) {
         heroImageUrl: profile.heroImageUrl ?? null,
       }}
     />
+    {ctx.tokens.has('INSTITUTION_ADMIN') && !ctx.readOnly && <OfficeNamesForm saveAction={saveOfficeNames.bind(null, ctx.institution.slug)} offices={offices} max={OFFICE_NAME_MAX} />}
+    </div>
   )
 }
 
