@@ -529,8 +529,9 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
       addGifts(i, from, yesterday, 300)
     }
   })
-  await db.institutionGift.createMany({ data: gifts })
-  await db.crmExchangeRun.update({ where: { id: giftRun.id }, data: { rowCount: gifts.length } })
+  // A larger roster can draw the same gift twice (same alum, day, amount, fund and appeal): keep one, as a real import would.
+  const giftsMade = await db.institutionGift.createMany({ data: gifts, skipDuplicates: true })
+  await db.crmExchangeRun.update({ where: { id: giftRun.id }, data: { rowCount: giftsMade.count } })
 
   // ── Engagement ───────────────────────────────────────────────────────────
   // What the nightly sync would have written: tool use and logins for users,
