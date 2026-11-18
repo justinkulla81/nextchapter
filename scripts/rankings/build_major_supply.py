@@ -13,7 +13,8 @@ Counts first majors only (MAJORNUM 1), so a double major is one degree, and only
 Also writes src/lib/rankings/data/college-majors/<ST>.json: each college's majors (up to 40, most degrees first) as
 [cip series, bachelor's, master's, doctoral, bachelor's and above in the base year], for the college pages and the portal's
 Academic Affairs workspace; and src/lib/rankings/data/college-index.json: every college with degrees at bachelor's level and
-above as [name, state, control, degrees, base-year degrees, {degree field: degrees}], for its state's supply and its peers.
+above as [name, state, control, degrees, base-year degrees, {degree field: degrees}, 2021 Carnegie basic classification],
+for its state's supply and its peers.
 Run: python3 -I scripts/rankings/build_major_supply.py <folder>
 """
 import csv, collections, json, os, re, sys
@@ -77,6 +78,7 @@ for r in rows('CIPCode2020.csv'):
         fam_titles[code] = clean(r['CIPTitle']).title().replace(' And ', ' and ').replace(' Of ', ' of ').replace(' In ', ' in ')
 
 hd = {r['UNITID']: (r['INSTNM'].strip(), r['STABBR'].strip()) for r in rows('HD2024.csv')}
+carnegie = {r['UNITID']: int(r['C21BASIC']) if r.get('C21BASIC', '').strip().lstrip('-').isdigit() and int(r['C21BASIC']) > 0 else None for r in rows('HD2024.csv')}
 control = {r['UNITID']: {'1': 'Public', '2': 'Private nonprofit', '3': 'Private for-profit'}.get(r['CONTROL'].strip()) for r in rows('HD2024.csv')}
 
 
@@ -158,7 +160,7 @@ for u, ms in per_college.items():
         f = majors.get(s_, {}).get('fld')
         if f:
             mix[f] += c['b'] + c['m'] + c['d']
-    index[u] = [hd[u][0], hd[u][1], control.get(u), tot, tot0, dict(mix)]
+    index[u] = [hd[u][0], hd[u][1], control.get(u), tot, tot0, dict(mix), carnegie.get(u)]
 with open(os.path.join(os.path.dirname(OUT), 'college-index.json'), 'w') as f:
     json.dump(index, f, separators=(',', ':'), ensure_ascii=False)
 print('college index', len(index), 'bytes', os.path.getsize(os.path.join(os.path.dirname(OUT), 'college-index.json')))

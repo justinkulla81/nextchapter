@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import index from '@/lib/rankings/data/college-index.json'
 import { loadCollegeMajors } from '@/lib/rankings/college-majors'
-import { mixOf, peersOf, programsMarket, standingOf, type CollegeIndex } from '@/lib/higher-ed/programs-market'
+import { classificationGroup, mixOf, peersOf, programsMarket, standingOf, type CollegeIndex } from '@/lib/higher-ed/programs-market'
 import type { DegreeFieldFigure, DegreeFieldFigures } from '@/lib/rankings/degrees-specs'
 
 const IDX = index as unknown as CollegeIndex
@@ -29,10 +29,24 @@ describe('programs vs. market', () => {
     const p = peersOf('139755', IDX)
     expect(p.ids.length).toBeGreaterThanOrEqual(3)
     expect(p.ids).not.toContain('139755')
+    expect(p.scope).toMatch(/R1 research universities/)
     for (const id of p.ids) {
       expect(IDX[id][2]).toBe('Public')
+      expect(IDX[id][6]).toBe(15)
       expect(IDX[id][3]).toBeGreaterThanOrEqual(Math.floor(IDX['139755'][3] / 2))
     }
+  })
+
+  it('matches a private R1 with private R1s only, and says so when a classification has too few of its size', () => {
+    const cmu = peersOf('211440', IDX)
+    expect(cmu.ids.length).toBeGreaterThanOrEqual(3)
+    for (const id of cmu.ids) expect([IDX[id][2], IDX[id][6]]).toEqual(['Private nonprofit', 15])
+    expect(classificationGroup(19)?.key).toBe('masters')
+    expect(classificationGroup(null)).toBeNull()
+    const lone: CollegeIndex = { a: ['A', 'PA', 'Public', 1000, 900, {}, 15], b: ['B', 'PA', 'Public', 1100, 900, {}, 18], c: ['C', 'OH', 'Public', 900, 900, {}, 18] }
+    const p = peersOf('a', lone)
+    expect(p.ids).toEqual(['c', 'b'].sort((x, y) => Math.abs(lone[x][3] - 1000) - Math.abs(lone[y][3] - 1000) || x.localeCompare(y)))
+    expect(p.scope).toMatch(/not matched on classification/)
   })
 
   it('builds the three screens from federal files and the stored field rows', async () => {

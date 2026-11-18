@@ -245,7 +245,7 @@ export function PeersView({ d }: { d: ProgramsMarket }) {
             </tbody>
           </table>
         </div>
-        <p className="text-xs text-muted-foreground">Same control (public, private nonprofit or for-profit) and a half to double your degrees a year, in your state when it has at least 8 such colleges. &ldquo;Above-average fields&rdquo; counts only fields we measure.</p>
+        <p className="text-xs text-muted-foreground">Same control (public, private nonprofit or for-profit), the same federal (Carnegie 2021) classification group, and a half to double your degrees a year; in your state when it has at least 8 such colleges. &ldquo;Above-average fields&rdquo; counts only fields we measure.</p>
       </section>
       <Sources d={d} />
     </div>
