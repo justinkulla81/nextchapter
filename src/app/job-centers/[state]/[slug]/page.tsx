@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import { publishedContentForSource } from '@/lib/public-page/store'
 import { getOrgBrand } from '@/lib/branding/store'
-import { notFound, permanentRedirect } from 'next/navigation'
+import { notFound, permanentRedirect, redirect } from 'next/navigation'
 import { eventsForEmployerNames } from '@/lib/events/sec-events'
 import { noticesForOrgPage } from '@/lib/seo/org-notices'
 import { OrgPageView } from '@/components/seo/OrgPageView'
 import { canonical } from '@/lib/seo/canonical'
-import { areaHiring, claimSlugFor, getOrgPage, renamedOrgSlug } from '@/lib/seo/org-pages'
+import { areaHiring, claimSlugFor, getOrgPage, isOrgStateSlug, renamedOrgSlug } from '@/lib/seo/org-pages'
 import { stateName } from '@/lib/seo/states'
 import { orgPageTitle } from '@/lib/seo/org-page-rules'
 import { titleMeta } from '@/lib/seo/title'
@@ -39,9 +39,11 @@ export default async function Page({ params }: { params: Params }) {
   const { state, slug } = await params
   const p = await getOrgPage('JOB_CENTER', state, slug)
   if (!p) {
-    // The address was an organization's old slug (records merged since): send it to the current page.
+    // The address was an organization's old slug (records merged since), or a cut-off or mistyped link: send it to the nearest
+    // current page, else to the state's list (unknown slugs go to the nearest real page, not a 404).
     const current = await renamedOrgSlug('JOB_CENTER', state, slug)
     if (current) permanentRedirect(`/job-centers/${state}/${current}`)
+    if (isOrgStateSlug(state)) redirect(`/job-centers/${state}`)
     notFound()
   }
   const [hiring, claim, notices, brand, own] = await Promise.all([areaHiring(p.row.state, p.area), claimSlugFor('JOB_CENTER', p.row.id), noticesForOrgPage(p), getOrgBrand('JOB_CENTER', p.row.id), publishedContentForSource('JOB_CENTER', p.row.id)])

@@ -586,17 +586,36 @@ export async function acrossStateHelp(area: Area, state: string): Promise<Across
 
 
 /**
- * The current slug for a page address that no longer resolves because the organization's slug changed (two records were
- * merged, so the city or id suffix that told them apart is gone). Only a longer address that starts with exactly one
- * current slug and a hyphen counts; anything else stays a 404.
+ * The nearest current slug for a page address that does not resolve: the organization's slug changed (two records were merged, so the
+ * city or id suffix that told them apart is gone), or the link was cut off or mistyped. See nearestOrgSlug.
  */
 export async function renamedOrgSlug(kind: OrgPageKind, stateSlugParam: string, slug: string): Promise<string | null> {
   const code = ALL_STATE_CODES.find((c) => stateSlug(c) === stateSlugParam)
   if (!code) return null
   const sd = await getStateData(code)
-  const matches = rowsOf(sd, kind).filter((r) => slug.startsWith(`${r.slug}-`))
-  return matches.length === 1 ? matches[0].slug : null
+  return nearestOrgSlug(rowsOf(sd, kind).map((r) => r.slug), slug)
 }
+
+/**
+ * Pure part of renamedOrgSlug, kept here so it can be tested. In order: an address with stray hyphens (a link cut off at a hyphen,
+ * "ocala-marion-county-" in a 404 alert on 2026-11-18) that is a page once they are trimmed; a longer address that starts with exactly
+ * one current slug and a hyphen (records merged); an address whose first word starts exactly one slug in the state ("ocala-..." is the
+ * Ocala Metro Chamber and Economic Partnership). Anything else is null and the page sends the visitor to the state's list.
+ */
+export function nearestOrgSlug(slugs: string[], requested: string): string | null {
+  const clean = requested.toLowerCase().replace(/-{2,}/g, '-').replace(/^-+|-+$/g, '')
+  if (!clean) return null
+  if (clean !== requested && slugs.includes(clean)) return clean
+  const longer = slugs.filter((s) => clean.startsWith(`${s}-`))
+  if (longer.length === 1) return longer[0]
+  const first = clean.split('-')[0]
+  if (first.length < 4) return null
+  const byWord = slugs.filter((s) => s === first || s.startsWith(`${first}-`))
+  return byWord.length === 1 ? byWord[0] : null
+}
+
+/** Whether the state part of an organization page address is a real state (its list page exists). */
+export const isOrgStateSlug = (stateSlugParam: string) => ALL_STATE_CODES.some((c) => stateSlug(c) === stateSlugParam)
 
 export async function getStateOrgList(kind: OrgPageKind, stateSlugParam: string) {
   const code = ALL_STATE_CODES.find((c) => stateSlug(c) === stateSlugParam)

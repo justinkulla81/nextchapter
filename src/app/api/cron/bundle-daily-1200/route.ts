@@ -13,7 +13,7 @@ export const maxDuration = 800
 export const GET = cronBundle({
   // First, so the member email has the bundle's time to itself. It was last and was cut off on 2026-11-13 with 21 of 26 members
   // started and 8 sent (progress note, no failures): the jobs before it had used up the 800 s. Its own caps (150 s board load,
-  // 270 s hard stop) and board-warm's 200 s keep it under about 500 s, which leaves the rest of the bundle at least 300 s.
+  // 330 s hard stop) and board-warm's 200 s keep it under about 530 s, which leaves the rest of the bundle at least 270 s (they took at most ~220 s, week of 2026-11-18).
   // board-warm loads the board into this instance so job-search-daily does not read it cold (2026-11-11).
   'board-warm': board_warm,
   'job-search-daily': job_search_daily,
