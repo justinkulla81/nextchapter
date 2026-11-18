@@ -13,13 +13,14 @@ import { StatTile } from './StatTile'
 type Props = { ctx: WorkspaceContext; searchParams: object; base: string }
 
 const DAY = 86_400_000
+const clock = () => Date.now()
 const when = (d: Date | string | null | undefined) => (d ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(d)) : '')
 const SOURCE_LABEL: Record<string, string> = { UNIVERSITY: 'University or college', THIRD_PARTY: 'Third-party', LOCAL: 'Offered in your region' }
 
 export async function WfHome({ ctx, base }: Props) {
   const id = ctx.institution.id
   const orgBase = base.replace(/\/workforce-hub$/, '')
-  const now = Date.now()
+  const now = clock()
   const [notices, apps, trainingCount, trainings, referrals, feed] = await Promise.all([
     regionNotices(id).catch(() => []),
     prisma.fundingApplication.findMany({
