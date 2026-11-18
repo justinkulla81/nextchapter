@@ -1,5 +1,8 @@
 import { defineConfig } from 'vitest/config'
 import path from 'path'
+import { fileURLToPath } from 'url'
+
+const root = path.dirname(fileURLToPath(import.meta.url))
 
 // 'server-only' throws when imported outside a Next.js server-component
 // bundle — aliasing it to a no-op here is what lets tests import
@@ -10,10 +13,10 @@ export default defineConfig({
   test: {
     environment: 'node',
     alias: {
-      'server-only': path.resolve(__dirname, 'src/test/server-only-stub.ts'),
+      'server-only': path.resolve(root, 'src/test/server-only-stub.ts'),
       // Passthrough unstable_cache etc. — see src/test/next-cache-stub.ts.
-      'next/cache': path.resolve(__dirname, 'src/test/next-cache-stub.ts'),
-      '@': path.resolve(__dirname, 'src'),
+      'next/cache': path.resolve(root, 'src/test/next-cache-stub.ts'),
+      '@': path.resolve(root, 'src'),
     },
   },
 })
