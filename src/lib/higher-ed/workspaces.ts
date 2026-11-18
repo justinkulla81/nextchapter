@@ -569,8 +569,12 @@ const kindOn = (w: WorkspaceConfig, kind: OrgKind) => !w.orgKind || w.orgKind ==
 // The V1 workspaces these tokens open on this license tier, in rail order.
 // No tier = ignore tiers (tests, config checks). Feature-gated workspaces
 // (the Workforce board) need the college to have switched them on.
+// "Your partnership" is what a partner organization's own people see. Staff never get it in their rail (it was an empty page in every
+// demo's "Everything" view): it opens only for someone who holds the partner role and no staff role. "Preview as: Partner" still shows it.
+const partnerViewOnly = (w: WorkspaceConfig, tokens: ReadonlySet<AccessToken>) => w.key !== 'partnerview' || !tokens.has('INSTITUTION_ADMIN')
+
 export function workspacesFor(tokens: ReadonlySet<AccessToken>, tier?: InstitutionTier, features: WorkspaceFeatures = {}, kind: OrgKind = 'college'): WorkspaceKey[] {
-  return WORKSPACES.filter((w) => w.release === 'V1' && kindOn(w, kind) && featureOn(w, features) && holdsAny(tokens, w.requiredRoles) && (!tier || tierIncludes(tier, w))).map(
+  return WORKSPACES.filter((w) => w.release === 'V1' && kindOn(w, kind) && featureOn(w, features) && holdsAny(tokens, w.requiredRoles) && partnerViewOnly(w, tokens) && (!tier || tierIncludes(tier, w))).map(
     (w) => w.key,
   )
 }

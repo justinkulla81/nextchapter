@@ -22,3 +22,11 @@ describe('the partner workspace', () => {
     expect(DEMO_PERSONAS.some((p) => p.key === 'PARTNER')).toBe(true)
   })
 })
+
+describe('Your partnership is not in the staff rail', () => {
+  it('hides the partner view from a staff admin even when the Everything view holds the partner role', async () => {
+    const { workspacesFor, ALL_TOKENS } = await import('@/lib/higher-ed/workspaces')
+    expect(workspacesFor(ALL_TOKENS, undefined, {}, 'workforce')).not.toContain('partnerview')
+    expect(workspacesFor(new Set(['PARTNER'] as const), undefined, {}, 'workforce')).toEqual(['partnerview'])
+  })
+})
