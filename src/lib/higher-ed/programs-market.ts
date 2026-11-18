@@ -9,8 +9,21 @@
 import { collegeMajorsView, type CollegeMajorRow, type RawCollegeMajor } from '@/lib/rankings/college-majors'
 import type { DegreeFieldFigure, DegreeFieldFigures } from '@/lib/rankings/degrees-specs'
 
-/** [name, state, control, degrees, base-year degrees, {degree field: degrees}] (college-index.json). */
-export type CollegeIndexRow = [string, string, string | null, number, number, Record<string, number>]
+/** [name, state, control, degrees, base-year degrees, {degree field: degrees}, 2021 Carnegie basic classification] (college-index.json). */
+export type CollegeIndexRow = [string, string, string | null, number, number, Record<string, number>, (number | null)?]
+
+/** Peer groups from the 2021 Carnegie basic classification: R1 and R2 apart, the master's and baccalaureate sizes together. */
+export function classificationGroup(code: number | null | undefined): { key: string; label: string } | null {
+  if (code == null) return null
+  if (code === 15) return { key: 'r1', label: 'R1 research universities (very high research)' }
+  if (code === 16) return { key: 'r2', label: 'R2 research universities (high research)' }
+  if (code === 17) return { key: 'dpu', label: 'doctoral and professional universities' }
+  if (code >= 18 && code <= 20) return { key: 'masters', label: "master's colleges and universities" }
+  if (code >= 21 && code <= 23) return { key: 'bacc', label: 'baccalaureate colleges' }
+  if (code >= 24 && code <= 33) return { key: 'special', label: 'special-focus institutions' }
+  if (code >= 1 && code <= 14) return { key: 'assoc', label: 'associate and baccalaureate/associate colleges' }
+  return null
+}
 export type CollegeIndex = Record<string, CollegeIndexRow>
 
 export type FieldStanding = 'above' | 'below' | 'unmeasured' | 'many'
@@ -84,20 +97,32 @@ const median = (xs: number[]) => {
 const MIN_PEERS = 8
 const MAX_PEERS = 12
 
-/** Similar colleges: same control, a half to double the degrees a year, the same state first and the country if it has too few. */
+/**
+ * Similar colleges: same control, the same Carnegie classification group, and a half to double the degrees a year; the same
+ * state first when it has enough, the country otherwise. With fewer than 3 of the same classification anywhere, control and size
+ * alone, and the scope says so.
+ */
 export function peersOf(unitid: string, index: CollegeIndex): { scope: string; ids: string[] } {
   const me = index[unitid]
   if (!me) return { scope: '', ids: [] }
   const [, state, control, total] = me
+  const group = classificationGroup(me[6])
   const lo = Math.floor(total / 2)
   const hi = total * 2
   const pool = Object.entries(index).filter(([id, r]) => id !== unitid && r[2] === control && r[3] >= lo && r[3] <= hi)
-  const near = (rows: typeof pool) => rows.sort((a, b) => Math.abs(a[1][3] - total) - Math.abs(b[1][3] - total) || a[0].localeCompare(b[0])).slice(0, MAX_PEERS).map(([id]) => id)
-  const inState = pool.filter(([, r]) => r[1] === state)
+  const near = (rows: typeof pool) => [...rows].sort((a, b) => Math.abs(a[1][3] - total) - Math.abs(b[1][3] - total) || a[0].localeCompare(b[0])).slice(0, MAX_PEERS).map(([id]) => id)
   const range = `${lo.toLocaleString('en-US')} to ${hi.toLocaleString('en-US')} degrees a year`
   const kind = (control ?? 'Other').toLowerCase()
-  if (inState.length >= MIN_PEERS) return { scope: `${kind} colleges in ${state} awarding ${range}`, ids: near(inState) }
-  return { scope: `${kind} colleges nationwide awarding ${range}`, ids: near(pool) }
+  const classed = group ? pool.filter(([, r]) => classificationGroup(r[6])?.key === group.key) : []
+  if (group && classed.length >= 3) {
+    const inState = classed.filter(([, r]) => r[1] === state)
+    if (inState.length >= MIN_PEERS) return { scope: `${kind} ${group.label} in ${state} awarding ${range}`, ids: near(inState) }
+    return { scope: `${kind} ${group.label} nationwide awarding ${range}`, ids: near(classed) }
+  }
+  const inState = pool.filter(([, r]) => r[1] === state)
+  const note = group ? ` (fewer than 3 ${group.label} of this size, so not matched on classification)` : ''
+  if (inState.length >= MIN_PEERS) return { scope: `${kind} colleges in ${state} awarding ${range}${note}`, ids: near(inState) }
+  return { scope: `${kind} colleges nationwide awarding ${range}${note}`, ids: near(pool) }
 }
 
 export function programsMarket(input: {
