@@ -476,7 +476,7 @@ function sharedBoard(extra: Prisma.ExclusiveJobPostingWhereInput, kind: Snapshot
         await new Promise((resolve) => setTimeout(resolve, Math.random() * BOARD_REFRESH_JITTER_MS))
         snap = await fromSnapshot()
       }
-      // Another instance is already reading the replacement: keep serving the last snapshot (or the held copy) a little longer.
+      // Another instance is already reading the replacement: keep serving the last snapshot (up to a day old) or the held copy until it is stored.
       if (!snap && !(await claimSnapshotRefresh(kind))) snap = await fromSnapshot(REFRESH_GRACE_MS)
       if (snap) {
         logBoardMemory(`shared board (${name}) from snapshot`, { rows: snap.rows.length, ms: Date.now() - started })
