@@ -15,6 +15,7 @@ type Props = { ctx: WorkspaceContext; base: string }
 
 const n0 = (n: number) => n.toLocaleString('en-US')
 const few = (n: number | null) => (n == null ? `fewer than ${MIN_CELL}` : n0(n))
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 const pct0 = (x: number) => `${Math.round(x * 100)}%`
 const usdK = (n: number | null) => (n == null ? '–' : `$${Math.round(n / 1000)}k`)
 const signed = (x: number) => (Math.round(x) === 0 ? '0%' : `${x > 0 ? '+' : '−'}${Math.abs(Math.round(x))}%`)
@@ -70,7 +71,7 @@ export async function AcademicAtRisk({ ctx }: Props) {
       <section className="space-y-4">
         <p className="max-w-3xl text-lg font-medium">
           {a.atRisk > 0
-            ? `${few(a.atRisk >= MIN_CELL ? a.atRisk : null)} of your ${n0(a.sharing)} alumni who share where they work are at employers that filed layoffs in the last year or cut open roles by a fifth or more in four weeks.`
+            ? `${cap(few(a.atRisk >= MIN_CELL ? a.atRisk : null))} of your ${n0(a.sharing)} alumni who share where they work are at employers that filed layoffs in the last year or cut open roles by a fifth or more in four weeks.`
             : `None of your ${n0(a.sharing)} alumni who share where they work is at an employer with a layoff filing or falling hiring right now.`}
         </p>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -164,6 +165,8 @@ export async function AcademicEmployers({ ctx }: Props) {
   if (!near) return <Empty title="No region set for your college">Employers hiring nearby uses the counties on your college profile. Ask us at support@launchyournextchapter.com to set them, and this screen fills in.</Empty>
   if (near.employers.length === 0) return <Empty title={`No open professional roles found in ${near.region.label}`}>We found no open professional roles in your counties on our job board right now. It refreshes every six hours.</Empty>
   const top = near.employers[0]
+  // Pay is shown only when some employer here posts enough of it; an all-dash column says nothing.
+  const showPay = near.employers.some((e) => e.paid >= 5 && e.payMed != null)
   return (
     <div className="space-y-8">
       <section className="space-y-2">
@@ -178,7 +181,7 @@ export async function AcademicEmployers({ ctx }: Props) {
         <h2 id="emp-h" className="text-base font-semibold">Employers hiring near you</h2>
         <Table caption={`Employers hiring in ${near.region.label}`} min="60rem" head={<>
           <th scope="col" className={TH}>Employer</th><th scope="col" className={`${TH} text-right`}>Open roles</th><th scope="col" className={`${TH} text-right`}>In your fields</th><th scope="col" className={TH}>Most in</th>
-          <th scope="col" className={`${TH} text-right`}>Entry and early career</th><th scope="col" className={`${TH} text-right`}>Median posted pay</th><th scope="col" className={TH}>Hiring, four weeks</th><th scope="col" className={TH}>Layoffs, 12 months</th>
+          <th scope="col" className={`${TH} text-right`}>Entry and early career</th>{showPay && <th scope="col" className={`${TH} text-right`}>Median posted pay</th>}<th scope="col" className={TH}>Hiring, four weeks</th><th scope="col" className={TH}>Layoffs, 12 months</th>
         </>}>
           {near.employers.map((e) => (
             <tr key={`${e.companyId ?? e.name}`} className={ROW}>
@@ -187,14 +190,14 @@ export async function AcademicEmployers({ ctx }: Props) {
               <td className="p-3 text-right font-medium tabular-nums">{n0(e.inYourFields)}</td>
               <td className="p-3">{e.topField ?? <span className="text-muted-foreground">–</span>}</td>
               <td className="p-3 text-right tabular-nums">{n0(e.entry)}</td>
-              <td className="p-3 text-right tabular-nums">{e.paid >= 5 ? usdK(e.payMed) : '–'}</td>
+              {showPay && <td className="p-3 text-right tabular-nums">{e.paid >= 5 ? usdK(e.payMed) : '–'}</td>}
               <td className="p-3"><Badge tone={TREND[e.trend].tone}>{TREND[e.trend].label}</Badge>{e.change != null && <span className="ml-1 text-xs text-muted-foreground">{signed(e.change)}</span>}</td>
               <td className="p-3">{e.warn12mo > 0 ? <span>{n0(e.warn12mo)} filed{e.lastWarnAt ? `, latest ${day(e.lastWarnAt)}` : ''}</span> : <span className="text-muted-foreground">None</span>}</td>
             </tr>
           ))}
         </Table>
       </section>
-      <p className="max-w-3xl text-xs text-muted-foreground">Open professional roles on NextChapter&apos;s job board located in your counties, refreshed every six hours. In your fields: roles in occupations that typically need a four-year degree in a field your majors lead to. Pay: the median of posted ranges, shown from 5 postings with pay. Hiring: the employer&apos;s open roles across the US this week against four weeks ago. Layoffs: state WARN filings and announced layoffs.</p>
+      <p className="max-w-3xl text-xs text-muted-foreground">Open professional roles on NextChapter&apos;s job board located in your counties, refreshed every six hours. In your fields: roles in occupations that typically need a four-year degree in a field your majors lead to. {showPay ? 'Pay: the median of posted ranges, shown from 5 postings with pay. ' : 'Pay is left out: too few employers here post pay ranges. '}Hiring: the employer&apos;s open roles across the US this week against four weeks ago. Layoffs: state WARN filings and announced layoffs.</p>
     </div>
   )
 }
@@ -212,7 +215,7 @@ export async function AcademicRetraining({ ctx }: Props) {
     <div className="space-y-8">
       <section className="space-y-4">
         <p className="max-w-3xl text-lg font-medium">
-          {few(r.inNeed)} of your alumni are in roles with high AI exposure or at employers with layoffs or falling hiring.{unmet.length > 0 ? ` ${unmet.length} of the ${r.skills.length} skills that would move them have no program at your college yet.` : ''}
+          {cap(few(r.inNeed))} of your alumni are in roles with high AI exposure or at employers with layoffs or falling hiring.{unmet.length > 0 ? ` ${unmet.length} of the ${r.skills.length} skills that would move them have no program at your college yet.` : ''}
         </p>
         <div className="grid gap-3 sm:grid-cols-3">
           {r.groups.map((g) => (
@@ -224,12 +227,13 @@ export async function AcademicRetraining({ ctx }: Props) {
         <section aria-labelledby="re-h" className="space-y-3">
           <h2 id="re-h" className="text-base font-semibold">Skills to retrain for, and who teaches them</h2>
           <Table caption="Skills alumni need and the college's programs that teach them" min="40rem" head={<>
-            <th scope="col" className={TH}>Skill</th><th scope="col" className={`${TH} text-right`}>Alumni who would need it</th><th scope="col" className={TH}>Your programs that teach it</th>
+            <th scope="col" className={TH}>Skill</th><th scope="col" className={TH}>Asked for in</th><th scope="col" className={`${TH} text-right`}>Alumni in that work without it</th><th scope="col" className={TH}>Your programs that teach it</th>
           </>}>
             {r.skills.map((s) => (
               <tr key={s.slug} className={ROW}>
                 <th scope="row" className="p-3 font-normal">{s.skill}</th>
-                <td className="p-3 text-right tabular-nums">{few(s.alumniInNeed)}</td>
+                <td className="p-3">{s.fn}</td>
+                <td className="p-3 text-right tabular-nums">{few(s.without)}</td>
                 <td className="p-3">{s.offerings.length ? s.offerings.map((o, i) => <span key={o.href}>{i > 0 && ', '}<Link href={o.href} className="underline underline-offset-2 hover:text-primary">{o.name}</Link></span>) : <Badge tone="warm">No program yet</Badge>}</td>
               </tr>
             ))}

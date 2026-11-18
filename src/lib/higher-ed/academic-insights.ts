@@ -230,7 +230,8 @@ export interface RetrainingGroup {
   occupations: { title: string; n: number }[]
 }
 
-export interface RetrainingSkill { skill: string; slug: string; alumniInNeed: number | null; offerings: Offering[] }
+/** `without`: alumni in the kind of work that asks for the skill whose résumé does not show it (null under MIN_CELL). */
+export interface RetrainingSkill { skill: string; slug: string; fn: string; without: number | null; offerings: Offering[] }
 
 export interface RetrainingDemand {
   matched: number
@@ -259,14 +260,14 @@ export function retrainingDemand(roles: RoleExposure[], riskEmployers: Set<strin
   const inNeed = roles.filter((r) => (r.score != null && bandOf(r.score) === 'high') || (r.employerKey != null && riskEmployers.has(r.employerKey))).length
   // The skills to retrain for: the largest gaps across functions, rising and AI skills first, each once.
   const seen = new Set<string>()
-  const pool = gaps.flatMap((g) => g.gaps.map((s) => ({ ...s, need: Math.round((s.gap ?? 0) * g.alumni) })))
+  const pool = gaps.flatMap((g) => g.gaps.map((s) => ({ ...s, fn: g.fn, need: Math.round((1 - (s.alumni ?? 0)) * g.alumni) })))
     .filter((s) => (s.gap ?? 0) > 0)
     .sort((a, b) => Number(b.rising || b.ai) - Number(a.rising || a.ai) || b.need - a.need)
   const skills: RetrainingSkill[] = []
   for (const s of pool) {
     if (seen.has(s.slug)) continue
     seen.add(s.slug)
-    skills.push({ skill: s.skill, slug: s.slug, alumniInNeed: cell(s.need), offerings: offerings.filter((o) => teachesSkill(o, { name: s.skill, slug: s.slug })) })
+    skills.push({ skill: s.skill, slug: s.slug, fn: s.fn, without: cell(s.need), offerings: offerings.filter((o) => teachesSkill(o, { name: s.skill, slug: s.slug })) })
     if (skills.length >= limit) break
   }
   return { matched: matched.length, unmatched: roles.length - matched.length, groups, inNeed: cell(inNeed), skills }
