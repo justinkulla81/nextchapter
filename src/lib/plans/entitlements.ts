@@ -169,6 +169,7 @@ export const GATED_EXPORTS: Record<string, EntitlementFeature> = {
   updates: 'crmExchange',
   suppression: 'crmExchange',
   etpl: 'exports',
+  programs: 'exports',
   wioa: 'wioa',
 }
 

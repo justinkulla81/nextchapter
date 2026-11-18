@@ -9,10 +9,12 @@ import { memberExport } from '@/lib/higher-ed/data-requests'
 import { recordInstitutionAudit } from '@/lib/higher-ed/partner-audit'
 import { blockedExport, lockedReason } from '@/lib/plans/entitlements'
 import type { WorkspaceContext } from '@/lib/higher-ed/access'
+import { loadProgramsMarket } from '@/lib/higher-ed/programs-market-data'
 
 const UPDATES_COLUMNS = ['external_id', 'email', 'employer', 'title', 'start_date', 'in_transition', 'do_not_solicit', 'prospect_flag', 'engagement_tier', 'last_active', 'email_status'] as const
 const ETPL_COLUMNS = ['program', 'cip_code', 'credential_type', 'credential', 'hours', 'cost', 'modality', 'prerequisites', 'enrolled', 'completed', 'completion_rate', 'credential_rate', 'placement_rate_180d'] as const
 const WIOA_COLUMNS = ['first_name', 'last_name', 'email', 'program', 'cohort', 'funding', 'status', 'enrolled', 'completed', 'credential', 'placed', 'employer'] as const
+const PROGRAMS_COLUMNS = ['major', 'cip_series', 'degrees_2023_24', 'bachelors', 'masters', 'doctoral', 'degrees_2020_21', 'change_here_pct', 'share_of_us_graduates_pct', 'degree_field', 'field_standing', 'us_open_jobs', 'us_open_jobs_per_100_graduates', 'us_early_career_pay', 'us_mid_career_pay', 'us_late_career_pay', 'projected_growth_to_2035_pct', 'edition'] as const
 const SUPPRESSION_COLUMNS = ['external_id', 'email', 'first_name', 'last_name', 'since', 'grace_ends'] as const
 
 const day = (v: unknown) => (v instanceof Date ? v.toISOString().slice(0, 10) : v)
@@ -122,6 +124,27 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     captureServerEvent(ctx.userId, 'he_wioa_exported', { institutionId: ctx.institution.id, rows: rows.length })
     await recordInstitutionAudit(ctx, 'export.wioa', { type: 'export', detail: { rows: rows.length } })
     return new NextResponse(csv(WIOA_COLUMNS, rows), { headers: csvContentHeaders(`${slug}-wioa-participants-${stamp}.csv`) })
+  }
+
+  if (kind === 'programs') {
+    const ctx = await requireWorkspace(slug, 'academic')
+    const blocked = exportBlock(ctx, 'programs')
+    if (blocked) return blocked
+    const inst = await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { name: true, profile: true } })
+    const result = await loadProgramsMarket(inst)
+    if (!result.ok) return NextResponse.json({ error: 'No programs on record for this college.' }, { status: 404 })
+    const d = result.data
+    const r1 = (x: number | null | undefined) => (x == null ? null : Math.round(x * 10) / 10)
+    const rows = d.rows.map((r) => ({
+      major: r.major.title, cip_series: r.major.cip, degrees_2023_24: r.total, bachelors: r.bach, masters: r.master, doctoral: r.doctoral, degrees_2020_21: r.total0,
+      change_here_pct: r1(r.hereChange), share_of_us_graduates_pct: r1(r.shareOfUs * 100), degree_field: r.major.field, field_standing: r.standing,
+      us_open_jobs: r.field && r.field.covered !== false ? r.field.open : null, us_open_jobs_per_100_graduates: r.field?.perHundred ?? null,
+      us_early_career_pay: r.field?.stages.early.pay ?? null, us_mid_career_pay: r.field?.stages.mid.pay ?? null, us_late_career_pay: r.field?.stages.late.pay ?? null,
+      projected_growth_to_2035_pct: r1(r.field?.growth), edition: d.edition,
+    }))
+    captureServerEvent(ctx.userId, 'programs_market_export_downloaded', { institutionId: ctx.institution.id, rows: rows.length, edition: d.edition })
+    await recordInstitutionAudit(ctx, 'export.programs', { type: 'export', detail: { rows: rows.length } })
+    return new NextResponse(csv(PROGRAMS_COLUMNS, rows), { headers: csvContentHeaders(`${slug}-programs-vs-market-${stamp}.csv`) })
   }
 
   return NextResponse.json({ error: 'Unknown export' }, { status: 404 })

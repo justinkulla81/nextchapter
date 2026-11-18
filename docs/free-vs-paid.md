@@ -43,3 +43,11 @@ A workforce organization's training catalog: universities and colleges, third-pa
 - **Partner Hub** (people at a confirmed partner, the existing `partnerview` workspace, now labelled Partner Hub on workforce portals): Your partnership, Shared with you, and the same **Feed**.
 - **Feed** (`src/lib/workforce/feed.ts`): layoffs (the region's, and the largest filed nationally in 21 days), funding (federal notices closing within 45 days, the organization's own deadlines), rankings (where the main city places), data (regional unemployment). Cached 30 minutes per organization; every read narrow and bounded.
 - Table `FundingPartnerCommitment` (`prisma/manual/funding-partner-commitment.sql`, applied 2026-11-18).
+
+## Academic Affairs (2026-11-18)
+A college's provost and academic affairs office (role `ACADEMIC_AFFAIRS`, or a viewer seat on `academic`): workspace key `academic`, **Institution tier only** (`minTier: 'INSTITUTION'`; admins on lower tiers see it in "what a higher tier adds"). Three tabs:
+- **Programs vs. market:** every major the college awards (up to 40, IPEDS 2023-24 against 2020-21), its share of US graduates, the field it leads to and whether that field has more open jobs per new graduate than average, US pay early, mid and late in a career, and the month-on-month change in the field's open jobs. One primary action: download the table as CSV (`/i/<slug>/export/programs`, plan feature `exports`).
+- **Your state:** the college's degrees by field against every college in its state, and the state's open jobs, jobs per 100 graduates and median pay by field.
+- **Peers:** same control, a half to double the degrees a year, in-state first; ranked by the share of graduates in above-average fields.
+- Fields our job data barely covers (nursing, education, health professions, social work) read "Not measured", never "below average".
+- Data: static federal files (`src/lib/rankings/data/college-majors/`, `college-index.json`) and the monthly `degree-fields` row (with `states`, and a `degree-fields:<yyyy-mm>` copy per month). No scan on a page view. Public data only, no member data.

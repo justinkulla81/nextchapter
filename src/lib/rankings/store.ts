@@ -26,13 +26,24 @@ export async function recordRankingMethod(group: BuildGroup, version: string): P
 }
 
 /** Each degree field's open jobs, pay by career stage and graduates, written by the monthly profile build for the majors pages. */
-export const writeDegreeFields = (f: DegreeFieldFigures) => writeBoardFigure('degree-fields', f)
+export async function writeDegreeFields(f: DegreeFieldFigures): Promise<void> {
+  await writeBoardFigure('degree-fields', f)
+  // One copy per month, so a month can be compared with the one before (Academic Affairs' change column).
+  await writeBoardFigure(`degree-fields:${f.edition}`, f)
+}
 const loadDegreeFields = memoTtl(60 * 60_000, () => 'all', async () => {
   const f = await readBoardFigure<DegreeFieldFigures>('degree-fields')
   return f ? withCoverage(f) : null
 })
 /** The shared hourly copy; null before the first build or when the read fails. */
 export const getDegreeFields = (): Promise<DegreeFieldFigures | null> => loadDegreeFields().catch(() => null)
+
+const loadDegreeFieldsOf = memoTtl(6 * 60 * 60_000, (edition: string) => edition, async (edition: string) => {
+  const f = await readBoardFigure<DegreeFieldFigures>(`degree-fields:${edition}`)
+  return f ? withCoverage(f) : null
+})
+/** One month's degree-field figures (kept from 2026-11 on), or null. */
+export const getDegreeFieldsOf = (edition: string): Promise<DegreeFieldFigures | null> => (isEdition(edition) ? loadDegreeFieldsOf(edition).catch(() => null) : Promise.resolve(null))
 
 export const isEdition = (s: string) => /^\d{4}-(0[1-9]|1[0-2])$/.test(s)
 

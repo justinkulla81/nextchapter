@@ -14,6 +14,7 @@ const CAPABILITIES: Record<InstitutionUserRole, InstitutionCapability[]> = {
   COACH: ['view'],
   FACULTY: ['view'],
   EXEC_ED: ['view'],
+  ACADEMIC_AFFAIRS: ['view'],
   WORKFORCE_PARTNER: ['view'],
   VIEWER: ['view'],
 }
@@ -38,6 +39,7 @@ export const ROLE_LABEL: Record<InstitutionUserRole, string> = {
   COACH: 'Coach',
   FACULTY: 'Faculty',
   EXEC_ED: 'Executive education',
+  ACADEMIC_AFFAIRS: 'Academic affairs',
   WORKFORCE_PARTNER: 'Workforce board partner',
   VIEWER: 'Viewer',
 }
