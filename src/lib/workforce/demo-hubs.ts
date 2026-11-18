@@ -30,6 +30,11 @@ const PARTNERS = [
   { name: 'Community foundation', kind: 'FUNDER', status: 'CONFIRMED', commitments: ['MATCH'] },
 ] as const
 
+const COHORTS = [
+  { name: 'Operations managers', purpose: 'People we can place in logistics and manufacturing roles this quarter.', industries: [], functions: ['Operations'], levels: ['Manager'], minWeeksOut: null, post: 'A hiring event for operations managers is Dec 9 at the job center. Bring a résumé.' },
+  { name: 'Out of work 26 weeks or more', purpose: 'People who need the most support, soonest.', industries: [], functions: [], levels: [], minWeeksOut: 26, post: 'Free coaching sessions are open this month. Reply to your career seat email to book one.' },
+] as const
+
 const GROUPS = [
   { name: 'Workforce coordination council', purpose: 'Meets monthly to line up funding, referrals and what we say to employers.', members: ['Regional economic development partner', 'Regional workforce board', 'American Job Center', 'Metro chamber of commerce', 'Community nonprofit'], posts: ['Next meeting Dec 9. The Reserve Fund application is due Dec 2: please confirm your match by Friday.', 'Thank you all for the layoff response last month. Three more notices came in this week; the job center will lead outreach.'] },
   { name: 'Funders table', purpose: 'Foundations and chambers that bring match to our applications.', members: ['Community foundation', 'Metro chamber of commerce'], posts: ['Draft budget for the Talent Recruitment Grant is in the shared folder.'] },
@@ -62,6 +67,13 @@ export async function seedHubSamples(institutionId: string, appIds: string[]) {
   if (fresh.length) {
     await prisma.ecosystemPartner.createMany({
       data: fresh.map((p) => ({ institutionId, name: p.name, kind: p.kind, source: 'MANUAL', status: p.status, commitments: [...p.commitments], invitedAt: p.status === 'UNINVITED' ? null : new Date(now - 10 * 86_400_000), decidedAt: p.status === 'CONFIRMED' ? new Date(now - 5 * 86_400_000) : null, createdBy: 'demo', isSampleData: true })),
+    })
+  }
+  // Two talent cohorts (rules, not lists) with an update each, so the Cohorts tab has something to read.
+  await prisma.talentCohort.deleteMany({ where: { institutionId, createdBy: 'demo' } })
+  for (const c of COHORTS) {
+    await prisma.talentCohort.create({
+      data: { institutionId, name: c.name, purpose: c.purpose, industries: [...c.industries], functions: [...c.functions], levels: [...c.levels], minWeeksOut: c.minWeeksOut, createdBy: 'demo', posts: { create: [{ body: c.post, authorLabel: 'Your organization', createdBy: 'demo', createdAt: new Date(now - 2 * 86_400_000) }] } },
     })
   }
   // Two groups of partners with updates, so the Groups tab (and a partner's Groups tab) has something to read.

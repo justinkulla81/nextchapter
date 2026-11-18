@@ -52,6 +52,8 @@ import { aiPaySentence, aiShareSentence, aiTrainingWhy, learnWhyFirst } from '@/
 import { AiExposureShown } from '@/components/dashboard/learning/AiExposureShown'
 import { LearnHome } from '@/components/dashboard/LearnHome'
 import { AssignedTraining } from '@/components/dashboard/learning/AssignedTraining'
+import { CohortUpdates } from '@/components/dashboard/learning/CohortUpdates'
+import { cohortUpdatesFor } from '@/lib/workforce/cohort-updates'
 import { assignedTrainingFor } from '@/lib/workforce/training'
 import { NeedsYou } from '@/components/candidate/NeedsYou'
 import { PageHeader } from '@/components/candidate/PageHeader'
@@ -179,6 +181,8 @@ export default async function LearningPage({ searchParams }: { searchParams: Pro
       : []
     // Training the person's workforce group assigned to people like them (Education Hub). Two narrow reads, only when they belong to one.
     const assigned = await assignedTrainingFor(profile.id, { industry: profile.industryBucket, function: profile.primaryFunction, level: profile.highestLevelReached, years: profile.yearsExperience }).catch(() => [])
+    const cohortNews = await cohortUpdatesFor(profile.id, { industry: profile.industryBucket, function: profile.primaryFunction, level: profile.highestLevelReached, years: profile.yearsExperience, journey: profile.journey, journeyStage: profile.journeyStage, journeyChangedAt: profile.journeyChangedAt }).catch(() => [])
+    if (cohortNews.length > 0) captureServerEvent(profile.id, 'cohort_updates_shown', { count: cohortNews.length })
     if (assigned.length > 0) captureServerEvent(profile.id, 'assigned_training_shown', { count: assigned.length, sources: [...new Set(assigned.map((a) => a.source))] })
     captureServerEvent(profile.id, 'learn_home_viewed', {
       planSize: planEntries.length,
@@ -208,6 +212,7 @@ export default async function LearningPage({ searchParams }: { searchParams: Pro
           aiExposureBand={exposure?.band ?? null}
           after={
             <>
+              <CohortUpdates items={cohortNews} />
               <AssignedTraining items={assigned} />
               <Suspense fallback={null}>
                 <TuneStripSection profile={profile} title="Closer to hired: tune your path" />

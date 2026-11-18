@@ -24,8 +24,8 @@ describe('institutionEntitlements', () => {
     for (const tier of ['CAREER', 'ADVANCEMENT', 'INSTITUTION']) {
       const e = institutionEntitlements({ plan: 'PAID', tier, enabledFeatures: { wioa: false } })
       expect(e.memberCap).toBeNull()
-      expect([e.visibleMembers, e.adminLimit, e.visibleGrants, e.visibleSkillRows, e.partnerGroupLimit]).toEqual([null, null, null, null, null])
-      expect(Object.entries(e).filter(([k]) => !['memberCap', 'visibleMembers', 'adminLimit', 'visibleGrants', 'visibleSkillRows', 'partnerGroupLimit'].includes(k)).every(([, v]) => v === true)).toBe(true)
+      expect([e.visibleMembers, e.adminLimit, e.visibleGrants, e.visibleSkillRows, e.partnerGroupLimit, e.cohortLimit]).toEqual([null, null, null, null, null, null])
+      expect(Object.entries(e).filter(([k]) => !['memberCap', 'visibleMembers', 'adminLimit', 'visibleGrants', 'visibleSkillRows', 'partnerGroupLimit', 'cohortLimit'].includes(k)).every(([, v]) => v === true)).toBe(true)
     }
   })
 

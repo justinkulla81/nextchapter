@@ -70,6 +70,7 @@ import { RECRUITING_DATE_LABELS, EARLY_CAREER_LABELS, splitUpcoming, deadlinePas
 import { StaffInviteForm } from './StaffInviteForm'
 import { LockedFeature } from '@/components/plans/LockedFeature'
 import { EducationAssign, EducationCatalog, EducationGaps } from './screens-education'
+import { HubCohorts } from './screens-cohorts'
 import { PartnerFeed, PartnerGroups, WfFeed, WfFunding, WfGroups, WfPartners } from './screens-wfhub'
 import { institutionEntitlements, trialForLock } from '@/lib/plans/entitlements'
 import { AlumniEngagement, AlumniLayoffs, AlumniOutreach, CareerCheckIns, WaitingForYou } from './screens-outreach'
@@ -1807,6 +1808,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'hub:companies': HubCompanies,
   'hub:layoffs': HubLayoffs,
   'hub:participants': HubPeople,
+  'hub:cohorts': HubCohorts,
   'hub:local': HubLocal,
   'hub:pipeline': HubPipeline,
   'hub:jobs': HubJobs,
