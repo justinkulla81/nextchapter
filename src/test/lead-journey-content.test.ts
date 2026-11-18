@@ -91,4 +91,35 @@ describe('lifecycle email journey question', () => {
     expect(c.ctaLabel).toBe('Create my free profile')
     expect(leadEmailText(c, 'https://x.test/p')).toContain('Read the October 2026 White Collar Employment Report: https://x.test/r')
   })
+
+  describe('reminders lead with jobs too', () => {
+    const jobs = [1, 2, 3].map((i) => ({ title: `Job ${i}`, company: `Co ${i}`, place: null, url: `https://x.test/j${i}` }))
+
+    it('keeps the application follow-up advice and swaps its benefits list for three more jobs', () => {
+      const c = leadEmailContent('applied_job', 'nudge1', { firstName: null, detail: 'PM at Acme', jobs })
+      expect(c.headline).toBe('Time to follow up?')
+      expect(c.paragraphs.at(-1)).toBe('While you wait, three more like it are open now:')
+      expect(c.jobs).toHaveLength(3)
+      expect(c.benefits).toEqual([])
+    })
+
+    it('shows saved-job and job-alert reminders three new jobs instead of the question or the generic pitch', () => {
+      const saved = leadEmailContent('saved_job', 'nudge1', { firstName: null, detail: 'PM at Acme', choices, jobs })
+      expect(saved.headline).toBe('Three more like the one you saved')
+      expect(saved.choices).toBeUndefined()
+      const alert = leadEmailContent('job_alert', 'nudge2', { firstName: null, detail: 'product manager in Denver', jobs })
+      expect(alert.subject).toBe('Three new jobs: product manager in Denver')
+      expect(alert.afterJobs).toMatch(/This is our last note\.$/)
+      expect(alert.footerNote).toBe('This is the last reminder.')
+    })
+
+    it('keeps the first-week plan and the last note for someone who picked a situation', () => {
+      expect(leadEmailContent('saved_job', 'nudge1', { firstName: null, detail: null, journey: 'laid-off', jobs }).headline).toBe('Your first-week plan')
+      expect(leadEmailContent('job_alert', 'nudge2', { firstName: null, detail: null, journey: 'laid-off', jobs }).headline).toBe('Before an employer does')
+    })
+
+    it('falls back to the old reminder without three jobs', () => {
+      expect(leadEmailContent('saved_job', 'nudge2', { firstName: null, detail: 'PM at Acme' }).headline).toBe('How well do you fit?')
+    })
+  })
 })
