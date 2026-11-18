@@ -233,6 +233,14 @@ downloadable `.ics` (`src/lib/conferences/ics.ts`), a draft they copy, a
 - The privacy policy (`src/app/privacy-policy/page.tsx`) states this promise.
   Keep it true, and update the policy in the same change if any of it changes.
 
+## Demos open without a login
+
+Owner rule (2026-11-18): a demo the owner will show or share must open from a public link with no login, or come with
+credentials the owner can share. Never hand the owner a demo that needs their own account, a token they must fetch, or a
+step only an admin can do. The curated demo colleges (`DEMO_TENANTS`, fictional people, read-only) open at
+`https://highered.launchyournextchapter.com/<slug>/guest` (`src/app/i/[slug]/guest/route.ts`); a workforce demo a prospect
+builds opens from its own guest link, which `/demo` shows them. When you give the owner a demo, give that link.
+
 ## Testing with a résumé
 
 Whenever the owner has to test a flow that asks for a résumé, always give them a
