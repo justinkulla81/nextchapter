@@ -3,6 +3,7 @@
 // is never the protection; this is. Resolution (./resolve.ts) reruns on
 // every request, memoized only within one request by React cache().
 
+import { openDemo } from '@/lib/higher-ed/open-demo'
 import 'server-only'
 import { cache } from 'react'
 import { cookies } from 'next/headers'
@@ -60,7 +61,8 @@ export async function requireWorkspace(
   opts: { write?: boolean } = {},
 ): Promise<WorkspaceContext> {
   const access = await getInstitutionAccess(slug)
-  if (access === 'signed-out') redirect(`/i/login?next=${encodeURIComponent(`/i/${slug}/${workspace}`)}`)
+  // A demo that opens without a login takes a signed-out visitor through its public entry (owner rule 2026-11-18).
+  if (access === 'signed-out') redirect((await openDemo(slug)) ? `/i/${slug}/guest` : `/i/login?next=${encodeURIComponent(`/i/${slug}/${workspace}`)}`)
   if (!access) notFound()
   if (!access.workspaces.includes(workspace)) redirect(`${orgBasePath(slug, access.institution.orgType)}?denied=${workspace}`)
 

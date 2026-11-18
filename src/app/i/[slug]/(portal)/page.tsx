@@ -1,4 +1,5 @@
 import { notFound, redirect } from 'next/navigation'
+import { openDemo } from '@/lib/higher-ed/open-demo'
 import { getInstitutionAccess } from '@/lib/higher-ed/access'
 import { getWorkspace, lockedWorkspacesFor, orgBasePath, orgKindOf, TIER_LABELS, workspaceFeaturesOf } from '@/lib/higher-ed/workspaces'
 import { prisma } from '@/lib/prisma'
@@ -16,7 +17,8 @@ export default async function InstitutionRootPage({
   const { slug } = await params
   const { denied } = await searchParams
   const access = await getInstitutionAccess(slug)
-  if (access === 'signed-out') redirect(`/i/login?next=${encodeURIComponent(`/i/${slug}`)}`)
+  // A demo that opens without a login takes a signed-out visitor through its public entry (owner rule 2026-11-18).
+  if (access === 'signed-out') redirect((await openDemo(slug)) ? `/i/${slug}/guest` : `/i/login?next=${encodeURIComponent(`/i/${slug}`)}`)
   if (!access) notFound()
 
   const first = access.workspaces[0]
