@@ -15,8 +15,6 @@ export interface LeadEmailContent {
   jobs?: LeadEmailJob[]
   /** The one line between the jobs and the profile button. */
   afterJobs?: string
-  /** The small label in the email's header, in the reader's words. Default: "Your next step". */
-  label?: string
   /** The newsletter welcome's lead: the latest report's headline finding and a link to the report. */
   feature?: { kicker: string; title: string; body: string; linkLabel: string; url: string }
   /** The line above the unsubscribe link: says what else we will and will not send. */
@@ -71,7 +69,6 @@ export function leadEmailContent(variant: LeadVariant, step: LeadStep, c: LeadEm
     const did = variant === 'applied_job' ? 'went to apply for' : 'saved'
     return {
       ...base,
-      label: 'Jobs like this one',
       headline: 'Three more jobs like this one',
       paragraphs: [
         hello(c),
@@ -88,7 +85,6 @@ export function leadEmailContent(variant: LeadVariant, step: LeadStep, c: LeadEm
   if (variant === 'job_alert' && step === 'welcome' && (c.jobs?.length ?? 0) >= 3) {
     return {
       ...base,
-      label: 'Job alert',
       headline: 'Three jobs open now',
       paragraphs: [
         hello(c),
@@ -106,7 +102,6 @@ export function leadEmailContent(variant: LeadVariant, step: LeadStep, c: LeadEm
   if (variant === 'newsletter' && step === 'welcome' && c.report) {
     return {
       ...base,
-      label: 'Market read',
       paragraphs: [hello(c), 'Thanks for subscribing. Each week we send one read on the white-collar job market: what is changing, who is hiring, who is cutting. Here is where it stands now.'],
       feature: { kicker: `From our ${c.report.month} report`, title: c.report.title, body: c.report.dek, linkLabel: `Read the ${c.report.month} White Collar Employment Report`, url: c.report.url },
       benefits: [],
