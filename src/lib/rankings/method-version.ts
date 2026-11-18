@@ -21,8 +21,9 @@ export const RANKING_METHOD: Record<BuildGroup, string> = {
   skills: 'v0',
   workforce: 'v0',
   college: 'v0',
-  // 2026-11-17: degree lists add majors (graduates, colleges, change), open jobs per graduate and career stage.
-  profile: '2026-11-17',
+  // Kept at v0: the hourly refresh cannot finish this group inside its time limit (every run from 2026-11-17 23:50 timed out,
+  // re-reading ~60k posting excerpts each time). It builds in the monthly run (?run=c) or by hand with ?group=profile.
+  profile: 'v0',
   support: 'v0',
 }
 
