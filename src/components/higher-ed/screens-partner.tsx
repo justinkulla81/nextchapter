@@ -18,7 +18,7 @@ async function myPartner(ctx: WorkspaceContext) {
   return prisma.ecosystemPartner.findFirst({ where: { id, institutionId: ctx.institution.id }, select: { id: true, name: true, kind: true, status: true, commitments: true, decidedAt: true } })
 }
 
-const Empty = () => <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">We could not find your partner page. Ask the person who gave you access.</p>
+const Empty = () => <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">This is the page the people at a partner organization see when they sign in: what they offer, what you share with them, referrals and the feed. It fills in once a partner is added in the Partner Hub. If you are a partner and see this, ask the person who gave you access.</p>
 
 export async function PartnerOverview({ ctx }: Props) {
   const partner = await myPartner(ctx)

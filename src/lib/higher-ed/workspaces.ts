@@ -323,26 +323,6 @@ export const WORKSPACES: WorkspaceConfig[] = [
     ],
   },
   {
-    // A person at a confirmed ecosystem partner (a college, training provider, employer or community group the organization
-    // confirmed in Partners > Ecosystem). Its own key, not 'partner': /i/<slug>/partner/<token> is the public claim page. They see their own partner's page and what the organization shared with it, nothing else.
-    key: 'partnerview',
-    label: 'Partner',
-    // What someone at a partner organization sees (owner, 2026-11-18: renamed so "Partner Hub" names the staff section).
-    workforceLabel: 'Your partnership',
-    icon: 'Landmark',
-    release: 'V1',
-    requiredRoles: ['PARTNER'],
-    homePath: 'partnerview',
-    orgKind: 'workforce',
-    tabs: [
-      { key: 'overview', label: 'Your partnership', comingIn: null },
-      { key: 'shared', label: 'Shared with you', comingIn: null },
-      { key: 'groups', label: 'Groups', comingIn: null },
-      { key: 'referrals', label: 'Referrals', comingIn: null },
-      { key: 'feed', label: 'Feed', comingIn: null },
-    ],
-  },
-  {
     // A workforce customer's own work: the companies it serves, the people
     // it's helping, layoffs in its region, and how many it kept local.
     key: 'hub',
@@ -511,6 +491,26 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'home', label: 'WIOA participants', comingIn: null },
       { key: 'rapid', label: 'Rapid response', comingIn: null },
       { key: 'etpl', label: 'Eligible-provider listing', comingIn: null },
+    ],
+  },
+  {
+    // A person at a confirmed ecosystem partner (a college, training provider, employer or community group the organization
+    // confirmed in Partners > Ecosystem). Its own key, not 'partner': /i/<slug>/partner/<token> is the public claim page. They see their own partner's page and what the organization shared with it, nothing else.
+    key: 'partnerview',
+    label: 'Partner',
+    // What someone at a partner organization sees (owner, 2026-11-18: renamed so "Partner Hub" names the staff section).
+    workforceLabel: 'Your partnership',
+    icon: 'Landmark',
+    release: 'V1',
+    requiredRoles: ['PARTNER'],
+    homePath: 'partnerview',
+    orgKind: 'workforce',
+    tabs: [
+      { key: 'overview', label: 'Your partnership', comingIn: null },
+      { key: 'shared', label: 'Shared with you', comingIn: null },
+      { key: 'groups', label: 'Groups', comingIn: null },
+      { key: 'referrals', label: 'Referrals', comingIn: null },
+      { key: 'feed', label: 'Feed', comingIn: null },
     ],
   },
 ]
