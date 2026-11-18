@@ -13085,6 +13085,7 @@ model Institution {
   fundingCommitments FundingPartnerCommitment[]
   partnerGroups      PartnerGroup[]
   talentCohorts      TalentCohort[]
+  partnerReferrals   PartnerReferral[]
   alumniCount       Int?
   includedSeats     Int                @default(0)
   licenseStartAt    DateTime?
@@ -15969,6 +15970,7 @@ model EcosystemPartner {
   contacts         EcosystemPartnerContact[]
   partnerViews     PartnerView[]
   groupMemberships PartnerGroupMember[]
+  referrals        PartnerReferral[]
 
   @@unique([institutionId, source, refId])
   @@index([institutionId, status])
@@ -19059,4 +19061,31 @@ model TalentCohortPost {
   createdAt   DateTime     @default(now())
 
   @@index([cohortId, createdAt])
+}
+
+// Workforce Hub: a referral from the organization to one of its partners, about a need and not about a named person: "can you take about
+// 40 operations managers into the Lean Six Sigma cohort by Jan 15?". Optionally names the cohort and the training (snapshotted as text);
+// people is rounded and only set for groups of five or more. status: SENT | ACCEPTED | DECLINED | DONE | WITHDRAWN.
+model PartnerReferral {
+  id            String           @id @default(cuid())
+  institutionId String
+  institution   Institution      @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  partnerId     String
+  partner       EcosystemPartner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  title         String
+  message       String?          @db.Text
+  cohortName    String?
+  offeringTitle String?
+  people        Int?
+  dueDate       DateTime?
+  status        String           @default("SENT")
+  answerNote    String?          @db.Text
+  answeredAt    DateTime?
+  answeredBy    String?
+  createdBy     String
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([institutionId, createdAt])
+  @@index([partnerId])
 }

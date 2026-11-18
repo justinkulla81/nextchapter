@@ -69,6 +69,20 @@ export async function seedHubSamples(institutionId: string, appIds: string[]) {
       data: fresh.map((p) => ({ institutionId, name: p.name, kind: p.kind, source: 'MANUAL', status: p.status, commitments: [...p.commitments], invitedAt: p.status === 'UNINVITED' ? null : new Date(now - 10 * 86_400_000), decidedAt: p.status === 'CONFIRMED' ? new Date(now - 5 * 86_400_000) : null, createdBy: 'demo', isSampleData: true })),
     })
   }
+  // Three referrals to partners (about needs, not people), in each state, so Referrals has something to read.
+  await prisma.partnerReferral.deleteMany({ where: { institutionId, createdBy: 'demo' } })
+  const pid = new Map((await prisma.ecosystemPartner.findMany({ where: { institutionId }, take: 300, select: { id: true, name: true } })).map((p) => [p.name, p.id]))
+  const day = 86_400_000
+  const refs = [
+    { partner: 'American Job Center', title: 'Host a hiring event for operations managers', cohortName: 'Operations managers', offeringTitle: null, people: 40, due: 21, status: 'ACCEPTED', answerNote: 'We can host it Dec 9 at the center, 10 to 2.', answeredDays: 2, agoDays: 6 },
+    { partner: 'Regional workforce board', title: 'Fund seats in the Lean Six Sigma cohort for people out 26 weeks or more', cohortName: 'Out of work 26 weeks or more', offeringTitle: 'Lean Six Sigma for operations leaders', people: 20, due: 30, status: 'SENT', answerNote: null, answeredDays: 0, agoDays: 1 },
+    { partner: 'Community nonprofit', title: 'Career coaching for long-term unemployed professionals', cohortName: null, offeringTitle: null, people: null, due: null, status: 'DECLINED', answerNote: 'Our coaches are booked until spring. We can take a referral in March.', answeredDays: 4, agoDays: 8 },
+  ]
+  for (const r of refs) {
+    const partnerId = pid.get(r.partner)
+    if (!partnerId) continue
+    await prisma.partnerReferral.create({ data: { institutionId, partnerId, title: r.title, cohortName: r.cohortName, offeringTitle: r.offeringTitle, people: r.people, dueDate: r.due ? new Date(now + r.due * day) : null, status: r.status, answerNote: r.answerNote, answeredAt: r.answeredDays ? new Date(now - r.answeredDays * day) : null, createdBy: 'demo', createdAt: new Date(now - r.agoDays * day) } })
+  }
   // Two talent cohorts (rules, not lists) with an update each, so the Cohorts tab has something to read.
   await prisma.talentCohort.deleteMany({ where: { institutionId, createdBy: 'demo' } })
   for (const c of COHORTS) {

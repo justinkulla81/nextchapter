@@ -72,6 +72,7 @@ import { StaffInviteForm } from './StaffInviteForm'
 import { LockedFeature } from '@/components/plans/LockedFeature'
 import { EducationAssign, EducationCatalog, EducationGaps } from './screens-education'
 import { HubCohorts } from './screens-cohorts'
+import { PartnerReferrals, WfReferrals } from './screens-referrals'
 import { PartnerFeed, PartnerGroups, WfFeed, WfFunding, WfGroups, WfPartners } from './screens-wfhub'
 import { institutionEntitlements, trialForLock } from '@/lib/plans/entitlements'
 import { AlumniEngagement, AlumniLayoffs, AlumniOutreach, CareerCheckIns, WaitingForYou } from './screens-outreach'
@@ -1849,6 +1850,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'wfhub:funding': WfFunding,
   'partnerhub:partners': WfPartners,
   'partnerhub:groups': WfGroups,
+  'partnerhub:referrals': WfReferrals,
   'partnerhub:feed': WfFeed,
   'partnerview:groups': PartnerGroups,
   'partnerview:feed': PartnerFeed,
