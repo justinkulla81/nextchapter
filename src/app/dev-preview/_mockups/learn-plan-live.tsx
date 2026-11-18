@@ -18,16 +18,19 @@ const item = (title: string, provider: string, free: boolean, rationale: string 
   alreadyHeld: false,
 })
 
-const featured = item('Learn supply chain analytics', 'coursera', true, '18 of the 40 jobs that fit you ask for it, and you have not shown it yet. A short course closes that.')
+// Sample data uses real Louisville programs (University of Louisville online graduate certificates), so a regional demo shows local
+// training first. Checked Nov 18, 2026 on catalog.louisville.edu.
+const UOFL = 'University of Louisville'
+const featured = item('Engineering logistics graduate certificate', UOFL, false, '18 of the 40 jobs that fit you ask for supply chain and logistics skills, and you have not shown them yet.')
 const more = [
+  item('Six Sigma graduate certificate', UOFL, false, '9 jobs that fit you ask for it.'),
   item('Python for operations', 'coursera', true, '11 jobs that fit you ask for it.'),
-  item('Lean Six Sigma green belt', 'edx', false, '9 jobs that fit you ask for it.'),
   item('Presenting to a board', 'coursera', true, '7 jobs that fit you ask for it.'),
 ]
 const day = (n: number) => new Date(Date.UTC(2026, 10, n))
 const plan: PlanEntryView[] = [
-  { id: '1', title: 'Learn supply chain analytics', provider: 'Coursera', url: 'https://example.com/course', status: 'STARTED', createdAt: day(14) },
-  { id: '2', title: 'Lean Six Sigma green belt', provider: 'ASQ', url: 'https://example.com/course', status: 'PLANNED', createdAt: day(15) },
+  { id: '1', title: 'Engineering logistics graduate certificate', provider: UOFL, url: 'https://example.com/course', status: 'STARTED', createdAt: day(14) },
+  { id: '2', title: 'Six Sigma graduate certificate', provider: UOFL, url: 'https://example.com/course', status: 'PLANNED', createdAt: day(15) },
 ]
 
 export function LearnPlanEmptyLive() {
@@ -41,7 +44,7 @@ export function LearnPlanEmptyLive() {
 export function LearnPlanLive() {
   return (
     <PreviewShell place="learn" entry="learn" part="skills">
-      <LearnHome featured={featured} more={more} enrolledTitles={new Set(['Learn supply chain analytics'])} completedCount={2} allHref="#" plan={plan} countedBy={['One Louisville']} />
+      <LearnHome featured={featured} more={more} enrolledTitles={new Set(['Engineering logistics graduate certificate'])} completedCount={2} allHref="#" plan={plan} countedBy={['One Louisville']} />
     </PreviewShell>
   )
 }
