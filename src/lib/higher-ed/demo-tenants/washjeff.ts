@@ -51,7 +51,9 @@ export const WASHJEFF_TENANT: DemoTenant = {
     'Mingo Creek Foods',
   ],
   majors: ['Biology', 'Economics', 'Business', 'Accounting', 'Psychology', 'English', 'Chemistry', 'Political Science', 'Nursing', 'History', 'Neuroscience', 'Communication'],
-  memberCount: 200,
+  // A full demo (owner, 2026-11-18): enough alumni and students that every screen has people in it.
+  memberCount: 300,
+  studentCount: 40,
   annualCheckInMonth: 10,
   // Free retraining and Digital resources stay off so the demo can switch
   // them on live and show the cards appear (product design, Service menu).

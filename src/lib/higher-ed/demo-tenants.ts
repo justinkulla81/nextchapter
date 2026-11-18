@@ -29,6 +29,8 @@ export type DemoTenant = {
   employers: string[]
   majors: string[]
   memberCount?: number
+  // How many of the members are current students (classes graduating this year onward). Default: about one in eight.
+  studentCount?: number
   // Starting service choices, merged over the catalog defaults.
   services?: Record<string, Partial<ServiceSetting>>
   annualCheckInMonth?: number
