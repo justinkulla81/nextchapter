@@ -5208,6 +5208,8 @@ model ExclusiveJobPosting {
   // 'candidate_referral'
   source String @default("admin")
 
+  /// Indexed by a partial index (rows with an employer only), applied by hand: prisma/manual/2026-11-18-exclusive-job-posting-submitted-by-employer-idx.sql.
+  /// Prisma cannot express a partial index, so it is not listed as @@index here.
   submittedByEmployerId  String?
   submittedByEmployer    EmployerProfile?  @relation(fields: [submittedByEmployerId], references: [id], onDelete: SetNull)
   submittedByRecruiterId String?
