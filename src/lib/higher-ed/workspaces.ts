@@ -326,6 +326,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     tabs: [
       { key: 'overview', label: 'Your partnership', comingIn: null },
       { key: 'shared', label: 'Shared with you', comingIn: null },
+      { key: 'groups', label: 'Groups', comingIn: null },
       { key: 'feed', label: 'Feed', comingIn: null },
     ],
   },
