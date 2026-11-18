@@ -51,6 +51,8 @@ import { aiPayNoteFor } from '@/components/dashboard/learning/AiPaysMoreNote'
 import { aiPaySentence, aiShareSentence, aiTrainingWhy, learnWhyFirst } from '@/lib/redesign/learn-exposure-why'
 import { AiExposureShown } from '@/components/dashboard/learning/AiExposureShown'
 import { LearnHome } from '@/components/dashboard/LearnHome'
+import { AssignedTraining } from '@/components/dashboard/learning/AssignedTraining'
+import { assignedTrainingFor } from '@/lib/workforce/training'
 import { NeedsYou } from '@/components/candidate/NeedsYou'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { TuneStripSection } from '@/components/dashboard/TuneStripSection'
@@ -175,6 +177,9 @@ export default async function LearningPage({ searchParams }: { searchParams: Pro
           select: { institution: { select: { name: true, programBrandName: true } } },
         })
       : []
+    // Training the person's workforce group assigned to people like them (Education Hub). Two narrow reads, only when they belong to one.
+    const assigned = await assignedTrainingFor(profile.id, { industry: profile.industryBucket, function: profile.primaryFunction, level: profile.highestLevelReached, years: profile.yearsExperience }).catch(() => [])
+    if (assigned.length > 0) captureServerEvent(profile.id, 'assigned_training_shown', { count: assigned.length, sources: [...new Set(assigned.map((a) => a.source))] })
     captureServerEvent(profile.id, 'learn_home_viewed', {
       planSize: planEntries.length,
       hasFeatured: !!picks.featured,
@@ -202,9 +207,12 @@ export default async function LearningPage({ searchParams }: { searchParams: Pro
           why={why}
           aiExposureBand={exposure?.band ?? null}
           after={
-            <Suspense fallback={null}>
-              <TuneStripSection profile={profile} title="Closer to hired: tune your path" />
-            </Suspense>
+            <>
+              <AssignedTraining items={assigned} />
+              <Suspense fallback={null}>
+                <TuneStripSection profile={profile} title="Closer to hired: tune your path" />
+              </Suspense>
+            </>
           }
         />
       </div>

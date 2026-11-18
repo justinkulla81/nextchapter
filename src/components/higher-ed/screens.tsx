@@ -67,6 +67,7 @@ import { listRecruitingDates, listEarlyCareerRoles } from '@/lib/higher-ed/recru
 import { RECRUITING_DATE_LABELS, EARLY_CAREER_LABELS, splitUpcoming, deadlinePassed, safeHttpUrl } from '@/lib/higher-ed/recruiting-rules'
 import { StaffInviteForm } from './StaffInviteForm'
 import { LockedFeature } from '@/components/plans/LockedFeature'
+import { EducationAssign, EducationCatalog, EducationGaps } from './screens-education'
 import { institutionEntitlements, trialForLock } from '@/lib/plans/entitlements'
 import { AlumniEngagement, AlumniLayoffs, AlumniOutreach, CareerCheckIns, WaitingForYou } from './screens-outreach'
 import { AlumniData } from './screens-alumni-data'
@@ -1802,6 +1803,9 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'hub:applications': HubApplications,
   'hub:report': HubReport,
   'hub:skillsgap': HubSkillsGaps,
+  'education:catalog': EducationCatalog,
+  'education:assign': EducationAssign,
+  'education:gaps': EducationGaps,
   'hub:grantlist': DevelopmentGrants,
   'hub:talent': HubTalent,
   'hub:regionjobs': HubRegionJobs,

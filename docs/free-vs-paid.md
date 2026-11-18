@@ -31,3 +31,9 @@ PostHog: `entitlement_locked_viewed` (feature, trial), `plan_trial_started` (fro
 ## Still open
 - Whether the trial should ask for a card (it does not today).
 - The skills-gaps table is gated as a preview (owner decision 2026-11-17): free sees the first 3 skills in full, the rest blurred without numbers, and the "Retraining to close the gaps" section is paid. The talent snapshot is not gated.
+
+## Education Hub (2026-11-18)
+A workforce organization's training catalog: universities and colleges, third-party training, and training offered by the region (including courses NextChapter builds for it, flagged "Built by NextChapter for this region"). Three tabs: Catalog, Assign, Gaps and coverage.
+- **Free = curate (see):** build the catalog, pull programs in from confirmed partner colleges, see which in-demand skills have no training yet.
+- **Paid = assign (act on people):** choose who each training is for by industry, experience band (Individual contributor / Manager / Director or above) and function. An empty group means everyone; a person with no value on a named group is never matched. Assigned training shows in the person's Learn page ("Chosen for you by <org>") with who chose it and why. Reach is a count, hidden under 5. Feature `trainingAssign`, with the same trial and preview as every other lock.
+- Data: `TrainingOffering` (`prisma/manual/training-offering.sql`, applied 2026-11-18). Pure rules: `src/lib/workforce/training-rules.ts`; reads: `src/lib/workforce/training.ts`.
