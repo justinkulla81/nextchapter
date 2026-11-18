@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { decideBlocked, endBlocked, normalizeShares, otherParty, requestBlocked, shareBlocked, sharedWithMe, type Party } from './rules'
+import { defaultSharesFor, demoMismatch, decideBlocked, endBlocked, normalizeShares, otherParty, requestBlocked, shareBlocked, sharedWithMe, type Party } from './rules'
 
 const A: Party = { kind: 'INSTITUTION', id: 'one-louisville' }
 const B: Party = { kind: 'INSTITUTION', id: 'kentuckiana-works' }
@@ -44,5 +44,14 @@ describe('connected portals', () => {
   })
   it('keeps known items once, in order', () => {
     expect(normalizeShares(['EVENTS', 'JOBS', 'EVENTS', 'NAMES'])).toEqual(['JOBS', 'EVENTS'])
+    expect(normalizeShares(['EVENTS', 'JOBS', 'LAYOFFS'], 'EMPLOYER')).toEqual(['JOBS'])
+  })
+  it('starts each side sharing jobs and events, layoffs off; an employer shares jobs', () => {
+    expect(defaultSharesFor('INSTITUTION')).toEqual(['JOBS', 'EVENTS'])
+    expect(defaultSharesFor('EMPLOYER')).toEqual(['JOBS'])
+  })
+  it('keeps demos with demos', () => {
+    expect(demoMismatch({ demo: true }, { demo: false })).toBe(true)
+    expect(demoMismatch({ demo: true }, { demo: true })).toBe(false)
   })
 })

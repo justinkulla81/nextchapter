@@ -19,14 +19,22 @@ export const SHARE_ITEMS = [
 export type ShareKey = (typeof SHARE_ITEMS)[number]['key']
 export const SHARE_KEYS: string[] = SHARE_ITEMS.map((s) => s.key)
 
-/** What a new connection shares from each side until someone changes it: jobs and events, the things every kind of organization has. */
-export const DEFAULT_SHARES: ShareKey[] = ['JOBS', 'EVENTS']
+/** What each kind of portal holds to share. An employer's hiring portal has jobs; it has no events or layoff response of its own. */
+const ITEMS_BY_KIND: Record<PartyKind, ShareKey[]> = { INSTITUTION: ['JOBS', 'EVENTS', 'LAYOFFS'], EMPLOYER: ['JOBS'] }
+export const shareItemsFor = (kind: PartyKind) => SHARE_ITEMS.filter((s) => ITEMS_BY_KIND[kind].includes(s.key))
 
-/** Keep only known items, once each, in a fixed order. */
-export function normalizeShares(input: readonly string[]): ShareKey[] {
+/** What a new connection shares from each side until someone changes it: jobs and events. Layoffs stay off until a side turns them on. */
+const DEFAULT_SHARES: ShareKey[] = ['JOBS', 'EVENTS']
+export const defaultSharesFor = (kind: PartyKind): ShareKey[] => DEFAULT_SHARES.filter((k) => ITEMS_BY_KIND[kind].includes(k))
+
+/** Keep only known items, once each, in a fixed order; with a kind, only what that kind of portal holds. */
+export function normalizeShares(input: readonly string[], kind?: PartyKind): ShareKey[] {
   const want = new Set(input)
-  return SHARE_ITEMS.map((s) => s.key).filter((k) => want.has(k))
+  return SHARE_ITEMS.map((s) => s.key).filter((k) => want.has(k) && (!kind || ITEMS_BY_KIND[kind].includes(k)))
 }
+
+/** A demo or sample portal connects only with other demos, and a real one only with real ones. */
+export const demoMismatch = (a: { demo: boolean }, b: { demo: boolean }) => a.demo !== b.demo
 
 export const sameParty = (a: Party, b: Party) => a.kind === b.kind && a.id === b.id
 export const partyKey = (p: Party) => `${p.kind}:${p.id}`
