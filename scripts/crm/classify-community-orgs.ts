@@ -10,7 +10,7 @@
  *
  * Results are kept in data/geo/research/community-orgs.json so a stopped run resumes and --apply can be repeated.
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { PrismaClient, type CrmOrgType } from '@prisma/client'
 import { ask, jsonOf, pool, spent } from '../geo/_llm'
 

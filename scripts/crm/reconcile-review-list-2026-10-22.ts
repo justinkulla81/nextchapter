@@ -104,7 +104,8 @@ async function main() {
   let same = 0, diff = 0
   for (const f of firms) {
     const link = [...LINK_FIRMS].some((t) => f.id.endsWith(t))
-    link ? same++ : diff++
+    if (link) same++
+    else diff++
     if (!apply) continue
     if (link) await resolveFirmAsSame(f.id)
     else await resolveFirmAsDifferent(f.id)

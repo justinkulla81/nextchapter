@@ -10,7 +10,7 @@
 
   function siteOf(url) {
     var u
-    try { u = new URL(url) } catch (e) { return null }
+    try { u = new URL(url) } catch { return null }
     for (var k in HOSTS) if (HOSTS[k].test(u.hostname)) return k
     return null
   }
@@ -87,7 +87,7 @@
     var c = CONFIRMATION[site]
     if (!c) return false
     var path = ''
-    try { path = new URL(url).pathname } catch (e) {}
+    try { path = new URL(url).pathname } catch {}
     return c.path.test(path) || c.text.test(String(bodyText || '').slice(0, 4000))
   }
 
@@ -95,7 +95,7 @@
   // (boards.greenhouse.io/<company>/jobs/<id>, job-boards.greenhouse.io/<company>/jobs/<id>).
   function companyFromUrl(url) {
     var u
-    try { u = new URL(url) } catch (e) { return '' }
+    try { u = new URL(url) } catch { return '' }
     var seg = u.pathname.split('/').filter(Boolean)[0] || ''
     if (u.searchParams.get('for')) seg = u.searchParams.get('for')
     return seg.replace(/[-_]+/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase() }).trim()
@@ -105,7 +105,7 @@
   // so the same job always logs as the same row.
   function canonicalJobUrl(url) {
     var u
-    try { u = new URL(url) } catch (e) { return '' }
+    try { u = new URL(url) } catch { return '' }
     var path = u.pathname.replace(/\/(apply|application|confirmation|thanks?)\/?$/i, '').replace(/\/+$/, '')
     var keep = u.hostname.indexOf('greenhouse.io') >= 0 && u.searchParams.get('gh_jid') ? '?gh_jid=' + u.searchParams.get('gh_jid') : ''
     return u.origin + path + keep
