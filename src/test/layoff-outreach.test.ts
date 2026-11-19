@@ -15,18 +15,17 @@ const group = (key: string, cards: ContactCard[]): ContactGroup => ({ key, label
 const none = { blocked: new Set<string>() }
 
 describe('planOutreach', () => {
-  it('writes each audience its own email, with the greeting as a merge tag and one tagged link', () => {
+  it('writes each audience its own email, with the greeting as a merge tag and no link in the body', () => {
     const plans = planOutreach([
       group('head_hr', [card()]),
       group('rapid_response', [card({ name: 'Sam Roe', email: 'sam@state.gov', greet: 'Sam', personId: 'p2', title: 'Coordinator' })]),
     ], ctx, none)
     expect(plans.map((p) => p.audience).sort()).toEqual(['outplacement', 'rapid_response'])
     for (const p of plans) {
-      expect(p.bodyHtml.startsWith('<p>Hi {{firstName}},')).toBe(true)
-      expect(p.bodyHtml).toContain('utm_source=layoff_outreach')
+      expect(p.bodyHtml.startsWith('<p>Hi {{firstName}} -')).toBe(true)
       expect(p.bodyHtml).toContain('<div data-signature>')
-      expect(p.bodyHtml).toMatch(/15 minutes this week|the right person to talk to/)
-      expect(p.bodyHtml).toMatch(/>https:\/\/launchyournextchapter\.com\/network\/company\/acme<\/a>/)
+      expect(p.bodyHtml).toMatch(/15 minutes this week|Want the link to pass along/)
+      expect(p.bodyHtml).not.toContain('launchyournextchapter.com/network/company/acme')
     }
   })
 
@@ -117,60 +116,74 @@ describe('the sweep for smaller layoffs', async () => {
   })
 })
 
-describe('outreach copy v2', async () => {
-  const { askArm, outreachCopy, taggedLink } = await import('@/lib/warn/outreach/copy')
-  const base = { greet: 'Chelsea', link: 'https://launchyournextchapter.com/network/company/acme?x=1', picture, bls: '27.6% of unemployed Americans have been looking for 27 weeks or longer (BLS, October)', signOff: SIGN_OFF }
+describe('outreach copy v3', async () => {
+  const { askArm, outreachCopy, taggedLink, LINK_ASK, CALL_ASK } = await import('@/lib/warn/outreach/copy')
+  const base = { greet: 'Chelsea', picture, bls: '27.6% of unemployed Americans have been looking for 27 weeks or longer (BLS, October)', signOff: SIGN_OFF }
+  const all = ['hr', 'job_center', 'workforce_board', 'economic_development', 'rapid_response'] as const
   it('splits the ask by a hash of the address, the same address always the same arm, Rapid Response always the call', () => {
     expect(askArm('A@b.com', 'hr')).toBe(askArm(' a@b.com ', 'hr'))
     const arms = new Set(Array.from({ length: 40 }, (_, i) => askArm(`p${i}@x.org`, 'job_center')))
     expect(arms).toEqual(new Set(['A', 'B']))
     expect(askArm('a@b.com', 'rapid_response')).toBe('B')
   })
-  it('differs between the two arms only in the last line before the signature', () => {
-    for (const audience of ['hr', 'job_center', 'workforce_board'] as const) {
+  it('differs between the two arms only in the ask, the line before the first-name sign-off', () => {
+    for (const audience of ['hr', 'job_center', 'workforce_board', 'economic_development'] as const) {
       for (const mode of ['new', 'older'] as const) {
         const a = outreachCopy({ ...base, audience, mode, arm: 'A' })
         const b = outreachCopy({ ...base, audience, mode, arm: 'B' })
         expect(a.subject).toBe(b.subject)
-        const strip = (s: string) => s.split('\n\n').slice(0, -2).join('\n\n')
-        expect(strip(a.body)).toBe(strip(b.body))
-        expect(a.body.split('\n\n').at(-2)).not.toBe(b.body.split('\n\n').at(-2))
-        expect(b.body).toContain('Worth 15 minutes this week?')
-        expect(a.body).toContain('Are you the right person to talk to about the Acme layoff, or should I send this to someone else?')
-        expect(a.body).not.toContain('send it')
+        const parts = (s: string) => s.split('\n\n')
+        expect(parts(a.body).slice(0, -3)).toEqual(parts(b.body).slice(0, -3))
+        expect(parts(a.body).at(-3)).toBe(LINK_ASK)
+        expect(parts(b.body).at(-3)).toBe(CALL_ASK)
+        expect(parts(a.body).at(-2)).toBe('Justin')
       }
     }
   })
-  it('is short, has one link, and the older wording leads with the stage not "I saw that"', () => {
+  it('is short, has no link and no statistic for HR, one offer, signs off with the first name', () => {
     const words = (s: string) => s.split('\n\n').slice(0, -1).join(' ').split(/\s+/).length
-    for (const audience of ['hr', 'job_center', 'workforce_board', 'rapid_response'] as const) {
+    for (const audience of all) {
       for (const mode of ['new', 'older'] as const) {
         const m = outreachCopy({ ...base, audience, mode, arm: 'B' })
-        expect(words(m.body)).toBeLessThan(110)
-        expect(m.body.match(/https:\/\//g)?.length).toBe(1)
-        expect(m.body).not.toMatch(/I saw that|I'm Justin Kulla|hope this/i)
+        expect(words(m.body)).toBeLessThan(90)
+        expect(m.body.split('\n\n').slice(0, -1).join(' ')).not.toMatch(/https?:\/\//)
+        expect(m.body).not.toMatch(/I saw that|hope this|seats|Best,|'s's/i)
+        expect(m.body).toContain('free job matching')
+        expect(m.body).toMatch(/adds? their email/)
+        expect(m.body.split('\n\n')[0]).toBe('Hi Chelsea -')
       }
     }
-    expect(outreachCopy({ ...base, audience: 'hr', mode: 'older', arm: 'B' }).body).toContain('a few weeks ago')
+    expect(outreachCopy({ ...base, audience: 'hr', mode: 'older', arm: 'B' }).body).not.toContain('BLS')
+    expect(outreachCopy({ ...base, audience: 'workforce_board', mode: 'older', arm: 'B' }).body).toContain('a few weeks since')
     expect(outreachCopy({ ...base, audience: 'hr', mode: 'new', arm: 'B' }).body).not.toContain('a few weeks')
   })
-  it('only promises what the page does: each person adds their email, and 10 seats for HR only', () => {
-    const hr = outreachCopy({ ...base, audience: 'hr', mode: 'new', arm: 'A' }).body
-    expect(hr).toContain('each person adds their email')
-    expect(hr).toContain('10 seats at no charge')
-    expect(outreachCopy({ ...base, audience: 'job_center', mode: 'new', arm: 'A' }).body).not.toContain('seats')
+  it('writes subjects in sentence case from the employer, the headcount and the place only', () => {
+    const subj = (audience: (typeof all)[number], mode: 'new' | 'older') => outreachCopy({ ...base, audience, mode, arm: 'A' }).subject
+    expect(subj('hr', 'new')).toBe('Job matching for the 875 leaving Acme')
+    expect(subj('hr', 'older')).toBe('Job matching for the 875 who left Acme')
+    expect(subj('job_center', 'new')).toBe('If someone from Acme walks in')
+    expect(subj('rapid_response', 'new')).toBe('Before your Acme meeting')
+    for (const audience of all) for (const mode of ['new', 'older'] as const) {
+      const s = subj(audience, mode)
+      expect(s[0]).toBe(s[0].toUpperCase())
+      expect(s).toContain('Acme')
+      expect(s).not.toMatch(/\bfree\b|!|\$|guarantee|urgent|act now/i)
+    }
   })
   it('tags the page link so a sign-up can be traced to the email, and keeps the link on the page that answers', () => {
     const u = new URL(taggedLink('https://launchyournextchapter.com/layoffs/company/acme', { audience: 'hr', arm: 'A', noticeId: 'n1' }))
     expect(u.pathname).toBe('/layoffs/company/acme')
     expect(Object.fromEntries(u.searchParams)).toEqual({ utm_source: 'layoff_outreach', utm_medium: 'email', utm_campaign: 'hr', utm_content: 'A', lo_n: 'n1' })
   })
-  it('planOutreach uses v2 for HR and tags the link; economic development keeps the older note', () => {
+  it('planOutreach uses v3 for every audience, merges the first name and renders the signature block', () => {
     const plans = planOutreach([group('head_hr', [card()]), group('economic_development', [card({ name: 'Ed Dev', email: 'ed@chamber.org', greet: 'Ed', personId: undefined, title: null })])], ctx, { blocked: new Set(), noticeId: 'n9' })
     const hr = plans.find((p) => p.audience === 'outplacement')!
-    expect(hr.bodyHtml).toContain('utm_source=layoff_outreach')
-    expect(hr.bodyHtml).toContain('lo_n=n9')
-    expect(plans.find((p) => p.audience === 'economic_development')!.bodyHtml).toContain('We sit alongside them')
+    expect(hr.bodyHtml).not.toContain('https://launchyournextchapter.com/network')
+    expect(hr.bodyHtml).toContain('<div data-signature>Justin Kulla')
+    const ed = plans.find((p) => p.audience === 'economic_development')!
+    expect(ed.bodyHtml).toContain('free job matching')
+    expect(ed.bodyHtml).not.toContain('We sit alongside them')
+    expect(ed.bodyHtml).toContain('Hi {{firstName}} -')
   })
   it('reads the tags back on the landing page, and ignores any other visit', async () => {
     const { readOutreachTags } = await import('@/lib/outreach/landing-tags')
@@ -200,7 +213,7 @@ describe('the backfill rules', async () => {
 
 describe('the backfill week', async () => {
   const { assignDays, weekSendTimes, BACKFILL_HEADLINE, SUPPRESSION_MARK_BEFORE } = await import('@/lib/warn/outreach/backfill-rules')
-  const { headlineFor, HEADLINE_CODES } = await import('@/lib/warn/outreach/copy')
+  const { subjectFor } = await import('@/lib/warn/outreach/copy')
   const { headlineOf } = await import('@/lib/warn/outreach/stats')
 
   it('sends Monday to Thursday at 9 a.m. Eastern, across the daylight-saving change', () => {
@@ -215,19 +228,12 @@ describe('the backfill week', async () => {
     expect(Math.max(...load) - Math.min(...load)).toBeLessThanOrEqual(5)
     expect(day.size).toBe(40)
   })
-  it('gives every backfill email one subject, the audience line the live emails use', () => {
+  it('gives every backfill email one subject, the audience line the live emails use, in sentence case', () => {
     expect(BACKFILL_HEADLINE).toBe('aud')
     const f = { org: 'Acme', employees: 1200, state: 'KY', county: 'Warren County', audience: 'job_center' as const, mode: 'new' as const }
-    expect(headlineFor(BACKFILL_HEADLINE, f)).toBe('if someone from Acme walks in')
-  })
-  it('writes every headline from the employer, the headcount and the place only', () => {
-    const f = { org: 'Acme', employees: 1200, state: 'KY', county: 'Warren County', audience: 'hr' as const, mode: 'new' as const }
-    const subjects = HEADLINE_CODES.map((c) => headlineFor(c, f))
-    expect(subjects).toContain('1,200 people leaving Acme')
-    expect(subjects).toContain("where Acme's 1,200 can land in Warren County")
-    for (const s of subjects) { expect(s).toContain('Acme'); expect(s.length).toBeLessThan(80); expect(s).not.toMatch(/free money|guarantee|act now|!/i) }
-    expect(headlineFor('plain', { ...f, employees: null })).toBe('Acme layoff')
-    expect(headlineFor('n1', { ...f, employees: null, mode: 'older' })).toBe('people who left Acme')
+    expect(subjectFor(f)).toBe('If someone from Acme walks in')
+    expect(subjectFor({ ...f, audience: 'workforce_board' })).toBe('The Acme layoff in Warren County')
+    expect(subjectFor({ ...f, audience: 'hr', employees: null, mode: 'older' })).toBe('Job matching for the people who left Acme')
   })
   it('reads the style and the day back from an edition title; the deploy-time marks are the only ones the backfill looks past', () => {
     expect(headlineOf('Acme · Job center · h:q1 · day 2')).toEqual({ code: 'q1', day: 2 })
@@ -310,10 +316,10 @@ describe('layoff pacing', async () => {
     const t = sendDayTimes(new Date('2026-11-16T15:00:00Z'), 6).map((d) => d.toISOString())
     expect(t).toEqual(['2026-11-16T14:00:00.000Z', '2026-11-17T14:00:00.000Z', '2026-11-18T14:00:00.000Z', '2026-11-19T14:00:00.000Z', '2026-11-20T14:00:00.000Z', '2026-11-21T14:00:00.000Z'])
   })
-  it('keeps spam words out of every headline', async () => {
-    const { headlineFor, HEADLINE_CODES } = await import('@/lib/warn/outreach/copy')
+  it('keeps spam words out of every subject', async () => {
+    const { subjectFor } = await import('@/lib/warn/outreach/copy')
     for (const audience of ['hr', 'job_center', 'workforce_board', 'rapid_response', 'economic_development'] as const) for (const mode of ['new', 'older'] as const)
-      for (const c of HEADLINE_CODES) expect(headlineFor(c, { org: 'Acme', employees: 120, state: 'KY', county: null, audience, mode }), `${c} ${audience} ${mode}`).not.toMatch(/\bfree\b|!|\$|guarantee|urgent|act now/i)
+      expect(subjectFor({ org: 'Acme', employees: 120, state: 'KY', county: null, audience, mode }), `${audience} ${mode}`).not.toMatch(/\bfree\b|!|\$|guarantee|urgent|act now/i)
   })
 })
 
@@ -372,12 +378,12 @@ describe('board first (owner, 2026-11-17)', async () => {
     const plans = planOutreach([group('workforce_board', [card({ name: 'Guess', email: 'g@board.org', guessed: true })]), centers, edo], withPartners, none)
     expect(plans.map((p) => p.audience).sort()).toEqual(['economic_development', 'job_center'])
   })
-  it('names the other organizations in the board note only, and keeps it short with one link', () => {
-    const base = { greet: 'Bo', link: 'https://launchyournextchapter.com/network/company/acme', picture, bls: 'x', signOff: SIGN_OFF, mode: 'new' as const, arm: 'B' as const, partners: withPartners.partners }
+  it('names the other organizations in the board note only, and keeps it short with no link', () => {
+    const base = { greet: 'Bo', picture, bls: 'x', signOff: SIGN_OFF, mode: 'new' as const, arm: 'B' as const, partners: withPartners.partners }
     const b = outreachCopy({ ...base, audience: 'workforce_board' }).body
-    expect(b).toContain('One Louisville, Goodwill Kentucky and Louisville Urban League serve them too; the same page works for all of you.')
+    expect(b).toContain('One Louisville, Goodwill Kentucky and Louisville Urban League serve them too, and it works for all of you.')
     expect(b.split('\n\n').slice(0, -1).join(' ').split(/\s+/).length).toBeLessThan(110)
-    expect(b.match(/https:\/\//g)?.length).toBe(1)
+    expect(b.split('\n\n').slice(0, -1).join(' ')).not.toMatch(/https:\/\//)
     expect(outreachCopy({ ...base, audience: 'job_center' }).body).not.toContain('serve them too')
     expect(outreachCopy({ ...base, audience: 'workforce_board', partners: [] }).body).not.toContain('serve them too')
     expect(listNames(['A'])).toBe('A')
