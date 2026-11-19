@@ -9,7 +9,7 @@ import { LAYOFF_RAMP } from '@/lib/mailing/layoff-pacing-rules'
 import { addressQuality, isVerifyBlocked, needsVerification } from './quality'
 import { ensureVerified } from './verify'
 import { loadAddressFacts } from './quality-data'
-import { headlineFor, type HeadlineCode, type HeadlineFacts } from './copy'
+import { subjectFor, type HeadlineFacts } from './copy'
 
 /**
  * One-off catch-up for the layoffs the live sweep never emailed (it only sees layoffs under 5 days old): every US layoff of 50+ people
@@ -168,7 +168,7 @@ export async function scheduleBackfillWeek(now = new Date()): Promise<{ days: Da
   for (let day = 0; day < times.length; day++) {
     const today = sized.filter((e) => dayOf.get(e.id) === day)
     for (const e of today) {
-      const code: HeadlineCode = BACKFILL_HEADLINE
+      const code = BACKFILL_HEADLINE
       const notice = e.warnNoticeId ? notices.get(e.warnNoticeId) : undefined
       const hf: HeadlineFacts = {
         org: notice?.employer ?? e.title.split(' · ')[0], employees: notice?.employees ?? null, state: notice?.state ?? null, county: notice?.county ?? null,
@@ -176,7 +176,7 @@ export async function scheduleBackfillWeek(now = new Date()): Promise<{ days: Da
       }
       await prisma.mailingEdition.update({
         where: { id: e.id },
-        data: { subject: headlineFor(code, hf).slice(0, 200), title: `${e.title.split(' · h:')[0]} · h:${code} · day ${day + 1}`, status: 'SCHEDULED', scheduledAt: times[day] },
+        data: { subject: subjectFor(hf).slice(0, 200), title: `${e.title.split(' · h:')[0]} · h:${code} · day ${day + 1}`, status: 'SCHEDULED', scheduledAt: times[day] },
       })
       days[day].editions++
       days[day].recipients += e.n

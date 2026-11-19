@@ -6,7 +6,7 @@
  */
 import { ALONGSIDE, SIGN_OFF, draftFor, draftKind, type DraftContext } from '@/lib/warn/layoff-alert-drafts'
 import type { ContactCard, ContactGroup } from '@/lib/warn/layoff-alert-rules'
-import { askArm, outreachCopy, taggedLink, type CopyAudience, type CopyMode } from './copy'
+import { askArm, noteSignature, outreachCopy, type CopyAudience, type CopyMode } from './copy'
 
 export const CAMPAIGN = 'layoff_outreach'
 
@@ -52,6 +52,8 @@ export function valueParagraph(audience: OutreachAudience): string {
   return `Programs end, and searches often do not: ${BLS}. Every person you send gets a free place to run theirs, with local jobs first, the AI skills their best-fit employers ask for, and a job search built around their skills. You get the page to use today and the counts, how many signed up and how many stayed in your region, never who.`
 }
 
+const NOTE_SIGNATURE = noteSignature(SIGN_OFF)
+
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
 /** A line of plain text as HTML: escaped, with each web address a link (and the sentence's own punctuation left outside it). */
@@ -70,7 +72,7 @@ export function bodyToHtml(body: string): string {
   return body
     .split('\n\n')
     .map((block) => {
-      if (block === SIGN_OFF) return `<div data-signature>${block.split('\n').map(linkify).join('<br>')}</div>`
+      if (block === SIGN_OFF || block === NOTE_SIGNATURE) return `<div data-signature>${block.split('\n').map(linkify).join('<br>')}</div>`
       return `<p>${block.split('\n').map(linkify).join('<br>')}</p>`
     })
     .join('')
@@ -79,6 +81,7 @@ export function bodyToHtml(body: string): string {
 /** A first name in a greeting becomes the merge tag, so one email serves everyone who would get the same words. */
 function withGreetingMerge(body: string, greet: string | undefined): string {
   if (!greet || !/^[A-Z][a-z'’-]+$/.test(greet)) return body
+  if (body.startsWith(`Hi ${greet} -`)) return `Hi {{firstName}} -${body.slice(`Hi ${greet} -`.length)}`
   return body.startsWith(`${greet},`) ? `Hi {{firstName}},${body.slice(greet.length + 1)}` : body
 }
 
@@ -101,8 +104,8 @@ export interface PlanOptions {
   mode?: CopyMode
 }
 
-/** The v2 copy covers these audiences; economic development keeps the older note. */
-const COPY_AUDIENCE: Partial<Record<OutreachAudience, CopyAudience>> = { outplacement: 'hr', rapid_response: 'rapid_response', workforce_board: 'workforce_board', job_center: 'job_center' }
+/** The v3 copy (copy.ts) covers every audience, economic development included (2026-11-19). */
+const COPY_AUDIENCE: Partial<Record<OutreachAudience, CopyAudience>> = { outplacement: 'hr', rapid_response: 'rapid_response', workforce_board: 'workforce_board', job_center: 'job_center', economic_development: 'economic_development' }
 const BLS_LINE = `${BLS_NOW.pct}% of unemployed Americans have been looking for 27 weeks or longer (BLS, ${BLS_NOW.month})`
 
 const validEmail = (e: string | null | undefined) => (e && /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(e.trim()) ? e.trim().toLowerCase() : null)
@@ -132,8 +135,8 @@ export function planOutreach(groups: ContactGroup[], ctx: DraftContext, opts: Pl
       let body: string
       if (copyAudience) {
         const arm = askArm(email, copyAudience)
-        const base = ctx.peoplePage ?? 'https://launchyournextchapter.com'
-        const v = outreachCopy({ audience: copyAudience, mode: opts.mode ?? 'new', arm, greet: c.greet ?? 'team', link: taggedLink(base, { audience: copyAudience, arm, noticeId: opts.noticeId }), picture: ctx.picture, bls: BLS_LINE, signOff: SIGN_OFF, partners: ctx.partners })
+        // No link in the first email (v3): the owner sends the tagged page link (taggedLink) in his reply.
+        const v = outreachCopy({ audience: copyAudience, mode: opts.mode ?? 'new', arm, greet: c.greet ?? 'team', picture: ctx.picture, bls: BLS_LINE, signOff: SIGN_OFF, partners: ctx.partners })
         draft = { subject: v.subject, body: v.body, variant: arm }
         body = withGreetingMerge(v.body, c.greet)
       } else {
