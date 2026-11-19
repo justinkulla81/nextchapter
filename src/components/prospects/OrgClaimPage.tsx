@@ -31,7 +31,7 @@ export function OrgClaimPage({ org, stats, peopleCount = null, page = null }: { 
         <section id="claim" aria-labelledby="org-claim-h" className="rounded-3xl bg-navy p-6 text-white sm:p-10">
           <p className="text-sm font-semibold uppercase tracking-[0.14em] text-white/70">Free · for {org.name}</p>
           <h1 id="org-claim-h" className="mt-3 max-w-3xl font-serif text-4xl font-semibold leading-tight tracking-tight sm:text-5xl [text-wrap:balance]">Claim the {org.name} page</h1>
-          <Squiggle className="mt-3" />
+          <Squiggle className="mt-3 text-white/70" />
           <p className="mt-5 max-w-2xl text-lg text-white/85">
             We built this page from public data, and it is free for the people who find it. Enter your work email. We check that you run {org.name}, then email you a link to your free workspace.
           </p>
@@ -46,7 +46,7 @@ export function OrgClaimPage({ org, stats, peopleCount = null, page = null }: { 
         <section id="claim" className="space-y-5 rounded-3xl bg-navy p-6 text-white sm:p-10" aria-labelledby="org-claim-h">
           <p className="text-sm font-semibold uppercase tracking-[0.14em] text-white/70">Free · for {org.name}</p>
           <h1 id="org-claim-h" className="max-w-3xl font-serif text-4xl font-semibold leading-tight tracking-tight sm:text-5xl [text-wrap:balance]">Claim the {org.name} page</h1>
-          <Squiggle className="mt-3" />
+          <Squiggle className="mt-3 text-white/70" />
           <p className="max-w-2xl text-lg text-white/85">Claiming confirms that you work at {org.name}. We email a one-time link to your work address, and the claim counts once you use it.</p>
           <div className="rounded-2xl bg-white p-5 text-navy sm:p-6">
             <OrgClaimForm slug={org.slug} orgName={org.name} domain={domain} sections={org.orgTypes.includes('EMPLOYER')} units={org.orgTypes.includes('UNIVERSITY')} />
