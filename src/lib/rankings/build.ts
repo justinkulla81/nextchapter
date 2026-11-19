@@ -10,7 +10,7 @@ import type { JobAggregate } from '@/lib/places/places'
 import { prisma } from '@/lib/prisma'
 import { ALL_STATE_CODES, stateSlug } from '@/lib/seo/states'
 import { getStateCollegeListings } from '@/lib/seo/college-pages'
-import { collegePath } from '@/lib/seo/college-bar'
+import { areaSlug, collegePath } from '@/lib/seo/college-bar'
 import { FAMILIES, INDUSTRIES, collegeSpecs, compositeSpecs, functionSpecs, industryCitySpecs, industrySpecs, rankCities, rankCityComposite, rankColleges, rankCountyComposite, rankCounties, rankIndustries, rankSkills, skillSpecs, wave1Specs, wave2PlaceSpecs, workforceSpecs, type Spec } from '@/lib/rankings/build-edition'
 import { STATE_FIPS } from '@/lib/rankings/regions'
 import { profileSpecs, rankProfile } from '@/lib/rankings/wave5-specs'
@@ -89,7 +89,7 @@ async function loadColleges(): Promise<{ colleges: CollegeStat[]; collegeCities:
       if (c.city) collegeCities.add(`${st}|${placeKey(c.city)}`)
       if (c.earnings10 == null || !c.enrollment) continue
       colleges.push({
-        unitid: c.unitid, name: c.name, st, href: collegePath(stateSlug(st), c.slug), control: c.control, level: c.level,
+        unitid: c.unitid, name: c.name, st, href: collegePath(areaSlug(st), c.slug), control: c.control, level: c.level,
         enrollment: c.enrollment, earnings10: c.earnings10, completionRate: c.completionRate, netPrice: c.netPrice,
       })
     }

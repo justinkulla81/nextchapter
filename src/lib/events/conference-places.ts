@@ -1,7 +1,7 @@
 import 'server-only'
 import { catalogConferences } from '@/lib/seo/topic-data'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
-import { collegePath } from '@/lib/seo/college-bar'
+import { areaSlug, collegePath } from '@/lib/seo/college-bar'
 import { getStateCollegeListings } from '@/lib/seo/college-pages'
 import { PLACES, isHigherEd } from './conference-place-map'
 export { isHigherEd }
@@ -50,7 +50,7 @@ export async function hostCollege(confId: string): Promise<{ name: string; href:
   if (!h) return null
   try {
     const c = (await getStateCollegeListings(h.state)).find((x) => x.unitid === h.unitid)
-    return c && c.indexable ? { name: c.name, href: collegePath(stateSlug(h.state), c.slug) } : null
+    return c && c.indexable ? { name: c.name, href: collegePath(areaSlug(h.state), c.slug) } : null
   } catch {
     return null
   }

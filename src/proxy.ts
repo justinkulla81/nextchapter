@@ -215,7 +215,8 @@ function routeOrgHosts(request: NextRequest, host: string, pathname: string): Pr
     // Main site: the old portal addresses move to their own host.
     const m = pathname.match(/^\/(workforce|highered)(\/.*)?$/)
     if (m) return NextResponse.redirect(`${orgOrigin(m[1] as 'workforce' | 'highered')}${m[2] ?? '/'}${search}`, 308)
-    if (pathname === '/demo/workforce') return NextResponse.redirect(`${orgOrigin('workforce')}/demo${search}`, 308)
+    // /demo on the main site has no page of its own (404 alerts 2026-11-19): it is the workforce demo, like /demo/workforce.
+    if (pathname === '/demo' || pathname === '/demo/workforce') return NextResponse.redirect(`${orgOrigin('workforce')}/demo${search}`, 308)
     return null // /i/<slug>/... moves in its layout, which knows the org's kind
   }
 

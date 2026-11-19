@@ -267,9 +267,8 @@ const loadColleges = cache(async (state: string | null): Promise<PlaceCollege[]>
     const { getStateCollegeListings } = await import('@/lib/seo/college-pages')
     slugs = new Map((await getStateCollegeListings(state)).map((l) => [l.unitid, l.slug]))
   }
-  const { collegePath } = await import('@/lib/seo/college-bar')
-  const { stateSlug } = await import('@/lib/seo/states')
-  return rows.map((r) => ({ ...r, href: state && slugs.has(r.id) ? collegePath(stateSlug(state), slugs.get(r.id)!) : null }))
+  const { areaSlug, collegePath } = await import('@/lib/seo/college-bar')
+  return rows.map((r) => ({ ...r, href: state && slugs.has(r.id) ? collegePath(areaSlug(state), slugs.get(r.id)!) : null }))
 })
 
 // ---------------------------------------------------------------------------------------------

@@ -17,7 +17,7 @@ import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { stateFromSlug } from '@/lib/seo/states'
 import { layoffAndRapidLinks } from '@/lib/seo/layoff-links'
-import { AI_LEVELS, AI_TRACK_LABEL, aiProgramSentence, collegePath, territoryFromSlug } from '@/lib/seo/college-bar'
+import { AI_LEVELS, AI_TRACK_LABEL, aiProgramSentence, collegePath, territoryFromCodeSlug, territoryFromSlug, territorySlug } from '@/lib/seo/college-bar'
 import { AreaNotices } from '@/components/seo/AreaNotices'
 import { noticesForCollege } from '@/lib/seo/org-notices'
 import { areaName, crmOrgForCollege, getCollegePage, type CollegePageData } from '@/lib/seo/college-pages'
@@ -79,6 +79,9 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
 
 export default async function CollegePublicPage({ params }: { params: Promise<{ state: string; college: string }> }) {
   const { state, college } = await params
+  // Old links wrote a territory as its code (/higher-education/pr/<college>); its pages are under /higher-education/puerto-rico.
+  const territory = territoryFromCodeSlug(state)
+  if (territory) permanentRedirect(collegePath(territorySlug(territory), college))
   const d = await load(state, college)
   if (!d) notFound()
   const { code, c } = d

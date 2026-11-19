@@ -1,7 +1,7 @@
 import { FACTS, SITE_URL } from '@/lib/seo/facts'
-import { collegePath } from '@/lib/seo/college-bar'
+import { areaSlug, collegePath } from '@/lib/seo/college-bar'
 import { indexableColleges } from '@/lib/seo/college-pages'
-import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
+import { ALL_STATE_CODES, stateName } from '@/lib/seo/states'
 
 // /higher-education/llms.txt — every college page that passes the bar (college-bar.ts), grouped by state, for AI answer
 // engines. Linked from /llms.txt and /llms-full.txt. Rendered on request (never at build), cached a day at the edge.
@@ -15,7 +15,7 @@ export async function GET() {
   for (const code of ALL_STATE_CODES) {
     const mine = rows.filter((r) => r.state === code)
     if (mine.length === 0) continue
-    parts.push(`## ${stateName(code)}\n\n${mine.map((r) => `- [${r.name}](${SITE_URL}${collegePath(stateSlug(code), r.slug)}): ${[r.control, r.level].filter(Boolean).join(' ').toLowerCase()}${r.city ? ` in ${r.city}` : ''}${r.enrollment ? `, about ${r.enrollment.toLocaleString('en-US')} students` : ''}.`).join('\n')}`)
+    parts.push(`## ${stateName(code)}\n\n${mine.map((r) => `- [${r.name}](${SITE_URL}${collegePath(areaSlug(code), r.slug)}): ${[r.control, r.level].filter(Boolean).join(' ').toLowerCase()}${r.city ? ` in ${r.city}` : ''}${r.enrollment ? `, about ${r.enrollment.toLocaleString('en-US')} students` : ''}.`).join('\n')}`)
   }
   return new Response(parts.join('\n'), { headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=86400' } })
 }

@@ -4,7 +4,7 @@ import { ALL_STATE_CODES, stateSlug } from '@/lib/seo/states'
 import { getStateData } from '@/lib/seo/org-pages'
 import { orgPagePath, type OrgPageKind } from '@/lib/seo/org-page-rules'
 import { employerSlug } from '@/lib/seo/employer-slug'
-import { collegePath } from '@/lib/seo/college-bar'
+import { areaSlug, collegePath } from '@/lib/seo/college-bar'
 import { getStateCollegeListings } from '@/lib/seo/college-pages'
 import type { LocalEventRow } from './queries'
 
@@ -34,7 +34,7 @@ export async function hostLinkMap(rows: LocalEventRow[]): Promise<Map<string, st
     for (const e of rows) for (const h of e.hosts) if (h.kind === 'COLLEGE' && e.state) (colleges.get(e.state) ?? colleges.set(e.state, new Set()).get(e.state)!).add(h.id)
     for (const [st, ids] of colleges) {
       if (!ALL_STATE_CODES.includes(st)) continue
-      for (const c of await getStateCollegeListings(st)) if (ids.has(c.unitid) && c.indexable) out.set(`COLLEGE:${c.unitid}`, collegePath(stateSlug(st), c.slug))
+      for (const c of await getStateCollegeListings(st)) if (ids.has(c.unitid) && c.indexable) out.set(`COLLEGE:${c.unitid}`, collegePath(areaSlug(st), c.slug))
     }
   } catch {
     // Links are a nicety: without them the host names show as text.

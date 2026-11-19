@@ -1,6 +1,8 @@
 // Rules for the public college pages (/higher-education/<state>/<college>). Pure, so they are unit-tested
 // (src/test/college-pages.test.ts) and shared by the page, the sitemap and the llms.txt list: the bar lives here only.
 
+import { stateSlug } from '@/lib/seo/states'
+
 export const slugify = (s: string) =>
   s.toLowerCase().replace(/&/g, ' and ').replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
 
@@ -77,6 +79,16 @@ const TERRITORY_BY_SLUG = Object.fromEntries(Object.entries(COLLEGE_TERRITORIES)
 /** The territory a slug stands for ("puerto-rico" → "PR"), or null. */
 export const territoryFromSlug = (slug: string): string | null => TERRITORY_BY_SLUG[slug] ?? null
 export const territorySlug = (code: string): string => slugify(COLLEGE_TERRITORIES[code])
+/**
+ * URL slug for a college's state or territory. Use this, never `stateSlug`, for college addresses: `stateSlug` knows only
+ * the 50 states and DC, so it gave `pr` for Puerto Rico and every Puerto Rico college link was a 404 (2026-11-19).
+ */
+export const areaSlug = (code: string): string => (isCollegeTerritory(code) ? territorySlug(code) : stateSlug(code))
+/** A territory written as its two-letter code in a college address ("pr"), which links built with `stateSlug` used to make. */
+export const territoryFromCodeSlug = (slug: string): string | null => {
+  const code = slug.toUpperCase()
+  return slug.length === 2 && isCollegeTerritory(code) ? code : null
+}
 
 /**
  * Which job functions (the board's `targetFunction` values) hire for what graduates of an IPEDS field of study usually
