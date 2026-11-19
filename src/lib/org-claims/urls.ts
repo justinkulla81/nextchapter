@@ -25,11 +25,13 @@ export function canonicalCandidates(slug: string): string[] {
   const base = slug.replace(/-/g, ' ')
   const override = CANONICAL_FOR_OVERRIDE.get(slug)
   const out = new Set<string>(override ? [override, base] : [base])
-  const parts = slug.split('-and-')
+  // A trailing '-and' too: a stored name cut after its ampersand ('macdonald &', from "Macdonald & Company" with the suffix
+  // stripped) reads to 'macdonald-and' (404 alert, 2026-11-19).
+  const parts = slug.split(/-and(?:-|$)/)
   if (parts.length > 1 && parts.length <= 4) {
     const seps = [' and ', ' & ', '&']
     const build = (i: number, acc: string): void => {
-      if (i === parts.length) { out.add(acc.replace(/-/g, ' ')); return }
+      if (i === parts.length) { out.add(acc.replace(/-/g, ' ').trim()); return }
       for (const sep of seps) build(i + 1, acc + sep + parts[i])
     }
     build(1, parts[0])

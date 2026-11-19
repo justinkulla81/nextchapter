@@ -143,7 +143,7 @@ describe('merge fields', () => {
     expect(canonicalCandidates('merck-and-co')[0]).toBe('merck &')
     expect(claimUrlFor('owens &amp minor')).toBe('https://launchyournextchapter.com/prepared/owens-and-minor')
     expect(canonicalCandidates('owens-and-minor')).toEqual(expect.arrayContaining(['owens &amp minor', 'owens & minor']))
-    for (const name of ['owens & minor', 'texas a&m university', 'cape & islands workforce board', 'merck &']) {
+    for (const name of ['owens & minor', 'texas a&m university', 'cape & islands workforce board', 'merck &', 'macdonald &']) {
       const slug = claimSlug(name)!
       expect(canonicalCandidates(slug)).toContain(name)
     }
