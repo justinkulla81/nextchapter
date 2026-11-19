@@ -277,6 +277,18 @@ Check where it stands with `pg_stat_statements` (order by `rows`) and the Usage 
 `db-slow-query-report` (`src/lib/perf/db-report.ts`) emails the week's top statements by time, rows returned and disk reads, the cache
 hit share and the watched tables' growth, so a statement that keeps coming back is the one to fix.
 
+## Vercel Firewall: no real visitor is ever blocked
+
+Owner rule (2026-11-19). On 2026-11-18 the owner was shown "This request was blocked" (403) on the whole site for 5 minutes, because opening
+a few list pages fired ~25 background link prefetches each and passed the 120-requests-a-minute limit of the crawler rule. A customer could
+have hit the same wall. The rule now ignores `Next-Router-Prefetch` requests, allows 300 a minute per IP and blocks for 1 minute; an
+"Owner IP bypass" rule sits first. Any firewall change (Vercel API `/v1/security/firewall/config`) must:
+- never count prefetch (`next-router-prefetch` header) or static assets toward a limit;
+- keep limits far above what a person can do by hand (a page load is ~2 counted requests; a person never makes 300 a minute);
+- keep any block short (1 minute) and never deny by path alone without a rate limit;
+- be checked by loading 3 list pages in a real browser (`/places/<state>/city/<city>`, `/layoffs/<state>`, a salaries page) from a clean IP and counting
+  the matching requests before it ships. Tell the owner what changed.
+
 ## Search indexing: no changes without the owner's approval
 
 Owner rule (2026-11-13). Between Oct 22 and Nov 5, 2026 the job sitemap was pushed (~176k), cut (~45k), answered 410 Gone,
