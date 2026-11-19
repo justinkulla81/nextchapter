@@ -85,7 +85,8 @@ export async function withDescriptionStubs<T extends { id: string }>(rows: T[]):
 /**
  * The job, or null when it has no public page (closed, private, not verified…). The row is read without its posting text first, and the
  * text (~4.4 KB on average) only when everything else says the page shows the job: about one job-page render in eight is a closed or
- * private job, and each read the whole text only to drop it (~55k a day, 2026-11-17). Two primary-key reads for a live job.
+ * private job, and each read the whole text only to drop it (~55k a day, 2026-11-17). The text comes from the shared data cache
+ * (jobPostingText), so a re-render after a deploy reads only the narrow row.
  */
 export async function getPublicJob(id: string): Promise<PublicJobRow | null> {
   if (!/^[a-z0-9]{10,40}$/i.test(id)) return null
@@ -96,10 +97,27 @@ export async function getPublicJob(id: string): Promise<PublicJobRow | null> {
   const now = Date.now()
   // Every rule but the text's length; that one is checked on the text itself below.
   if (!row || !isViewableJob({ ...row, description: null, hasMinDescription: true }, now, ghosts.has(row.id))) return null
-  const text = await retryOnPoolTimeout(() => prisma.exclusiveJobPosting.findUnique({ where: { id }, select: { description: true } }))
-  const job = { ...row, description: text?.description ?? null }
+  const job = { ...row, description: await jobPostingText(id) }
   if (!isViewableJob(job, now, ghosts.has(job.id))) return null
   return { ...job, companyName: cleanCompanyText(job.companyName) }
+}
+
+/**
+ * How long a job's posting text is kept in the shared data cache. The data cache outlives a deploy; the page cache (ISR) does not, so
+ * after every production deploy crawlers re-rendered job pages and each render read the text again: ~128k reads in 7 hours, ~2.2 GB
+ * a day, the top statement in the 2026-11-19 egress alert (11.6 GB a day). The same three days as the page's own revalidate: a
+ * posting whose text is edited shows the old text up to three days, as the cached page already did. Whether the job is still
+ * public is decided on the live row above, never on this copy.
+ */
+const JOB_TEXT_SHARED_SEC = 3 * 86400
+
+function jobPostingText(id: string): Promise<string | null> {
+  return sharedLoad(
+    `job-text:${id}`,
+    JOB_TEXT_SHARED_SEC,
+    () => retryOnPoolTimeout(() => prisma.exclusiveJobPosting.findUnique({ where: { id }, select: { description: true } })).then((r) => r?.description ?? null),
+    { reviveDates: false }
+  )
 }
 
 /**
