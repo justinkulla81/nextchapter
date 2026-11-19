@@ -61,6 +61,17 @@ describe('academic insights', () => {
     expect(gaps[0].gaps[0].gap).toBeCloseTo(0.4)
   })
 
+  it('orders retraining skills by gap, not group size, at most three from one kind of work', () => {
+    const g = (fn: string, alumni: number, rows: [string, number, number, boolean][]) => ({ fn, alumni, postings: 100, gaps: rows.map(([skill, demand, have, rising]) => ({ skill, slug: skill.toLowerCase(), demand, alumni: have, gap: demand - have, rising, ai: false })) })
+    const gaps = [
+      g('Finance', 40, [['A1', 0.3, 0, true], ['A2', 0.2, 0, true], ['A3', 0.15, 0, true], ['A4', 0.14, 0, true]]),
+      g('Data', 20, [['ML', 0.31, 0.09, true], ['AWS', 0.22, 0, true]]),
+    ]
+    const r = retrainingDemand([], new Set(), gaps, [{ name: 'AI for Business', kind: 'program', href: '/p', skills: ['ml'] }])
+    expect(r.skills.map((s) => s.skill)).toEqual(['A1', 'ML', 'AWS', 'A2', 'A3'])
+    expect(r.skills.find((s) => s.skill === 'ML')).toMatchObject({ without: 18, offerings: [{ name: 'AI for Business' }] })
+  })
+
   it('counts each alumnus in need once and matches skills to the college programs', () => {
     const roles: RoleExposure[] = [
       ...Array.from({ length: 5 }, () => ({ title: 'Analyst', occupation: 'Financial Analysts', score: 0.4, employerKey: 'acme' })),
