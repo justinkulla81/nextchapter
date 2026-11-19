@@ -2,10 +2,6 @@
 
 ## Mission
 
-<<<<<<< HEAD
-NextChapter's mission, in the owner's words (2026-11-18): **No professional should go through a career transition alone.**
-Use it as written, one sentence, wherever a deck, page, pitch or email states the mission. Do not reword or extend it.
-=======
 NextChapter's mission and vision, in the owner's words (2026-11-18, replacing "No professional should go through a career
 transition alone"):
 
@@ -15,7 +11,6 @@ transition alone"):
   their next step.
 
 Use them as written wherever a deck, page, pitch or email states the mission or vision. Do not reword, shorten or extend them.
->>>>>>> origin/main
 
 ## Design principles
 
