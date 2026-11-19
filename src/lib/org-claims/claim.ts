@@ -96,6 +96,56 @@ export async function requestOrgClaim(input: RequestClaimInput): Promise<Request
   return { ok: true, email: check.email, needsReview: check.needsReview }
 }
 
+export type QuickClaimResult = { ok: true; email: string } | { ok: false; error: string }
+
+const QUICK_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+
+/**
+ * The simple claim (owner, 2026-11-18): someone on the page enters only their email. No link to click and no name or title first:
+ * the claim goes straight to NextChapter's claims queue (/support/admin/organizations/claims) with the CRM lead and the team email, the
+ * same as a confirmed claim, and a person decides. Approval is what opens the workspace and emails the claimant a sign-in link, so
+ * the address is proven to belong to them there. An address on the organization's own domain is marked a match; any other is
+ * flagged for review, never refused. Same hourly limits per IP and per email as the full claim.
+ */
+export async function requestQuickClaim(input: { slug: string; email: string; ip: string | null }): Promise<QuickClaimResult> {
+  const org = await resolveClaimableOrg(input.slug)
+  if (!org) return { ok: false, error: 'This page is no longer available.' }
+  const email = input.email.trim().toLowerCase()
+  if (email.length > 254 || !QUICK_EMAIL.test(email)) return { ok: false, error: 'Enter your email, like name@organization.org.' }
+  const domain = email.split('@')[1]
+  const orgDomain = cleanDomain(org.emailDomain)
+  const matches = !!orgDomain && (domain === orgDomain || domain.endsWith(`.${orgDomain}`))
+
+  const ipHash = input.ip ? hashIp(input.ip) : null
+  const since = new Date(Date.now() - 3_600_000)
+  const [byIp, byEmail] = await Promise.all([
+    ipHash ? prisma.orgClaim.count({ where: { ipHash, createdAt: { gte: since } } }) : Promise.resolve(0),
+    prisma.orgClaim.count({ where: { email, createdAt: { gte: since } } }),
+  ])
+  if (byIp >= MAX_REQUESTS_PER_IP_PER_HOUR || byEmail >= MAX_REQUESTS_PER_EMAIL_PER_HOUR) {
+    captureServerEvent(`org-claim:${org.id}`, 'org_claim_rejected', { orgId: org.id, slug: org.slug, reason: 'rate_limited' })
+    return { ok: false, error: 'Too many requests from here. Try again in an hour.' }
+  }
+
+  const { tokenHash, expiresAt } = newClaimToken()
+  const now = new Date()
+  const name = email.split('@')[0].replace(/[._-]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()).slice(0, 120) || email
+  const claim = await prisma.orgClaim.create({
+    data: { crmOrganizationId: org.id, name, title: 'Not given (email-only claim)', email, emailDomain: domain, tokenHash, expiresAt, needsReview: !matches, ipHash, verifiedAt: now },
+    select: { id: true },
+  })
+  captureServerEvent(`org-claim:${org.id}`, 'org_quick_claim_requested', { orgId: org.id, slug: org.slug, claimId: claim.id, emailDomain: domain, domainMatch: matches })
+  try {
+    await onClaimVerified({
+      id: claim.id, crmOrganizationId: org.id, orgName: org.name, orgTypes: org.orgTypes.map(String), slug: org.slug, name, title: 'Not given (email-only claim)', email,
+      emailDomain: domain, needsReview: !matches, verifiedAt: now, orgDomain: org.emailDomain ?? null, section: null,
+    })
+  } catch (e) {
+    console.error('onClaimVerified failed for quick claim', claim.id, e)
+  }
+  return { ok: true, email }
+}
+
 /** The facts of a verified claim, as handed to onClaimVerified. */
 export interface VerifiedClaim {
   id: string
