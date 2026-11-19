@@ -1,6 +1,7 @@
 import { NextResponse, type NextFetchEvent, type NextRequest } from 'next/server'
 import { matchAiCrawler } from '@/lib/http/ai-crawlers'
 import { stripTrailingPunctuation } from '@/lib/http/trailing-punctuation'
+import { completeTruncatedTopLevel } from '@/lib/http/truncated-top-level'
 import { orgPortalPathOnMainSite } from '@/lib/http/org-portal-path'
 import { updateSession } from '@/lib/supabase/middleware'
 import { PROTECTED_APP_PATH_PREFIXES, pathStartsWith } from '@/lib/supabase/portal'
@@ -65,9 +66,10 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
   }
 
   // /after-a-layoff. and the like: a link copied out of a sentence with its full stop, comma or closing bracket. No route
-  // ends in punctuation, so send it to the address without it (404 alert, 2026-11-05).
+  // ends in punctuation, so send it to the address without it (404 alert, 2026-11-05). A top-level address cut off where a
+  // line wrapped (/economic-) goes to the one route it starts (src/lib/http/truncated-top-level.ts).
   if (MAIN_HOSTS.has(host) && (request.method === 'GET' || request.method === 'HEAD')) {
-    const clean = stripTrailingPunctuation(pathname)
+    const clean = stripTrailingPunctuation(pathname) ?? completeTruncatedTopLevel(pathname)
     if (clean) {
       const url = request.nextUrl.clone()
       url.pathname = clean
