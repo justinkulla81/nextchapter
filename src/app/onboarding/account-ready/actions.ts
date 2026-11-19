@@ -11,6 +11,7 @@ import { claimSavedJobs } from '@/lib/leads/claim-saved-jobs'
 import { syncCandidateToCrm } from '@/lib/crm/candidate-sync'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { readAccountToken } from '@/lib/leads/light-account'
+import { markJoinedWithResume, startLeadResumeParse } from '@/lib/onboarding/lead-resume'
 import type { AccountReadyState } from '@/components/onboarding/light/AccountReadyForm'
 
 const name = (formData: FormData, key: string) => ((formData.get(key) as string | null) ?? '').trim().replace(/\s+/g, ' ').slice(0, 80)
@@ -49,6 +50,12 @@ export async function openLightAccount(_prev: AccountReadyState, formData: FormD
   })
   const saved = await claimSavedJobs(profile.id, email).catch(() => 0)
   await syncCandidateToCrm(profile.id).catch((e) => console.error('light account CRM sync failed:', e instanceof Error ? e.message : e))
-  captureServerEvent(email, 'light_account_opened', { candidateId: profile.id, isNew: signedIn.isNew, returning: !!profile.lightAccountAt, savedJobs: saved })
-  redirect('/onboarding/your-jobs')
+  // One-click membership (owner decision 2026-11-19): someone who already sent us a résumé (the match box) becomes a member as
+  // soon as it is read. The résumé fills the profile; the questions are left for later, inside the account. They wait on the
+  // reading screen, so registration (and the first report built from the profile) happens only once the résumé is in.
+  const sent = await startLeadResumeParse(profile, email).catch(() => 'not_found' as const)
+  const oneClick = sent === 'started' || sent === 'running'
+  if (oneClick) await markJoinedWithResume(profile.id)
+  captureServerEvent(email, 'light_account_opened', { candidateId: profile.id, isNew: signedIn.isNew, returning: !!profile.lightAccountAt, savedJobs: saved, oneClick })
+  redirect(oneClick ? '/onboarding/resume' : '/onboarding/your-jobs')
 }
