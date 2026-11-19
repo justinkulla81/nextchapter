@@ -21,7 +21,7 @@ export const H2 = 'text-2xl font-bold tracking-tight text-navy'
 export const LINK = 'text-brand underline underline-offset-4'
 
 /** The frame for the programmatic public pages (workforce, higher education by state, rapid response, tools). */
-export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = 'plain', capture, hero, calm, boxFirst, brand, ask, squiggle, situations }: {
+export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = 'plain', capture, hero, calm, boxFirst, brand, ask, squiggle, situations, claimHref }: {
   trail: { name: string; path: string }[]
   h1: string
   lede: ReactNode
@@ -47,9 +47,12 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
   squiggle?: boolean
   /** A place or workforce-board page: the registration ask becomes four situation choices that carry the place (and its board) into onboarding. */
   situations?: SituationAsk
+  /** An organization page that can be claimed: the organization box's button goes to this claim page (owner, 2026-11-18). */
+  claimHref?: string
 }) {
   const st = stateBrandFromSlug(stateSlug)
-  const pull = pullContext(trail)
+  const pullBase = pullContext(trail)
+  const pull = claimHref && 'org' in pullBase.copy ? { ...pullBase, copy: { ...pullBase.copy, href: claimHref } } : pullBase
   const { body, bottom } = withPullCtas(children, pull, { hasCapture: !!capture, isOwnBand: () => false })
   const page = (
     <div className="flex flex-1 flex-col">

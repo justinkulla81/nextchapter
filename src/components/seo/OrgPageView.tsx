@@ -2,7 +2,6 @@ import { LocalEventSection } from '@/components/events/LocalEventSection'
 import { LinkIndex } from '@/components/seo/LinkIndex'
 import { LinkToUs } from '@/components/seo/LinkToUs'
 import { ClaimHint } from '@/components/seo/ClaimHint'
-import { QuickClaimForm } from '@/components/prospects/QuickClaimForm'
 import { peopleWord } from '@/lib/affiliations/public-count-rules'
 import { orgThemeVars } from '@/lib/branding/theme'
 import type { BrandPair } from '@/lib/branding/scan'
@@ -61,7 +60,7 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
       {row.serviceArea && <span className="block text-sm">Service area: {row.serviceArea}</span>}
       {row.label}{row.city ? ` in ${row.city}, ${row.state}` : ` in ${st}`}.{' '}
       {area.statewide || area.counties.length > 0 ? `It serves ${where}, where ${n0(b.jobsOpen)} professional ${b.jobsOpen === 1 ? 'job is' : 'jobs are'} open today.` : ''}
-      <ClaimHint who={`Do you run ${row.name}?`} href={claimSlug ? '#claim' : '/government-workforce#claim'} event="org_page_claim_clicked" properties={{ ...props, hasClaimPage: !!claimSlug, jobsOpen: b.jobsOpen }} />
+      <ClaimHint who={`Do you run ${row.name}?`} href={claimSlug ? `/prepared/${claimSlug}` : '/government-workforce#claim'} event="org_page_claim_clicked" properties={{ ...props, hasClaimPage: !!claimSlug, jobsOpen: b.jobsOpen }} />
     </>
   )
   const vars = orgThemeVars(brand)
@@ -72,6 +71,7 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
       trail={[{ name: ROOT_NAME[row.kind], path: ORG_PAGE_ROOT[row.kind] }, { name: st, path: `${ORG_PAGE_ROOT[row.kind]}/${ss}` }, { name: row.name, path }]}
       h1={h1 ?? row.name}
       lede={lede}
+      claimHref={claimSlug ? `/prepared/${claimSlug}` : undefined}
       jsonLd={orgJsonLd(page, path, hiring.jobs)}
     >
       {row.kind === 'WORKFORCE_BOARD' || row.kind === 'JOB_CENTER' ? (
@@ -204,24 +204,14 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
         showCompany
       />
 
-      {claimSlug ? (
-        <section id="claim" aria-labelledby="claim-h" className="seo-action mt-12 scroll-mt-6 rounded-xl border border-border bg-white p-6">
-          <h2 id="claim-h" className="text-xl font-semibold tracking-tight text-navy">Run {row.name}? Claim this page.</h2>
-          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Enter your work email. We check that you run it, then email you a link to a free workspace for the people you serve.</p>
-          <div className="mt-4">
-            <QuickClaimForm slug={claimSlug} orgName={row.name} />
-          </div>
-        </section>
-      ) : (
-        <ActionBand
+      <ActionBand
         title={`Run ${row.name}?`}
-        body="Claim this page and set up a free workspace. Use a work email at your organization’s domain."
+        body="Claim this page and set up a free workspace. Enter your work email; we check that you run it."
         label="Claim this page"
         href={claimSlug ? `/prepared/${claimSlug}` : '/government-workforce#claim'}
         event="org_page_claim_clicked"
         properties={{ ...props, hasClaimPage: !!claimSlug, jobsOpen: b.jobsOpen }}
       />
-      )}
 
       <AreaNotices
         id="notices"
