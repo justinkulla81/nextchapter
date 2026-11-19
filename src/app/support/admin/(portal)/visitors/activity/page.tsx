@@ -14,6 +14,7 @@ import { loadPaidFunnel } from '@/lib/admin/sem-leads'
 import { paidChannelLabel } from '@/lib/admin/paid-channels'
 import { classifyUserAgent, BOT_SIGNATURES } from '@/lib/http/user-agent'
 import { DATACENTER_CIDRS, isDatacenterIp } from '@/lib/http/datacenter-ip'
+import { notJobPageScrapeSql } from '@/lib/http/job-page-scrape'
 import { loadBotClickNetworks, loadScannerIps } from '@/lib/marketing/mail-scanners'
 import { classifyDevice, classifyBrowser } from '@/lib/http/device'
 import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
@@ -176,7 +177,7 @@ const notChinaScrapeSql = Prisma.sql`NOT ("country" = 'CN' AND "candidateId" IS 
 function botFilterSql(showBots: boolean, scannerIps: Set<string>, scannerBlocks: Set<string> = new Set()): Prisma.Sql {
   if (showBots) return Prisma.sql`TRUE`
   const patterns = BOT_SIGNATURES.map((sig) => `%${sig}%`)
-  const notBot = Prisma.sql`("userAgent" IS NULL OR NOT ("userAgent" ILIKE ANY(${patterns}))) AND ${notChinaScrapeSql} AND ${notCloudSql} AND ${notEmailPrefetchSql}${notScannerBlockSql(scannerBlocks)}`
+  const notBot = Prisma.sql`("userAgent" IS NULL OR NOT ("userAgent" ILIKE ANY(${patterns}))) AND ${notChinaScrapeSql} AND ${notJobPageScrapeSql} AND ${notCloudSql} AND ${notEmailPrefetchSql}${notScannerBlockSql(scannerBlocks)}`
   return scannerIps.size > 0 ? Prisma.sql`${notBot} AND ("ip" IS NULL OR NOT ("ip" = ANY(${Array.from(scannerIps)})))` : notBot
 }
 
@@ -446,7 +447,7 @@ export default async function AdminVisitorActivityPage({
   // (email scanners, crawlers) and not a mail-scanner IP. All traffic: every page view.
   const humanPageView = showBots
     ? Prisma.sql`"eventType" = 'PAGE_VIEW'`
-    : Prisma.sql`"eventType" = 'PAGE_VIEW' AND "userAgent" IS NOT NULL AND NOT ("userAgent" ILIKE ANY(${botPatterns})) AND ${notChinaScrapeSql} AND ${notCloudSql} AND ${notEmailPrefetchSql}${notScannerBlockSql(scannerBlocks)}${
+    : Prisma.sql`"eventType" = 'PAGE_VIEW' AND "userAgent" IS NOT NULL AND NOT ("userAgent" ILIKE ANY(${botPatterns})) AND ${notChinaScrapeSql} AND ${notJobPageScrapeSql} AND ${notCloudSql} AND ${notEmailPrefetchSql}${notScannerBlockSql(scannerBlocks)}${
         scannerIps.size > 0 ? Prisma.sql` AND ("ip" IS NULL OR NOT ("ip" = ANY(${Array.from(scannerIps)})))` : Prisma.empty
       }`
   const viewsLabel = showBots ? 'Page views, all traffic' : 'Human page views'

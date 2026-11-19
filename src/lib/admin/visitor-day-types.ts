@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { classifyUserAgent } from '@/lib/http/user-agent'
 import { isDatacenterIp } from '@/lib/http/datacenter-ip'
+import { isJobPageScrapeVisit } from '@/lib/http/job-page-scrape'
 import { loadScannerIps } from '@/lib/marketing/mail-scanners'
 import { extractEmailLinkId, extractUnsubscribeToken, resolveEmailRecipients, resolveMailingRecipients } from '@/lib/marketing/email-attribution'
 import { userTypeFromCrm, userTypeFromLandingPath, type UserTypeBasis, type VisitorUserType } from '@/lib/admin/visitor-user-type'
@@ -46,8 +47,8 @@ const dayStartUtc = (day: string) => Prisma.sql`(${day}::date::timestamp AT TIME
 export async function snapshotVisitorTypes(day: string): Promise<{ day: string; visitors: number }> {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new Error(`Bad day ${day}`)
   const scannerIps = await loadScannerIps().catch(() => new Set<string>())
-  const grouped = await prisma.$queryRaw<{ ip: string; userAgent: string | null; views: bigint; firstAt: Date; firstPath: string | null; tagged: string[] | null; candidateId: string | null }[]>(Prisma.sql`
-    SELECT "ip", "userAgent", count(*) AS "views", min("createdAt") AS "firstAt",
+  const grouped = await prisma.$queryRaw<{ ip: string; userAgent: string | null; views: bigint; firstAt: Date; firstPath: string | null; tagged: string[] | null; candidateId: string | null; referrer: string | null }[]>(Prisma.sql`
+    SELECT "ip", "userAgent", count(*) AS "views", min("createdAt") AS "firstAt", max("referrer") AS "referrer",
       (array_agg("path" ORDER BY "createdAt"))[1] AS "firstPath",
       array_agg(DISTINCT "path") FILTER (WHERE "path" ~ 'nc_e=' OR "path" LIKE '/updates/unsubscribe/%') AS "tagged",
       max("candidateId") AS "candidateId"
@@ -56,11 +57,11 @@ export async function snapshotVisitorTypes(day: string): Promise<{ day: string; 
       AND "createdAt" >= ${dayStartUtc(day)} AND "createdAt" < ${dayStartUtc(day)} + interval '1 day'
     GROUP BY "ip", "userAgent"`)
 
-  type Acc = { views: number; firstAt: number; firstPath: string | null; paths: string[]; account: boolean }
+  type Acc = { views: number; firstAt: number; firstPath: string | null; paths: string[]; account: boolean; userAgent: string | null; referrer: string | null }
   const byIp = new Map<string, Acc>()
   for (const g of grouped) {
     if (classifyUserAgent(g.userAgent) !== 'human' || isDatacenterIp(g.ip) || scannerIps.has(g.ip)) continue
-    const acc = byIp.get(g.ip) ?? { views: 0, firstAt: Infinity, firstPath: null, paths: [], account: false }
+    const acc = byIp.get(g.ip) ?? { views: 0, firstAt: Infinity, firstPath: null, paths: [], account: false, userAgent: g.userAgent, referrer: null }
     acc.views += Number(g.views)
     if (g.firstAt.getTime() < acc.firstAt) {
       acc.firstAt = g.firstAt.getTime()
@@ -68,7 +69,12 @@ export async function snapshotVisitorTypes(day: string): Promise<{ day: string; 
     }
     acc.paths.push(...(g.tagged ?? []))
     acc.account = acc.account || !!g.candidateId
+    acc.referrer = acc.referrer || g.referrer
     byIp.set(g.ip, acc)
+  }
+  // The job-page scraper (job-page-scrape.ts): one view of one job page all day is not a visitor.
+  for (const [ip, acc] of byIp) {
+    if (isJobPageScrapeVisit({ views: acc.views, firstPath: acc.firstPath, userAgent: acc.userAgent, referrer: acc.referrer, hasAccount: acc.account })) byIp.delete(ip)
   }
   const ips = Array.from(byIp.keys())
   const dayStartApprox = new Date(`${day}T04:00:00Z`) // an Eastern day starts 04:00 or 05:00 UTC; the extra hour is harmless for click matching
