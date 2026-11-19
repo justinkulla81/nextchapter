@@ -2,8 +2,20 @@
 
 ## Mission
 
+<<<<<<< HEAD
 NextChapter's mission, in the owner's words (2026-11-18): **No professional should go through a career transition alone.**
 Use it as written, one sentence, wherever a deck, page, pitch or email states the mission. Do not reword or extend it.
+=======
+NextChapter's mission and vision, in the owner's words (2026-11-18, replacing "No professional should go through a career
+transition alone"):
+
+- **Mission:** Our mission is to ensure every person knows the dignity of work.
+- **Vision:** Jobs sustain people, communities and economies. But work is changing faster than anyone can keep up with alone. We
+  envision a job market where communities come together, so every person has the support, resources and opportunities to take
+  their next step.
+
+Use them as written wherever a deck, page, pitch or email states the mission or vision. Do not reword, shorten or extend them.
+>>>>>>> origin/main
 
 ## Design principles
 
@@ -233,6 +245,14 @@ downloadable `.ics` (`src/lib/conferences/ics.ts`), a draft they copy, a
 - The privacy policy (`src/app/privacy-policy/page.tsx`) states this promise.
   Keep it true, and update the policy in the same change if any of it changes.
 
+## Demos open without a login
+
+Owner rule (2026-11-18): a demo the owner will show or share must open from a public link with no login, or come with
+credentials the owner can share. Never hand the owner a demo that needs their own account, a token they must fetch, or a
+step only an admin can do. The curated demo colleges (`DEMO_TENANTS`, fictional people, read-only) open at
+`https://highered.launchyournextchapter.com/<slug>/guest` (`src/app/i/[slug]/guest/route.ts`); a workforce demo a prospect
+builds opens from its own guest link, which `/demo` shows them. When you give the owner a demo, give that link.
+
 ## Testing with a résumé
 
 Whenever the owner has to test a flow that asks for a résumé, always give them a
@@ -261,6 +281,18 @@ all of it our own server reading large tables over and over. Before you write or
 Check where it stands with `pg_stat_statements` (order by `rows`) and the Usage page's egress chart. The Monday cron
 `db-slow-query-report` (`src/lib/perf/db-report.ts`) emails the week's top statements by time, rows returned and disk reads, the cache
 hit share and the watched tables' growth, so a statement that keeps coming back is the one to fix.
+
+## Vercel Firewall: no real visitor is ever blocked
+
+Owner rule (2026-11-19). On 2026-11-18 the owner was shown "This request was blocked" (403) on the whole site for 5 minutes, because opening
+a few list pages fired ~25 background link prefetches each and passed the 120-requests-a-minute limit of the crawler rule. A customer could
+have hit the same wall. The rule now ignores `Next-Router-Prefetch` requests, allows 300 a minute per IP and blocks for 1 minute; an
+"Owner IP bypass" rule sits first. Any firewall change (Vercel API `/v1/security/firewall/config`) must:
+- never count prefetch (`next-router-prefetch` header) or static assets toward a limit;
+- keep limits far above what a person can do by hand (a page load is ~2 counted requests; a person never makes 300 a minute);
+- keep any block short (1 minute) and never deny by path alone without a rate limit;
+- be checked by loading 3 list pages in a real browser (`/places/<state>/city/<city>`, `/layoffs/<state>`, a salaries page) from a clean IP and counting
+  the matching requests before it ships. Tell the owner what changed.
 
 ## Search indexing: no changes without the owner's approval
 

@@ -12,6 +12,7 @@ import type { PublicPageFormState } from '@/components/public-page/PublicPageEdi
 // Admin › Public page: a college or workforce organization on the paid plan writes its own section on its public page.
 export async function savePublicPageAction(slug: string, _prev: PublicPageFormState, formData: FormData): Promise<PublicPageFormState> {
   const ctx = await requireWorkspace(slug, 'admin', { write: true })
+  if (ctx.units?.length) return { error: 'Only the whole institution’s administrator can change this. Ask them, or NextChapter.' }
   const values = formValues(formData)
   if (!institutionEntitlements({ plan: ctx.institution.plan }).publicPage) return { error: lockedReason('publicPage'), values }
   const inst = await prisma.institution.findUnique({ where: { id: ctx.institution.id }, select: { crmOrganizationId: true, logoUrl: true, profile: true } })

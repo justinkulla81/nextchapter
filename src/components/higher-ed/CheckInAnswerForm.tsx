@@ -8,7 +8,7 @@ import { submitCheckInAnswer } from '@/app/i/[slug]/checkin/[id]/actions'
 
 type Answer = { key: string; label: string }
 
-// Four answers as buttons (design principle 1), the one from the email
+// The answers as buttons (design principle 1), the one from the email
 // preselected, then one click to send.
 export function CheckInAnswerForm(props: {
   slug: string
@@ -38,6 +38,10 @@ export function CheckInAnswerForm(props: {
         ) : done === 'new_manager' ? (
           <p className="text-sm text-muted-foreground">
             Congratulations on the new team. {props.college} has management and leadership programs for alumni; your page shows the ones that fit.
+          </p>
+        ) : done === 'back_to_school' ? (
+          <p className="text-sm text-muted-foreground">
+            Good to hear. {props.college} has degree, certificate and executive programs for alumni; your page shows the ones that fit your field.
           </p>
         ) : done === 'starting_company' ? (
           <p className="text-sm text-muted-foreground">

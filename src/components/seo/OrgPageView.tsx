@@ -71,6 +71,7 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
       trail={[{ name: ROOT_NAME[row.kind], path: ORG_PAGE_ROOT[row.kind] }, { name: st, path: `${ORG_PAGE_ROOT[row.kind]}/${ss}` }, { name: row.name, path }]}
       h1={h1 ?? row.name}
       lede={lede}
+      claimHref={claimSlug ? `/prepared/${claimSlug}` : undefined}
       jsonLd={orgJsonLd(page, path, hiring.jobs)}
     >
       {row.kind === 'WORKFORCE_BOARD' || row.kind === 'JOB_CENTER' ? (
@@ -205,7 +206,7 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
 
       <ActionBand
         title={`Run ${row.name}?`}
-        body="Claim this page and set up a free workspace. Use a work email at your organization’s domain."
+        body="Claim this page and set up a free workspace. Enter your work email; we check that you run it."
         label="Claim this page"
         href={claimSlug ? `/prepared/${claimSlug}` : '/government-workforce#claim'}
         event="org_page_claim_clicked"

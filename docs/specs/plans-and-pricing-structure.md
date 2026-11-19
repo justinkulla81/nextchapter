@@ -43,3 +43,13 @@ Different people can claim different sections (HR operations claims Grow and kee
 Prices for Organization size bands, the Grow and keep bands, the bundle discount, and whether recruiters and coaches ever pay (B2B2C: free for now). Payment collection (a card or invoice flow) is deferred; see IDEAS.md.
 
 Decided 2026-10-23: the website shows plans, not prices.
+
+Decided 2026-11-17 and 2026-11-18 (owner), for colleges and workforce organizations:
+- Free: anyone can join; staff see the first 5 members by name; one administrator; unlimited member companies and invites;
+  two grants shown, the rest blurred (src/lib/plans/entitlements.ts).
+- Paid: one price for the platform, set by the number of alumni (or participants). No per-feature or per-module pricing
+  for now: paid unlocks everything the plan gates, including Development for a paid school or department.
+- A university can have the whole institution, one school or department, or several (InstitutionUnit), each its own
+  account with its own plan. A school's account covers all its departments. Each unit is priced by its own alumni count.
+- Plans are switched by NextChapter staff (Admin > Institutions for an institution, Admin > Accounts for a unit). No
+  self-serve billing yet.

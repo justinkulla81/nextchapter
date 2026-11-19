@@ -21,6 +21,7 @@ import { HubEmployerJobs, HubGroupJobs, HubRegionJobs } from './screens-hub-jobs
 import { HubPartnerViews } from './screens-hub-partners'
 import { HubEcosystem } from './screens-hub-ecosystem'
 import { AcademicPeers, AcademicPrograms, AcademicState } from './screens-academic'
+import { AcademicAtRisk, AcademicEmployers, AcademicRetraining, AcademicSkills } from './screens-academic-insights'
 import { CompanyOverview, CompanySupport, CompanyGrants, CompanyTraining, CompanyColleges, CompanyWorkforce } from './screens-company'
 import { readComms } from '@/lib/census/comms-settings'
 import { CommsToggles, OrgKeysPanel } from '@/components/census/OrgKeysPanel'
@@ -41,6 +42,7 @@ import { OFFICE_NAME_MAX, RENAMABLE_OFFICES, STAFF_ROLE_LABELS, labelFor, office
 import { OrgHomeHero } from '@/components/partners/OrgHomeHero'
 import { HiddenMembersNote } from '@/components/plans/HiddenMembersNote'
 import { AdminRelatedOrgs } from './screens-related'
+import { AdminUnits } from './screens-units'
 import { AdminConnections } from './screens-connections'
 import { AdminPublicPage } from '@/components/public-page/screens-public-page'
 import { listPartnerAudit } from '@/lib/partners/audit'
@@ -70,14 +72,17 @@ import { RECRUITING_DATE_LABELS, EARLY_CAREER_LABELS, splitUpcoming, deadlinePas
 import { StaffInviteForm } from './StaffInviteForm'
 import { LockedFeature } from '@/components/plans/LockedFeature'
 import { EducationAssign, EducationCatalog, EducationGaps } from './screens-education'
-import { PartnerFeed, PartnerGroups, WfFeed, WfFunding, WfGroups, WfPartners } from './screens-wfhub'
+import { HubCohorts } from './screens-cohorts'
+import { PartnerReferrals, WfReferrals } from './screens-referrals'
+import { PartnerFeed, PartnerGroups, WfFeed, WfGroups, WfPartners } from './screens-wfhub'
+import { WfHome } from './screens-wfhome'
 import { institutionEntitlements, trialForLock } from '@/lib/plans/entitlements'
 import { AlumniEngagement, AlumniLayoffs, AlumniOutreach, CareerCheckIns, WaitingForYou } from './screens-outreach'
 import { AlumniData } from './screens-alumni-data'
 import { DevelopmentGrants } from './screens-grants'
 import { SkillsBridgeSection, StaffSkillsBridge } from './screens-bridge'
 import { AlumniInNews, ResearchAndPatents, TeachingGroups } from './screens-campus'
-import { VentureShareCard, VenturesFounders } from './screens-ventures'
+import { VentureShareCard, VenturesFounders, YourVentureCard } from './screens-ventures'
 import { InternshipsScreen } from './screens-internships'
 import { AlumniMentors, CandidateJobs, CareerEmployers, CareerStudents, EmployerDossiersWithIntros, EmployerPage, IntroRequestsCard } from './screens-network'
 import { counselors, searchRoster } from '@/lib/higher-ed/caseload'
@@ -308,6 +313,7 @@ async function CandidateHome({ ctx, base }: ScreenProps) {
       <CareerStatusCard slug={ctx.institution.slug} collegeName={ctx.institution.name} flag={openFlag?.state === 'CLEARED' ? null : (openFlag?.state ?? null)} />
       <IntroRequestsCard ctx={ctx} />
       {kind === 'college' && <VentureShareCard ctx={ctx} base={base} />}
+      {kind === 'college' && <YourVentureCard ctx={ctx} base={base} />}
       <MyProgramCard ctx={ctx} />
       <NewsCard ctx={ctx} />
       <StagePanel ctx={ctx} />
@@ -1061,7 +1067,7 @@ const CONSENT_COPY: Record<string, { label: (c: string) => string; help: string 
   SHARE_DOSSIER_WITH_EMPLOYERS: { label: (c) => `Show my Dossier to employers ${c} approves`, help: 'Employers that hire through your college can see your Dossier and ask for an introduction. You say yes or no each time.' },
   // Workforce programs only: they match people to benefits (Program › People, src/lib/workforce/people-crm.ts).
   // Colleges only: the entrepreneurship center (src/lib/higher-ed/ventures.ts). Off by default; a launched venture is shared as an outcome.
-  SHARE_VENTURE: { label: (c) => `Tell ${c}'s entrepreneurship center I'm building or buying a business`, help: 'Its name, stage, kind, customers, team and funding, so the center can offer office hours, programs, investors and alumni customers. Never runway, hours or money. Once it launches, its name is shared with your outcome.' },
+  SHARE_VENTURE: { label: (c) => `Share my company with ${c}`, help: 'Its name, stage, kind, customers, team, funding and any exit. The entrepreneurship center sees it to offer office hours, programs, investors and alumni customers, and so do the offices that work with founders: Alumni Relations, Advancement, Career Services, lifelong learning and faculty. Never runway, hours or personal money.' },
   SHARE_NEEDS: { label: (c) => `Let ${c} see why I joined and the help I need`, help: 'Whether you are moving here, changing fields or starting out, and the money pressures and barriers you told NextChapter about, like childcare, rent or health coverage, so they can match you to local programs. Never amounts or messages.' },
 }
 
@@ -1559,17 +1565,24 @@ async function AdminActivity({ ctx }: ScreenProps) {
 }
 
 async function SettingsStaff({ ctx }: ScreenProps) {
-  const staff = await prisma.institutionUser.findMany({
-    where: { institutionId: ctx.institution.id },
-    orderBy: [{ revokedAt: { sort: 'asc', nulls: 'first' } }, { fullName: 'asc' }],
-    select: { id: true, fullName: true, invitedEmail: true, role: true, workspace: true, acceptedAt: true, revokedAt: true },
-  })
+  // Staff of a school or department see and manage only their unit's team (owner decision 2026-11-18).
+  const unitIds = ctx.units?.map((u) => u.id) ?? null
+  const [staff, units] = await Promise.all([
+    prisma.institutionUser.findMany({
+      where: { institutionId: ctx.institution.id, ...(unitIds ? { unitId: { in: unitIds } } : {}) },
+      orderBy: [{ revokedAt: { sort: 'asc', nulls: 'first' } }, { fullName: 'asc' }],
+      select: { id: true, fullName: true, invitedEmail: true, role: true, workspace: true, acceptedAt: true, revokedAt: true, unitId: true, unit: { select: { name: true } } },
+    }),
+    unitIds ? Promise.resolve([]) : prisma.institutionUnit.findMany({ where: { institutionId: ctx.institution.id }, orderBy: { name: 'asc' }, select: { id: true, name: true } }),
+  ])
   const canManage = ctx.tokens.has('INSTITUTION_ADMIN') && !ctx.readOnly && !ctx.institution.isDemo
-  // The free plan has one administrator (owner decision 2026-11-17), so the invite form goes once that place is taken.
+  // The free plan has one administrator (owner decision 2026-11-17), so the invite form goes once that place is taken: the
+  // institution's own administrator, or a unit's for a unit's staff.
   const adminLimit = institutionEntitlements({ plan: ctx.institution.plan }).adminLimit
-  const adminSeatTaken = adminLimit !== null && staff.filter((s) => s.role === 'INSTITUTION_ADMIN' && !s.revokedAt).length >= adminLimit
+  const adminSeatTaken = adminLimit !== null && staff.filter((s) => s.role === 'INSTITUTION_ADMIN' && !s.revokedAt && (unitIds ? true : !s.unitId)).length >= adminLimit
   // A role is "locked" when every workspace it would open needs a higher tier.
-  const tier = (await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { tier: true } })).tier
+  // The tier this person works under: a paid school or department opens Development even on a Career-tier university.
+  const tier = ctx.institution.tier
   const lockedRoles: Record<string, string> = {}
   for (const role of Object.keys(STAFF_ROLE_LABELS)) {
     const opens = WORKSPACES.filter((w) => w.release === 'V1' && w.key !== 'candidate' && w.key !== 'employer' && w.requiredRoles.includes(role as never))
@@ -1586,6 +1599,7 @@ async function SettingsStaff({ ctx }: ScreenProps) {
             <td className="px-4 py-2">
               {staffRoleLabel(s.role, orgKindOf(ctx.institution.orgType))}
               {s.workspace ? ` (${getWorkspace(s.workspace)?.label ?? s.workspace}, read-only)` : ''}
+              {s.unit && <span className="block text-xs text-muted-foreground">{s.unit.name}</span>}
             </td>
             <td className="px-4 py-2">{s.revokedAt ? 'Removed' : s.acceptedAt ? 'Active' : 'Invited'}</td>
             <td className="px-4 py-2">
@@ -1609,7 +1623,7 @@ async function SettingsStaff({ ctx }: ScreenProps) {
       ) : adminSeatTaken ? (
         <p className="text-sm text-muted-foreground">The free plan has one administrator, and that place is taken.</p>
       ) : (
-        <StaffInviteForm inviteAction={inviteStaff.bind(null, ctx.institution.slug)} lockedRoles={lockedRoles} adminOnly={!institutionEntitlements({ plan: ctx.institution.plan }).staffRoles} kind={orgKindOf(ctx.institution.orgType)} />
+        <StaffInviteForm inviteAction={inviteStaff.bind(null, ctx.institution.slug)} lockedRoles={lockedRoles} adminOnly={!institutionEntitlements({ plan: ctx.institution.plan }).staffRoles} kind={orgKindOf(ctx.institution.orgType)} units={ctx.units?.length ? ctx.units.map((u) => ({ id: u.id, name: u.name })) : units} unitRequired={!!ctx.units?.length} />
       )}
       {!institutionEntitlements({ plan: ctx.institution.plan }).staffRoles && <LockedFeature feature="staffRoles" slug={ctx.institution.slug} plan={ctx.institution.plan} trial={trialForLock(ctx.institution)} compact />}
     </div>
@@ -1727,7 +1741,11 @@ async function StaffConnectScreen(props: ScreenProps) {
 
 export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'candidate:home': CandidateHome,
-  'academic:home': AcademicPrograms,
+  'academic:home': AcademicAtRisk,
+  'academic:skills': AcademicSkills,
+  'academic:employers': AcademicEmployers,
+  'academic:retraining': AcademicRetraining,
+  'academic:programs': AcademicPrograms,
   'academic:state': AcademicState,
   'academic:peers': AcademicPeers,
   'candidate:groups': CandidateGroups,
@@ -1793,6 +1811,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'development:grants': DevelopmentGrants,
   'admin:grants': DevelopmentGrants,
   'admin:related': AdminRelatedOrgs,
+  'admin:units': AdminUnits,
   'admin:connections': AdminConnections,
   'admin:publicpage': AdminPublicPage,
   // A workforce organization's Admin pages that moved (owner, 2026-11-18); a college keeps them in Admin.
@@ -1807,6 +1826,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'hub:companies': HubCompanies,
   'hub:layoffs': HubLayoffs,
   'hub:participants': HubPeople,
+  'hub:cohorts': HubCohorts,
   'hub:local': HubLocal,
   'hub:pipeline': HubPipeline,
   'hub:jobs': HubJobs,
@@ -1835,9 +1855,10 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'wfhub:applications': HubApplications,
   'hub:report': HubReport,
   'hub:skillsgap': HubSkillsGaps,
-  'wfhub:funding': WfFunding,
+  'wfhub:home': WfHome,
   'partnerhub:partners': WfPartners,
   'partnerhub:groups': WfGroups,
+  'partnerhub:referrals': WfReferrals,
   'partnerhub:feed': WfFeed,
   'partnerview:groups': PartnerGroups,
   'partnerview:feed': PartnerFeed,

@@ -64,6 +64,77 @@ export function detailLines(d: StartDetails): string[] {
   return out
 }
 
+export const FUNDING_ROUNDS = [
+  ['bootstrapped', 'Self-funded'],
+  ['grant', 'Grants or competitions'],
+  ['pre_seed', 'Pre-seed'],
+  ['seed', 'Seed'],
+  ['series_a', 'Series A'],
+  ['series_b_plus', 'Series B or later'],
+] as const
+export const FUNDING_TOTALS = [
+  ['under_250k', 'Under $250K'],
+  ['250k_1m', '$250K to $1M'],
+  ['1m_5m', '$1M to $5M'],
+  ['5m_20m', '$5M to $20M'],
+  ['over_20m', 'Over $20M'],
+] as const
+export const EXIT_KINDS = [
+  ['acquired', 'Acquired'],
+  ['ipo', 'Went public'],
+  ['closed', 'Closed'],
+] as const
+const label = (list: readonly (readonly [string, string])[], v: string | null | undefined) => list.find(([k]) => k === v)?.[1] ?? null
+
+/** Funding and exit in words, for the Founders list. */
+export function fundingLine(f: { fundingRound: string | null; fundingTotal: string | null; exitKind: string | null; exitAcquirer: string | null; exitYear: number | null }): string[] {
+  const out: string[] = []
+  const round = label(FUNDING_ROUNDS, f.fundingRound)
+  const total = label(FUNDING_TOTALS, f.fundingTotal)
+  if (round || total) out.push([round, total ? `${total} raised` : null].filter(Boolean).join(' · '))
+  const exit = label(EXIT_KINDS, f.exitKind)
+  if (exit) out.push([f.exitKind === 'acquired' && f.exitAcquirer ? `Acquired by ${f.exitAcquirer}` : exit, f.exitYear ? String(f.exitYear) : null].filter(Boolean).join(', '))
+  return out
+}
+
+export type VentureReport = { ventureName: string; website: string | null; fundingRound: string | null; fundingTotal: string | null; exitKind: string | null; exitAcquirer: string | null; exitYear: number | null }
+
+/** Clean what the alum typed. Returns an error in plain words, or the report. */
+export function parseVentureReport(f: FormData, year = new Date().getUTCFullYear()): { error: string } | VentureReport {
+  const s = (k: string, max: number) => String(f.get(k) ?? '').replace(/\s+/g, ' ').trim().slice(0, max)
+  const ventureName = s('ventureName', 120)
+  if (!ventureName) return { error: 'Add the name of your company.' }
+  let website: string | null = s('website', 200) || null
+  if (website) {
+    try {
+      const u = new URL(/^https?:\/\//i.test(website) ? website : `https://${website}`)
+      website = u.protocol === 'https:' || u.protocol === 'http:' ? u.toString() : null
+    } catch {
+      return { error: 'That website address doesn’t look right. Try something like example.com.' }
+    }
+  }
+  const pick = (k: string, list: readonly (readonly [string, string])[]) => {
+    const v = s(k, 40)
+    return list.some(([x]) => x === v) ? v : null
+  }
+  const exitKind = pick('exitKind', EXIT_KINDS)
+  const y = Number(s('exitYear', 4))
+  const exitYear = exitKind && Number.isInteger(y) && y >= 1950 && y <= year ? y : null
+  return { ventureName, website, fundingRound: pick('fundingRound', FUNDING_ROUNDS), fundingTotal: pick('fundingTotal', FUNDING_TOTALS), exitKind, exitAcquirer: exitKind === 'acquired' ? s('exitAcquirer', 120) || null : null, exitYear }
+}
+
+/** The alum reports their venture: it is shared with the center (SHARE_VENTURE is switched on by the caller) and marked started. */
+export async function saveVentureReport(institutionId: string, memberId: string, r: VentureReport, now = new Date()) {
+  const existing = await prisma.ventureFlag.findUnique({ where: { institutionId_memberId: { institutionId, memberId } }, select: { id: true, status: true } })
+  const data = { ...r, reportedAt: now }
+  if (existing) {
+    await prisma.ventureFlag.update({ where: { id: existing.id }, data: { ...data, status: 'STARTED', ...(existing.status !== 'STARTED' ? { startedAt: now } : {}) } })
+  } else {
+    await prisma.ventureFlag.create({ data: { institutionId, memberId, status: 'STARTED', source: 'SHARED', firstFlaggedAt: now, startedAt: now, ...data } })
+  }
+  captureServerEvent(`member:${memberId}`, 'he_venture_updated', { institutionId, memberId, fundingRound: r.fundingRound, fundingTotal: r.fundingTotal, exitKind: r.exitKind, created: !existing })
+}
+
 /** The member said "I'm starting a company" in a check-in: flag them now (they told the college). */
 export async function flagFromCheckIn(memberId: string, institutionId: string, now = new Date()) {
   const existing = await prisma.ventureFlag.findUnique({ where: { institutionId_memberId: { institutionId, memberId } }, select: { id: true } })
@@ -71,6 +142,8 @@ export async function flagFromCheckIn(memberId: string, institutionId: string, n
   await prisma.ventureFlag.create({ data: { institutionId, memberId, status: 'CONSIDERING', source: 'CHECK_IN', firstFlaggedAt: now } })
   captureServerEvent(`member:${memberId}`, 'he_venture_flagged', { institutionId, memberId, status: 'CONSIDERING', source: 'CHECK_IN' })
 }
+
+const NO_DETAILS = { ventureName: null, ventureStage: null, website: null, fundingRound: null, fundingTotal: null, exitKind: null, exitAcquirer: null, exitYear: null, reportedAt: null }
 
 type Want = { status: VentureStatus; source: VentureSource; ventureName: string | null; ventureStage: string | null }
 
@@ -99,7 +172,7 @@ export async function syncVentureFlags(institutionId: string, now = new Date()):
         and coalesce((select ic.granted from public."InstitutionConsent" ic where ic."memberId" = m.id and ic.scope = 'SHARE_OUTCOME' order by ic."changedAt" desc limit 1), true)
       order by o."memberId", o."reportedAt" desc
       limit 500`,
-    prisma.ventureFlag.findMany({ where: { institutionId }, select: { id: true, memberId: true, status: true, source: true, ventureName: true, ventureStage: true } }),
+    prisma.ventureFlag.findMany({ where: { institutionId }, select: { id: true, memberId: true, status: true, source: true, ventureName: true, ventureStage: true, reportedAt: true } }),
   ])
 
   const want = new Map<string, Want>()
@@ -117,6 +190,16 @@ export async function syncVentureFlags(institutionId: string, now = new Date()):
     want.set(j.memberId, { status: 'STARTED', source: had?.source ?? 'OUTCOME', ventureName: had?.ventureName ?? j.company, ventureStage: had?.ventureStage ?? null })
   }
 
+  // Ventures the alum reported on their portal stay while they share them (SHARE_VENTURE), journey or not.
+  const reportedIds = existing.filter((e) => e.reportedAt).map((e) => e.memberId)
+  const reportedShared = new Set<string>()
+  if (reportedIds.length) {
+    const consents = await prisma.institutionConsent.findMany({ where: { memberId: { in: reportedIds }, scope: 'SHARE_VENTURE' }, orderBy: { changedAt: 'desc' }, select: { memberId: true, granted: true } })
+    const latest = new Map<string, boolean>()
+    for (const c of consents) if (!latest.has(c.memberId)) latest.set(c.memberId, c.granted)
+    for (const id of reportedIds) if (latest.get(id) === true) reportedShared.add(id)
+  }
+
   let created = 0
   let started = 0
   let removed = 0
@@ -132,8 +215,10 @@ export async function syncVentureFlags(institutionId: string, now = new Date()):
     // Never step a started venture back; a check-in flag keeps its source.
     const status: VentureStatus = e.status === 'STARTED' || w.status === 'STARTED' ? 'STARTED' : 'CONSIDERING'
     const source = e.source === 'CHECK_IN' && w.source === 'SHARED' ? 'CHECK_IN' : w.source
-    if (status !== e.status || source !== e.source || w.ventureName !== e.ventureName || w.ventureStage !== e.ventureStage) {
-      await prisma.ventureFlag.update({ where: { id: e.id }, data: { status, source, ventureName: w.ventureName, ventureStage: w.ventureStage, ...(status === 'STARTED' && e.status !== 'STARTED' ? { startedAt: now } : {}) } })
+    // A name the alum typed on their portal wins over an empty one from the profile.
+    const ventureName = w.ventureName ?? (reportedShared.has(memberId) ? e.ventureName : null)
+    if (status !== e.status || source !== e.source || ventureName !== e.ventureName || w.ventureStage !== e.ventureStage) {
+      await prisma.ventureFlag.update({ where: { id: e.id }, data: { status, source, ventureName, ventureStage: w.ventureStage, ...(status === 'STARTED' && e.status !== 'STARTED' ? { startedAt: now } : {}) } })
       if (status === 'STARTED' && e.status !== 'STARTED') {
         captureServerEvent(`member:${memberId}`, 'he_venture_flagged', { institutionId, memberId, status, source })
         started++
@@ -142,8 +227,9 @@ export async function syncVentureFlags(institutionId: string, now = new Date()):
   }
   // Shared flags whose sharing was switched off go; a check-in flag stays, but loses any shared details.
   for (const e of existing) {
-    if (want.has(e.memberId) || e.source === 'CHECK_IN') {
-      if (!want.has(e.memberId) && e.source === 'CHECK_IN' && (e.ventureName || e.ventureStage)) await prisma.ventureFlag.update({ where: { id: e.id }, data: { ventureName: null, ventureStage: null } })
+    if (want.has(e.memberId) || reportedShared.has(e.memberId)) continue
+    if (e.source === 'CHECK_IN') {
+      if (e.ventureName || e.ventureStage || e.reportedAt) await prisma.ventureFlag.update({ where: { id: e.id }, data: { ...NO_DETAILS } })
       continue
     }
     await prisma.ventureFlag.delete({ where: { id: e.id } })
@@ -167,15 +253,17 @@ export type VentureRow = {
   firstFlaggedAt: Date
   startedAt: Date | null
   contactedAt: Date | null
+  website: string | null
+  funding: string[]
 }
 
 /** Staff list, newest first: started ventures, then people thinking about one. Details only for members who share the venture. */
 export async function ventureFlags(institutionId: string, limit = 200): Promise<VentureRow[]> {
   const rows = await prisma.$queryRaw<
-    { id: string; memberId: string; firstName: string | null; lastName: string | null; classYear: number | null; email: string; status: string; source: string; ventureName: string | null; ventureStage: string | null; firstFlaggedAt: Date; startedAt: Date | null; contactedAt: Date | null; candidateId: string | null }[]
+    { id: string; memberId: string; firstName: string | null; lastName: string | null; classYear: number | null; email: string; status: string; source: string; ventureName: string | null; ventureStage: string | null; firstFlaggedAt: Date; startedAt: Date | null; contactedAt: Date | null; candidateId: string | null; website: string | null; fundingRound: string | null; fundingTotal: string | null; exitKind: string | null; exitAcquirer: string | null; exitYear: number | null }[]
   >`
     select f.id, f."memberId", m."firstName", m."lastName", m."classYear", m.email, f.status, f.source, f."ventureName", f."ventureStage",
-      f."firstFlaggedAt", f."startedAt", f."contactedAt", m."candidateId"
+      f."firstFlaggedAt", f."startedAt", f."contactedAt", m."candidateId", f.website, f."fundingRound", f."fundingTotal", f."exitKind", f."exitAcquirer", f."exitYear"
     from public."VentureFlag" f join public."InstitutionMember" m on m.id = f."memberId"
     where f."institutionId" = ${institutionId} ${await visibleMemberSqlFor(institutionId, Prisma.sql`m.id`)}
     order by (f.status = 'STARTED') desc, coalesce(f."startedAt", f."firstFlaggedAt") desc
@@ -199,11 +287,13 @@ export async function ventureFlags(institutionId: string, limit = 200): Promise<
     firstFlaggedAt: r.firstFlaggedAt,
     startedAt: r.startedAt,
     contactedAt: r.contactedAt,
+    website: r.website,
+    funding: fundingLine(r),
   }))
 }
 
 /** One member's flag, for the member record every office sees. */
 export async function ventureForMember(memberId: string) {
-  const f = await prisma.ventureFlag.findFirst({ where: { memberId }, select: { status: true, source: true, ventureName: true, ventureStage: true, contactedAt: true } })
+  const f = await prisma.ventureFlag.findFirst({ where: { memberId }, select: { status: true, source: true, ventureName: true, ventureStage: true, contactedAt: true, website: true, fundingRound: true, fundingTotal: true, exitKind: true, exitAcquirer: true, exitYear: true, reportedAt: true } })
   return f ? { ...f, stage: stageLabel(f.ventureStage) } : null
 }

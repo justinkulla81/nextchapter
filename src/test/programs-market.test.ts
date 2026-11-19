@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import index from '@/lib/rankings/data/college-index.json'
 import { loadCollegeMajors } from '@/lib/rankings/college-majors'
-import { mixOf, peersOf, programsMarket, standingOf, type CollegeIndex } from '@/lib/higher-ed/programs-market'
+import { classificationGroup, mixOf, peersOf, programsMarket, selectivityBand, standingOf, type CollegeIndex } from '@/lib/higher-ed/programs-market'
 import type { DegreeFieldFigure, DegreeFieldFigures } from '@/lib/rankings/degrees-specs'
 
 const IDX = index as unknown as CollegeIndex
@@ -25,14 +25,32 @@ describe('programs vs. market', () => {
     expect(mixOf({ 'Computer science and IT': 10, Nursing: 5 }, 20, figures, 15)).toEqual({ above: 10, below: 0, unmeasured: 5, many: 5 })
   })
 
-  it('finds similar colleges of the same control and size, in the state first', () => {
-    const p = peersOf('139755', IDX)
-    expect(p.ids.length).toBeGreaterThanOrEqual(3)
-    expect(p.ids).not.toContain('139755')
-    for (const id of p.ids) {
-      expect(IDX[id][2]).toBe('Public')
-      expect(IDX[id][3]).toBeGreaterThanOrEqual(Math.floor(IDX['139755'][3] / 2))
+  it('suggests peers of the same classification and selectivity, public and private alike', () => {
+    const cmu = peersOf('211440', IDX)
+    expect(cmu.chosen).toBe(false)
+    expect(cmu.ids.length).toBe(12)
+    expect(cmu.scope).toMatch(/R1 research universities .* admitting under 15% of applicants/)
+    for (const id of cmu.ids) {
+      expect(IDX[id][6]).toBe(15)
+      expect(IDX[id][7]).toBeLessThan(15)
     }
+    expect(cmu.ids).toContain('110635') // UC Berkeley, public, 11.7%
+    expect(new Set(cmu.ids.map((id) => IDX[id][2])).size).toBeGreaterThan(1)
+    expect(selectivityBand(11.4)?.key).toBe('most')
+    expect(selectivityBand(null)).toBeNull()
+    expect(classificationGroup(19)?.key).toBe('masters')
+  })
+
+  it('uses the peer group a college chose, and drops itself and unknown ids', () => {
+    const p = peersOf('211440', IDX, ['166683', '166027', '243744', '110635', '186131', '211440', 'nope', '166683'])
+    expect(p).toEqual({ scope: 'chosen by your team', ids: ['166683', '166027', '243744', '110635', '186131'], chosen: true })
+  })
+
+  it('falls back to control and size without an admission rate, and says so when a classification has too few', () => {
+    const lone: CollegeIndex = { a: ['A', 'PA', 'Public', 1000, 900, {}, 15], b: ['B', 'PA', 'Public', 1100, 900, {}, 18], c: ['C', 'OH', 'Public', 900, 900, {}, 18] }
+    const p = peersOf('a', lone)
+    expect(p.ids).toEqual(['b', 'c'].sort((x, y) => Math.abs(lone[x][3] - 1000) - Math.abs(lone[y][3] - 1000) || x.localeCompare(y)))
+    expect(p.scope).toMatch(/not matched on classification/)
   })
 
   it('builds the three screens from federal files and the stored field rows', async () => {
@@ -49,6 +67,9 @@ describe('programs vs. market', () => {
     expect(cs.shareOfState).toBeGreaterThan(0.2)
     expect(d.stateFields.find((f) => f.field === 'Health professions and medicine')?.covered).toBe(false)
     expect(d.peers.rows.filter((r) => r.me)).toHaveLength(1)
+    const chosen = programsMarket({ unitid: '139755', raw, index: IDX, figures, previous, chosenPeers: ['211440'] })!
+    expect(chosen.peers.chosen).toBe(true)
+    expect(chosen.peers.rows.map((r) => r.name)).toEqual(expect.arrayContaining(['Carnegie Mellon University']))
     expect(d.previousEdition).toBe('2026-10')
   })
 

@@ -43,6 +43,7 @@ export default async function ClaimsToApprovePage() {
                 <p className="text-sm">
                   <span className="font-medium">{c.name}</span>, {c.title} · {c.email}
                 </p>
+                {c.unit && <p className="text-sm font-medium">For one school or department: {c.unit}. Approving opens that unit&apos;s own free account, with them as its administrator.</p>}
                 {c.invitedBy && <p className="text-sm text-muted-foreground">Invited by {c.invitedBy}. Approving connects the two.</p>}
                 <p className={c.needsReview ? 'text-sm text-amber-900' : 'text-sm text-muted-foreground'}>
                   {c.needsReview

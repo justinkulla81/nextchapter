@@ -9,8 +9,30 @@
 import { collegeMajorsView, type CollegeMajorRow, type RawCollegeMajor } from '@/lib/rankings/college-majors'
 import type { DegreeFieldFigure, DegreeFieldFigures } from '@/lib/rankings/degrees-specs'
 
-/** [name, state, control, degrees, base-year degrees, {degree field: degrees}] (college-index.json). */
-export type CollegeIndexRow = [string, string, string | null, number, number, Record<string, number>]
+/** [name, state, control, degrees, base-year degrees, {degree field: degrees}, 2021 Carnegie basic classification, admission rate %] (college-index.json). */
+export type CollegeIndexRow = [string, string, string | null, number, number, Record<string, number>, (number | null)?, (number | null)?]
+
+/** Selectivity bands from the admission rate (IPEDS fall 2023); null when the college reports none (open admission). */
+export function selectivityBand(rate: number | null | undefined): { key: string; label: string } | null {
+  if (rate == null) return null
+  if (rate < 15) return { key: 'most', label: 'admitting under 15% of applicants' }
+  if (rate < 35) return { key: 'very', label: 'admitting 15% to 35% of applicants' }
+  if (rate < 60) return { key: 'more', label: 'admitting 35% to 60% of applicants' }
+  return { key: 'open', label: 'admitting 60% or more of applicants' }
+}
+
+/** Peer groups from the 2021 Carnegie basic classification: R1 and R2 apart, the master's and baccalaureate sizes together. */
+export function classificationGroup(code: number | null | undefined): { key: string; label: string } | null {
+  if (code == null) return null
+  if (code === 15) return { key: 'r1', label: 'R1 research universities (very high research)' }
+  if (code === 16) return { key: 'r2', label: 'R2 research universities (high research)' }
+  if (code === 17) return { key: 'dpu', label: 'doctoral and professional universities' }
+  if (code >= 18 && code <= 20) return { key: 'masters', label: "master's colleges and universities" }
+  if (code >= 21 && code <= 23) return { key: 'bacc', label: 'baccalaureate colleges' }
+  if (code >= 24 && code <= 33) return { key: 'special', label: 'special-focus institutions' }
+  if (code >= 1 && code <= 14) return { key: 'assoc', label: 'associate and baccalaureate/associate colleges' }
+  return null
+}
 export type CollegeIndex = Record<string, CollegeIndexRow>
 
 export type FieldStanding = 'above' | 'below' | 'unmeasured' | 'many'
@@ -24,15 +46,14 @@ export interface StateFieldRow {
   /** Degrees a year in the field at every college in the state, and this college's share of them. */
   stateGrads: number
   shareOfState: number
-  /** Open jobs in the state, per 100 of the state's graduates, and the national figure beside it; null when not measured. */
+  /** Open jobs in the state and per 100 of the state's graduates; null when not measured. Read against the state's own all-fields figure (stateAllPerHundred), never the national one: a national count also holds remote roles and postings with no state. */
   stateOpen: number | null
   statePerHundred: number | null
-  usPerHundred: number | null
   statePay: number | null
   covered: boolean
 }
 
-export interface PeerRow { unitid: string; name: string; state: string; total: number; change: number | null; aboveShare: number | null; topField: string | null; me: boolean }
+export interface PeerRow { unitid: string; name: string; state: string; control: string | null; admitRate: number | null; total: number; change: number | null; aboveShare: number | null; topField: string | null; me: boolean }
 
 export interface ProgramsMarket {
   name: string
@@ -49,7 +70,7 @@ export interface ProgramsMarket {
   rows: (CollegeMajorRow & { standing: FieldStanding; usOpenChange: number | null })[]
   stateFields: StateFieldRow[]
   stateAllPerHundred: number | null
-  peers: { scope: string; rows: PeerRow[]; median: number | null }
+  peers: { scope: string; chosen: boolean; rows: PeerRow[]; median: number | null }
 }
 
 const pct = (a: number, b: number) => (b > 0 ? a / b : 0)
@@ -85,20 +106,49 @@ const median = (xs: number[]) => {
 const MIN_PEERS = 8
 const MAX_PEERS = 12
 
-/** Similar colleges: same control, a half to double the degrees a year, the same state first and the country if it has too few. */
-export function peersOf(unitid: string, index: CollegeIndex): { scope: string; ids: string[] } {
+/** Most peers shown, and most a college can choose. */
+export const MAX_CHOSEN_PEERS = 20
+
+/**
+ * The colleges a college is compared with. Its own list when its team chose one (Institution.profile.peerUnitids). Otherwise
+ * colleges of the same Carnegie classification group and selectivity band, public and private alike, closest in admission
+ * rate and then size; without a band (no admission rate), the same classification and control at a half to double the size.
+ * With fewer than 3 such colleges, control and size alone, and the scope says so.
+ */
+export function peersOf(unitid: string, index: CollegeIndex, chosen: string[] = []): { scope: string; ids: string[]; chosen: boolean } {
   const me = index[unitid]
-  if (!me) return { scope: '', ids: [] }
+  if (!me) return { scope: '', ids: [], chosen: false }
+  const own = [...new Set(chosen)].filter((id) => id !== unitid && index[id]).slice(0, MAX_CHOSEN_PEERS)
+  if (own.length > 0) return { scope: 'chosen by your team', ids: own, chosen: true }
   const [, state, control, total] = me
+  const group = classificationGroup(me[6])
+  const band = selectivityBand(me[7])
+  const rate = me[7]
+  const others = Object.entries(index).filter(([id]) => id !== unitid)
+  const bySize = (a: [string, CollegeIndexRow], b: [string, CollegeIndexRow]) => Math.abs(a[1][3] - total) - Math.abs(b[1][3] - total) || a[0].localeCompare(b[0])
+  if (group && band && rate != null) {
+    const matched = others.filter(([, r]) => classificationGroup(r[6])?.key === group.key && selectivityBand(r[7])?.key === band.key)
+    if (matched.length >= 3) {
+      const ids = matched.sort((a, b) => Math.abs((a[1][7] ?? 0) - rate) - Math.abs((b[1][7] ?? 0) - rate) || bySize(a, b)).slice(0, MAX_PEERS).map(([id]) => id)
+      return { scope: `${group.label} ${band.label}, public and private, closest in admission rate`, ids, chosen: false }
+    }
+  }
   const lo = Math.floor(total / 2)
   const hi = total * 2
-  const pool = Object.entries(index).filter(([id, r]) => id !== unitid && r[2] === control && r[3] >= lo && r[3] <= hi)
-  const near = (rows: typeof pool) => rows.sort((a, b) => Math.abs(a[1][3] - total) - Math.abs(b[1][3] - total) || a[0].localeCompare(b[0])).slice(0, MAX_PEERS).map(([id]) => id)
-  const inState = pool.filter(([, r]) => r[1] === state)
+  const pool = others.filter(([, r]) => r[2] === control && r[3] >= lo && r[3] <= hi)
+  const near = (rows: typeof pool) => [...rows].sort(bySize).slice(0, MAX_PEERS).map(([id]) => id)
   const range = `${lo.toLocaleString('en-US')} to ${hi.toLocaleString('en-US')} degrees a year`
   const kind = (control ?? 'Other').toLowerCase()
-  if (inState.length >= MIN_PEERS) return { scope: `${kind} colleges in ${state} awarding ${range}`, ids: near(inState) }
-  return { scope: `${kind} colleges nationwide awarding ${range}`, ids: near(pool) }
+  const classed = group ? pool.filter(([, r]) => classificationGroup(r[6])?.key === group.key) : []
+  if (group && classed.length >= 3) {
+    const inState = classed.filter(([, r]) => r[1] === state)
+    if (inState.length >= MIN_PEERS) return { scope: `${kind} ${group.label} in ${state} awarding ${range}`, ids: near(inState), chosen: false }
+    return { scope: `${kind} ${group.label} nationwide awarding ${range}`, ids: near(classed), chosen: false }
+  }
+  const inState = pool.filter(([, r]) => r[1] === state)
+  const note = group ? ` (fewer than 3 ${group.label} of this size, so not matched on classification)` : ''
+  if (inState.length >= MIN_PEERS) return { scope: `${kind} colleges in ${state} awarding ${range}${note}`, ids: near(inState), chosen: false }
+  return { scope: `${kind} colleges nationwide awarding ${range}${note}`, ids: near(pool), chosen: false }
 }
 
 export function programsMarket(input: {
@@ -107,6 +157,8 @@ export function programsMarket(input: {
   index: CollegeIndex
   figures: DegreeFieldFigures | null
   previous: DegreeFieldFigures | null
+  /** The peers the college's team chose, if any (Institution.profile.peerUnitids). */
+  chosenPeers?: string[]
 }): ProgramsMarket | null {
   const { unitid, raw, index, figures, previous } = input
   const me = index[unitid]
@@ -139,7 +191,6 @@ export function programsMarket(input: {
       field, here: byField[field] ?? 0, stateGrads: grads, shareOfState: pct(byField[field] ?? 0, grads),
       stateOpen: covered ? jobs?.[0] ?? 0 : null,
       statePerHundred: covered && grads >= 100 ? Math.round(((jobs?.[0] ?? 0) / grads) * 1000) / 10 : null,
-      usPerHundred: covered ? f?.perHundred ?? null : null,
       statePay: jobs?.[1] ?? null,
       covered,
     }
@@ -148,12 +199,12 @@ export function programsMarket(input: {
   const sGrads = measured.reduce((s, x) => s + x.stateGrads, 0)
   const stateAllPerHundred = figures?.states?.[state] && sGrads > 0 ? Math.round((measured.reduce((s, x) => s + (x.stateOpen ?? 0), 0) / sGrads) * 1000) / 10 : null
 
-  const peerSet = peersOf(unitid, index)
+  const peerSet = peersOf(unitid, index, input.chosenPeers)
   const peerRow = (id: string, isMe: boolean): PeerRow => {
     const r = index[id]
     const m = mixOf(r[5], r[3], figures, allFields)
     const top = Object.entries(r[5]).sort((a, b) => b[1] - a[1])[0]
-    return { unitid: id, name: r[0], state: r[1], total: r[3], change: r[4] >= 50 ? ((r[3] - r[4]) / r[4]) * 100 : null, aboveShare: aboveShareOf(m), topField: top?.[0] ?? null, me: isMe }
+    return { unitid: id, name: r[0], state: r[1], control: r[2], admitRate: r[7] ?? null, total: r[3], change: r[4] >= 50 ? ((r[3] - r[4]) / r[4]) * 100 : null, aboveShare: aboveShareOf(m), topField: top?.[0] ?? null, me: isMe }
   }
   const peerRows = peerSet.ids.map((id) => peerRow(id, false))
   const shares = peerRows.map((p) => p.aboveShare).filter((x): x is number => x != null)
@@ -163,6 +214,6 @@ export function programsMarket(input: {
     total, change: total0 >= 50 ? ((total - total0) / total0) * 100 : null,
     mix, aboveShare: figures ? aboveShareOf(mix) : null, allFieldsPerHundred: allFields,
     rows, stateFields, stateAllPerHundred,
-    peers: { scope: peerSet.scope, rows: [peerRow(unitid, true), ...peerRows].sort((a, b) => (b.aboveShare ?? -1) - (a.aboveShare ?? -1)), median: figures ? median(shares) : null },
+    peers: { scope: peerSet.scope, chosen: peerSet.chosen, rows: [peerRow(unitid, true), ...peerRows].sort((a, b) => (b.aboveShare ?? -1) - (a.aboveShare ?? -1)), median: figures ? median(shares) : null },
   }
 }

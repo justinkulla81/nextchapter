@@ -36,6 +36,8 @@ export type InstitutionBranding = {
   orgType: InstitutionOrgType
 }
 
+export type UnitScope = { id: string; name: string; school: string; department: string | null }
+
 export type InstitutionAccess = {
   institution: InstitutionBranding
   userId: string
@@ -55,7 +57,10 @@ export type InstitutionAccess = {
   // site's (members only), or a demo guest pass.
   via?: 'org' | 'candidate' | 'guest'
   demoPersona: string | null
-  staffUsers: { id: string; role: InstitutionUserRole; workspace: string | null }[]
+  staffUsers: { id: string; role: InstitutionUserRole; workspace: string | null; unitId?: string | null }[]
+  // The schools or departments this person's staff seats are limited to (InstitutionUnit). Null or absent = the whole
+  // institution. Their members are only the alumni of those units, and `institution.plan` is the units' plan.
+  units?: UnitScope[] | null
   memberId: string | null
   employerProfileIds: string[]
   // The member company a contact works for (MemberCompanyContact), when they hold a role there and not the whole company.
@@ -122,7 +127,7 @@ export async function resolveInstitutionAccess(
   const [staffUsers, member, employerLinks, ncAdmin, contacts, partnerContacts] = await Promise.all([
     memberOnly ? [] : db.institutionUser.findMany({
       where: { institutionId: institution.id, userId: args.userId, revokedAt: null, acceptedAt: { not: null } },
-      select: { id: true, role: true, workspace: true },
+      select: { id: true, role: true, workspace: true, unitId: true },
     }),
     db.institutionMember.findFirst({
       where: { institutionId: institution.id, candidate: { userId: args.userId }, status: { not: 'OPTED_OUT' } },
@@ -200,11 +205,24 @@ export async function resolveInstitutionAccess(
     }
   }
 
+  // Staff whose every seat is limited to a school or department (owner decision 2026-11-18): they see only those units'
+  // alumni, under the units' own plan (paid when any of their units is paid). Someone with a seat for the whole
+  // institution, and NextChapter staff in a demo or View-as, see the whole institution.
+  let units: UnitScope[] | null = null
+  if (mode === 'own' && staffUsers.length > 0 && staffUsers.every((s) => s.unitId)) {
+    const rows = await db.institutionUnit.findMany({ where: { id: { in: staffUsers.map((s) => s.unitId!) }, institutionId: institution.id }, select: { id: true, name: true, school: true, department: true, plan: true } })
+    units = rows.map(({ plan: _p, ...u }) => u)
+    institution.plan = rows.some((r) => r.plan === 'PAID') ? 'PAID' : 'FREE'
+    // A paid unit also opens Development (owner decision 2026-11-18): at least the Advancement tier, scoped to its alumni.
+    if (institution.plan === 'PAID' && institution.tier === 'CAREER') institution.tier = 'ADVANCEMENT'
+  }
+
   return {
     institution,
     userId: args.userId,
     email: args.email,
     ownTokens: own,
+    units,
     tokens,
     workspaces: workspacesFor(tokens, institution.tier, features, orgKindOf(institution.orgType)),
     isNcAdmin: ncAdmin,

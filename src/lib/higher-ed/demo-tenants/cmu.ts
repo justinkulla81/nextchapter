@@ -85,7 +85,9 @@ export const CMU_TENANT: DemoTenant = {
     English: 'Dietrich College of Humanities and Social Sciences',
     'Mathematical Sciences': 'Mellon College of Science',
   },
-  memberCount: 240,
+  // A full demo (owner, 2026-11-18): enough alumni and students that every screen has people in it.
+  memberCount: 400,
+  studentCount: 60,
   // Fictional groups shaped like CMU's alumni: two chapters, then industry groups that alumni join by major.
   groups: [
     { kind: 'chapter', name: 'Pittsburgh Chapter', metro: 'Pittsburgh', description: 'Happy hours, a fall service day and the spring career night.' },
@@ -268,6 +270,8 @@ export const CMU_TENANT: DemoTenant = {
     { title: 'Data Visualization', courseCode: null, term: 'Spring 2027', schedule: 'Online, weekly', modality: 'online', seats: 6, description: 'Turning data into charts people understand, with Tableau and Python.', skills: ['data visualization', 'Python', 'Tableau'] },
   ],
   profile: {
+    // Academic Affairs › Peers: the peer group the owner chose for the demo (MIT, Harvard, Stanford, UC Berkeley, Princeton).
+    peerUnitids: ['166683', '166027', '243744', '110635', '186131'],
     college: {
       unitid: '211440',
       shortName: 'CMU',

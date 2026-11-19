@@ -7,7 +7,8 @@ import { prisma } from '@/lib/prisma'
 import { StatTile } from '@/components/higher-ed/StatTile'
 import { AcademicExportLink } from '@/components/higher-ed/AcademicExportLink'
 import type { WorkspaceContext } from '@/lib/higher-ed/access'
-import { loadProgramsMarket, type ProgramsMarketResult } from '@/lib/higher-ed/programs-market-data'
+import { loadIndex, loadProgramsMarket, type ProgramsMarketResult } from '@/lib/higher-ed/programs-market-data'
+import { AddPeerForm, RemovePeerButton, ResetPeersButton } from '@/components/higher-ed/AcademicPeerControls'
 import type { FieldStanding, ProgramsMarket } from '@/lib/higher-ed/programs-market'
 import { STAGE_LABEL } from '@/lib/rankings/degrees-specs'
 import { editionLabel } from '@/lib/rankings/build-edition'
@@ -164,7 +165,7 @@ export function StateView({ d }: { d: ProgramsMarket }) {
                 <th scope="col" className={`${TH} text-right`}>Your share</th>
                 <th scope="col" className={`${TH} text-right`}>Open jobs in {d.state}</th>
                 <th scope="col" className={`${TH} text-right`}>{d.state} jobs per 100 graduates</th>
-                <th scope="col" className={`${TH} text-right`}>US jobs per 100 graduates</th>
+                <th scope="col" className={TH}>Against the {d.state} average</th>
                 <th scope="col" className={`${TH} text-right`}>{d.state} median pay</th>
               </tr>
             </thead>
@@ -179,7 +180,7 @@ export function StateView({ d }: { d: ProgramsMarket }) {
                     <>
                       <td className="p-3 text-right tabular-nums">{f.stateOpen == null ? '–' : n0(f.stateOpen)}</td>
                       <td className="p-3 text-right font-medium tabular-nums">{per(f.statePerHundred)}</td>
-                      <td className="p-3 text-right tabular-nums">{per(f.usPerHundred)}</td>
+                      <td className="p-3">{f.statePerHundred != null && d.stateAllPerHundred != null ? <Standing s={f.statePerHundred >= d.stateAllPerHundred ? 'above' : 'below'} /> : <span className="text-muted-foreground">–</span>}</td>
                       <td className="p-3 text-right tabular-nums">{usdK(f.statePay)}</td>
                     </>
                   ) : (
@@ -190,7 +191,7 @@ export function StateView({ d }: { d: ProgramsMarket }) {
             </tbody>
           </table>
         </div>
-        <p className="text-xs text-muted-foreground">Graduates are a year of degrees at every college in {st} in the majors that lead to each field. Open jobs are roles located in {st}; remote roles count in the state the employer lists. A dash means too few graduates or postings to read.</p>
+        <p className="text-xs text-muted-foreground">Graduates are a year of degrees at every college in {st} in the majors that lead to each field. Open jobs are roles located in {st}; remote roles count in the state the employer lists. Each field is compared with {st}&apos;s own average across measured fields{d.stateAllPerHundred != null ? ` (${per(d.stateAllPerHundred)} open jobs per 100 graduates)` : ''}, not with the national figure: a national count also holds remote roles and postings with no state, so it runs higher than any one state&apos;s. A dash means too few graduates or postings to read.</p>
       </section>
       <Sources d={d} />
     </div>
@@ -201,52 +202,76 @@ export function StateView({ d }: { d: ProgramsMarket }) {
 export async function AcademicPeers({ ctx }: Props) {
   const result = await load(ctx.institution.id)
   if (!result.ok) return <Unavailable result={result} />
-  return <PeersView d={result.data} />
+  // Academic affairs staff and administrators choose the peer group; a viewer seat sees it.
+  const canEdit = !ctx.readOnly && (ctx.tokens.has('ACADEMIC_AFFAIRS') || ctx.tokens.has('INSTITUTION_ADMIN'))
+  const names = canEdit ? Object.values(await loadIndex()).map((r) => r[0]).sort((a, b) => a.localeCompare(b)) : []
+  return <PeersView d={result.data} edit={canEdit ? { slug: ctx.institution.slug, names } : undefined} />
 }
 
-export function PeersView({ d }: { d: ProgramsMarket }) {
+const CONTROL_SHORT: Record<string, string> = { Public: 'Public', 'Private nonprofit': 'Private', 'Private for-profit': 'For-profit' }
+
+export function PeersView({ d, edit }: { d: ProgramsMarket; edit?: { slug: string; names: string[] } }) {
   const me = d.peers.rows.find((p) => p.me)!
+  const label = d.peers.chosen ? 'your peer group' : 'similar colleges'
   return (
     <div className="space-y-8">
       <section className="space-y-2">
         <p className="max-w-3xl text-lg font-medium">
           {me.aboveShare != null && d.peers.median != null
-            ? `${pct0(me.aboveShare)} of your graduates in measured fields are in above-average fields. The median for similar colleges is ${pct0(d.peers.median)}.`
+            ? `${pct0(me.aboveShare)} of your graduates in measured fields are in above-average fields. The median for ${label} is ${pct0(d.peers.median)}.`
             : 'The peer comparison appears after the next monthly build.'}
         </p>
-        {d.peers.scope && <p className="text-sm text-muted-foreground">Similar colleges: {d.peers.scope}, closest in size first.</p>}
+        {d.peers.scope && <p className="text-sm text-muted-foreground">{d.peers.chosen ? 'Peers chosen by your team.' : `Suggested peers: ${d.peers.scope}.`}{edit ? ' Add or remove colleges below to set your own peer group.' : ''}</p>}
       </section>
       <section aria-labelledby="peers-h" className="space-y-3">
-        <h2 id="peers-h" className="text-base font-semibold">You and similar colleges</h2>
+        <h2 id="peers-h" className="text-base font-semibold">You and {label}</h2>
         <div className="overflow-x-auto rounded-lg border border-border bg-card">
-          <table className="w-full min-w-[44rem] text-left text-sm">
-            <caption className="sr-only">Similar colleges by share of graduates in above-average fields</caption>
+          <table className="w-full min-w-[52rem] text-left text-sm">
+            <caption className="sr-only">Peer colleges by share of graduates in above-average fields</caption>
             <thead className="border-b border-border">
               <tr>
                 <th scope="col" className={TH}>College</th>
                 <th scope="col" className={TH}>State</th>
+                <th scope="col" className={TH}>Type</th>
+                <th scope="col" className={`${TH} text-right`}>Admission rate</th>
                 <th scope="col" className={`${TH} text-right`}>Degrees a year</th>
                 <th scope="col" className={`${TH} text-right`}>Since {MAJOR_BASE_YEAR}</th>
                 <th scope="col" className={`${TH} text-right`}>In above-average fields</th>
                 <th scope="col" className={TH}>Largest field</th>
+                {edit && <th scope="col" className={TH}><span className="sr-only">Change</span></th>}
               </tr>
             </thead>
             <tbody>
               {d.peers.rows.map((p) => (
-                <tr key={p.unitid} className={`border-b border-border last:border-0 ${p.me ? "bg-primary/5" : ""}`}>
-                  <th scope="row" className={`p-3 ${p.me ? "font-semibold" : "font-normal"}`}>{p.name}{p.me ? ' (you)' : ''}</th>
+                <tr key={p.unitid} className={`border-b border-border last:border-0 ${p.me ? 'bg-primary/5' : ''}`}>
+                  <th scope="row" className={`p-3 ${p.me ? 'font-semibold' : 'font-normal'}`}>{p.name}{p.me ? ' (you)' : ''}</th>
                   <td className="p-3">{p.state}</td>
+                  <td className="p-3">{p.control ? CONTROL_SHORT[p.control] ?? p.control : '–'}</td>
+                  <td className="p-3 text-right tabular-nums">{p.admitRate == null ? '–' : `${Math.round(p.admitRate)}%`}</td>
                   <td className="p-3 text-right tabular-nums">{n0(p.total)}</td>
                   <td className="p-3 text-right tabular-nums">{signed(p.change)}</td>
                   <td className="p-3 text-right tabular-nums">{p.aboveShare == null ? '–' : pct0(p.aboveShare)}</td>
                   <td className="p-3">{p.topField ?? 'Many kinds of work'}</td>
+                  {edit && <td className="p-3">{p.me ? null : <RemovePeerButton slug={edit.slug} unitid={p.unitid} name={p.name} />}</td>}
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <p className="text-xs text-muted-foreground">Same control (public, private nonprofit or for-profit) and a half to double your degrees a year, in your state when it has at least 8 such colleges. &ldquo;Above-average fields&rdquo; counts only fields we measure.</p>
+        <p className="text-xs text-muted-foreground">
+          {d.peers.chosen
+            ? 'Your team chose these colleges. '
+            : 'Suggested peers share your federal (Carnegie 2021) classification group and admission-rate band, public and private alike, closest in admission rate first; a college with no admission rate is matched on classification, control and size. '}
+          Admission rate: fall 2023 applicants admitted (IPEDS). &ldquo;Above-average fields&rdquo; counts only fields we measure.
+        </p>
       </section>
+      {edit && (
+        <section aria-labelledby="peers-edit-h" className="space-y-3 rounded-lg border border-border bg-card p-4">
+          <h2 id="peers-edit-h" className="text-base font-semibold">Your peer group</h2>
+          <AddPeerForm slug={edit.slug} names={edit.names} />
+          {d.peers.chosen && <ResetPeersButton slug={edit.slug} />}
+        </section>
+      )}
       <Sources d={d} />
     </div>
   )

@@ -11,6 +11,7 @@ const LABELS: Record<string, string> = {
   'export.etpl': 'Downloaded the training program results',
   'export.wioa': 'Downloaded the WIOA participants',
   'export.programs': 'Downloaded programs vs. market',
+  'peers.changed': 'Changed the peer group in Academic Affairs',
   'export.member_data': 'Downloaded one member’s data',
   'team.invite_resent': 'Sent a teammate’s invite again',
   'brand.updated': 'Changed the brand (logo, name or color)',

@@ -46,7 +46,7 @@ describe('lifecycle email journey question', () => {
   it('shows the generic welcome when no buttons were built', () => {
     const c = leadEmailContent('job_alert', 'welcome', { firstName: null, detail: null })
     expect(c.choices).toBeUndefined()
-    expect(c.ctaLabel).toBe('Create my free profile')
+    expect(c.ctaLabel).toBe('Open my free account')
   })
 
   it('leads the application welcome with three jobs like it and one profile button, no situation question', () => {
@@ -55,7 +55,7 @@ describe('lifecycle email journey question', () => {
     expect(c.headline).toBe('Three more jobs like this one')
     expect(c.jobs).toHaveLength(3)
     expect(c.choices).toBeUndefined()
-    expect(c.ctaLabel).toBe('Create my free profile')
+    expect(c.ctaLabel).toBe('Open my free account')
     expect(leadEmailText(c, 'https://x.test/p')).toContain('- Job 1, Co 1, Kansas City, MO: https://x.test/api/lead-job/t?job=j1')
   })
 
@@ -80,7 +80,7 @@ describe('lifecycle email journey question', () => {
     expect(c.headline).toBe('Three jobs open now')
     expect(c.paragraphs[1]).toBe('Your alert for product manager in Denver is on. These match it today:')
     expect(c.choices).toBeUndefined()
-    expect(c.ctaLabel).toBe('Create my free profile')
+    expect(c.ctaLabel).toBe('Open my free account')
   })
 
   it('leads the newsletter welcome with the latest report and one profile button, no situation question', () => {
@@ -88,7 +88,7 @@ describe('lifecycle email journey question', () => {
     const c = leadEmailContent('newsletter', 'welcome', { firstName: null, detail: null, choices: [], report })
     expect(c.feature).toMatchObject({ kicker: 'From our October 2026 report', title: 'Hiring improved', url: 'https://x.test/r' })
     expect(c.choices).toBeUndefined()
-    expect(c.ctaLabel).toBe('Create my free profile')
+    expect(c.ctaLabel).toBe('Open my free account')
     expect(leadEmailText(c, 'https://x.test/p')).toContain('Read the October 2026 White Collar Employment Report: https://x.test/r')
   })
 
@@ -128,7 +128,7 @@ describe('lifecycle email journey question', () => {
     const c = leadEmailContent('newsletter', 'nudge1', { firstName: null, detail: null, layoffs })
     expect(c.subject).toBe('Layoffs this week: 5,310 workers')
     expect(c.feature).toMatchObject({ title: '42 notices, 5,310 workers, 14 states', body: 'The largest: Acme (1,200, Texas); Beta (400).', url: 'https://x.test/w' })
-    expect(c.ctaLabel).toBe('Create my free profile')
+    expect(c.ctaLabel).toBe('Open my free account')
     expect(leadEmailContent('newsletter', 'nudge1', { firstName: null, detail: null }).headline).toBe('Still looking?')
     expect(leadEmailContent('newsletter', 'nudge1', { firstName: null, detail: null, journey: 'laid-off', layoffs }).headline).toBe('Your first-week plan')
   })

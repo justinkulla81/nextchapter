@@ -71,6 +71,8 @@ export type WorkspaceTab = {
   // Hidden when the person can open this workspace, which already holds the same screen (a free college's Admin ›
   // Grants, which Development holds on the paid tiers).
   hideWhenWorkspace?: WorkspaceKey
+  // A setting of the whole institution: hidden from staff of one school or department (InstitutionUnit).
+  institutionOnly?: boolean
   // The section of a long tab list it sits under (a second row of navigation).
   group?: string
   // The screen belongs to another workspace and is shown here too (a workforce customer's Program holds what Exec Ed and the
@@ -197,9 +199,10 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'home', label: 'ROI dashboard', comingIn: null },
       { key: 'transition', label: 'In transition', comingIn: null },
       { key: 'signals', label: 'Signals', comingIn: null },
-      { key: 'fund', label: 'Resilience Fund', comingIn: null },
+      // The university's one fund and its whole-roster data exchange stay with the whole institution.
+      { key: 'fund', label: 'Resilience Fund', comingIn: null, institutionOnly: true },
       { key: 'grants', label: 'Grants and RFPs', comingIn: null },
-      { key: 'crm', label: 'CRM exchange', comingIn: null },
+      { key: 'crm', label: 'CRM exchange', comingIn: null, institutionOnly: true },
     ],
   },
   {
@@ -232,8 +235,8 @@ export const WORKSPACES: WorkspaceConfig[] = [
     label: 'Entrepreneurship',
     icon: 'Rocket',
     release: 'V1',
-    // The center's own staff act on it; the other offices read the same list (one view of an alum's venture for every office).
-    requiredRoles: ['ENTREPRENEURSHIP', 'INSTITUTION_ADMIN', 'ALUMNI_RELATIONS', 'DEVELOPMENT', 'CAREER_SERVICES', 'EXEC_ED', 'VIEWER:ventures'],
+    // The center's own staff act on it; the other offices and faculty read the same list (one view of an alum's venture for every office).
+    requiredRoles: ['ENTREPRENEURSHIP', 'INSTITUTION_ADMIN', 'ALUMNI_RELATIONS', 'DEVELOPMENT', 'CAREER_SERVICES', 'EXEC_ED', 'FACULTY', 'VIEWER:ventures'],
     homePath: 'ventures',
     minTier: 'INSTITUTION',
     orgKind: 'college',
@@ -282,10 +285,15 @@ export const WORKSPACES: WorkspaceConfig[] = [
     homePath: 'academic',
     minTier: 'INSTITUTION',
     orgKind: 'college',
+    // Insights first: what the college cannot see from its own records (owner, 2026-11-18). Its own federal figures follow as reference.
     tabs: [
-      { key: 'home', label: 'Programs vs. market', comingIn: null },
-      { key: 'state', label: 'Your state', comingIn: null },
-      { key: 'peers', label: 'Peers', comingIn: null },
+      { key: 'home', label: 'Alumni at risk', comingIn: null, group: 'Insights' },
+      { key: 'skills', label: 'Skills gaps', comingIn: null, group: 'Insights' },
+      { key: 'employers', label: 'Employers hiring nearby', comingIn: null, group: 'Insights' },
+      { key: 'retraining', label: 'Retraining demand', comingIn: null, group: 'Insights' },
+      { key: 'programs', label: 'Programs vs. market', comingIn: null, group: 'Reference' },
+      { key: 'state', label: 'Your state', comingIn: null, group: 'Reference' },
+      { key: 'peers', label: 'Peers', comingIn: null, group: 'Reference' },
     ],
   },
   {
@@ -315,22 +323,30 @@ export const WORKSPACES: WorkspaceConfig[] = [
     ],
   },
   {
-    // A person at a confirmed ecosystem partner (a college, training provider, employer or community group the organization
-    // confirmed in Partners > Ecosystem). Its own key, not 'partner': /i/<slug>/partner/<token> is the public claim page. They see their own partner's page and what the organization shared with it, nothing else.
-    key: 'partnerview',
-    label: 'Partner',
-    // What someone at a partner organization sees (owner, 2026-11-18: renamed so "Partner Hub" names the staff section).
-    workforceLabel: 'Your partnership',
-    icon: 'Landmark',
+    key: 'wfhub',
+    label: 'Workforce Hub',
+    icon: 'HandCoins',
     release: 'V1',
-    requiredRoles: ['PARTNER'],
-    homePath: 'partnerview',
+    // CAREER_SERVICES, EMPLOYER_RELATIONS and VIEWER:hub opened the funding and partner pages when they were Talent Hub tabs (moved
+    // here 2026-11-18); the Workforce Hub's own pages stay with the roles they had.
+    requiredRoles: ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'CAREER_SERVICES', 'EMPLOYER_RELATIONS', 'VIEWER:wfhub', 'VIEWER:hub'],
+    homePath: 'workforce-hub',
     orgKind: 'workforce',
     tabs: [
-      { key: 'overview', label: 'Your partnership', comingIn: null },
-      { key: 'shared', label: 'Shared with you', comingIn: null },
-      { key: 'groups', label: 'Groups', comingIn: null },
-      { key: 'feed', label: 'Feed', comingIn: null },
+      // Home is the operator's dashboard (owner, 2026-11-18): what needs doing, layoffs, funding and trainings in progress, news.
+      { key: 'home', label: 'Home', comingIn: null, group: 'Home' },
+      // "Grants and funding" replaces the empty Funding page (owner, 2026-11-18): the page with the grants on it comes first.
+      { key: 'opportunities', label: 'Grants and funding', comingIn: null, demoOnly: true, group: 'Funding' },
+      // Moved from Talent Hub (owner, 2026-11-18): funding serves every hub, not only Talent Hub.
+      { key: 'applications', label: 'Applications', comingIn: null, group: 'Funding' },
+      { key: 'grantlist', label: 'Grants to apply for', comingIn: null, group: 'Funding' },
+      { key: 'grants', label: 'Grant reporting', comingIn: null, demoOnly: true, group: 'Funding' },
+      // Public pages (owner, 2026-11-18): the organization's public presence, its page and its branding, from Talent Hub and Admin.
+      // The Admin pages keep their roles and locks through `from` (admins only; the public page and board report are paid features).
+      { key: 'public', label: 'Public pages and previews', comingIn: null, group: 'Public pages' },
+      { key: 'publicpage', label: 'Public page', comingIn: null, group: 'Public pages', from: { workspace: 'admin', tab: 'publicpage' } },
+      { key: 'branding', label: 'Branding', comingIn: null, group: 'Public pages', from: { workspace: 'admin', tab: 'branding' } },
+      { key: 'board', label: 'Board report', comingIn: null, group: 'Board', from: { workspace: 'admin', tab: 'board' } },
     ],
   },
   {
@@ -348,6 +364,8 @@ export const WORKSPACES: WorkspaceConfig[] = [
       // The first thing a new organization does: link the organizations it knows, each link an invitation to claim a free page.
       // Everyone the organization helps, by track, with the benefits matched to each person (src/lib/workforce/people-crm.ts).
       { key: 'participants', label: 'People', comingIn: null, group: 'People' },
+      // Groups of people defined by a rule (industry, experience, function, time out of work), with anonymous counts and updates they see in Learn.
+      { key: 'cohorts', label: 'Cohorts', comingIn: null, group: 'People' },
       { key: 'pipeline', label: 'Pipeline', comingIn: null, demoOnly: true, group: 'People' },
       { key: 'attract', label: 'Attract', comingIn: null, demoOnly: true, group: 'People' },
       { key: 'benefits', label: 'Benefits', comingIn: null, demoOnly: true, group: 'People' },
@@ -391,31 +409,6 @@ export const WORKSPACES: WorkspaceConfig[] = [
     ],
   },
   {
-    key: 'wfhub',
-    label: 'Workforce Hub',
-    icon: 'HandCoins',
-    release: 'V1',
-    // CAREER_SERVICES, EMPLOYER_RELATIONS and VIEWER:hub opened the funding and partner pages when they were Talent Hub tabs (moved
-    // here 2026-11-18); the Workforce Hub's own pages stay with the roles they had.
-    requiredRoles: ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'CAREER_SERVICES', 'EMPLOYER_RELATIONS', 'VIEWER:wfhub', 'VIEWER:hub'],
-    homePath: 'workforce-hub',
-    orgKind: 'workforce',
-    tabs: [
-      { key: 'funding', label: 'Funding', comingIn: null, group: 'Funding', requiredRoles: WFHUB_OWN },
-      // Moved from Talent Hub (owner, 2026-11-18): funding serves every hub, not only Talent Hub.
-      { key: 'applications', label: 'Applications', comingIn: null, group: 'Funding' },
-      { key: 'grantlist', label: 'Grants to apply for', comingIn: null, group: 'Funding' },
-      { key: 'opportunities', label: 'Grants and funding', comingIn: null, demoOnly: true, group: 'Funding' },
-      { key: 'grants', label: 'Grant reporting', comingIn: null, demoOnly: true, group: 'Funding' },
-      // Public pages (owner, 2026-11-18): the organization's public presence, its page and its branding, from Talent Hub and Admin.
-      // The Admin pages keep their roles and locks through `from` (admins only; the public page and board report are paid features).
-      { key: 'public', label: 'Public pages and previews', comingIn: null, group: 'Public pages' },
-      { key: 'publicpage', label: 'Public page', comingIn: null, group: 'Public pages', from: { workspace: 'admin', tab: 'publicpage' } },
-      { key: 'branding', label: 'Branding', comingIn: null, group: 'Public pages', from: { workspace: 'admin', tab: 'branding' } },
-      { key: 'board', label: 'Board report', comingIn: null, group: 'Board', from: { workspace: 'admin', tab: 'board' } },
-    ],
-  },
-  {
     // The organizations the region works with (owner, 2026-11-18), shared by every hub: who you work with, who asked to join, what
     // each partner sees, and the feed partners share. Staff only; what a partner organization's own people see is "Your partnership".
     key: 'partnerhub',
@@ -429,6 +422,8 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'partners', label: 'Partners', comingIn: null, requiredRoles: WFHUB_OWN },
       // Groups of partners (a council, a funders table) with members and updates; partners read them under Your partnership.
       { key: 'groups', label: 'Groups', comingIn: null, requiredRoles: WFHUB_OWN },
+      // Referrals to partners: a need handed to a partner, who answers in Your partnership. About a need, never a named person.
+      { key: 'referrals', label: 'Referrals', comingIn: null, requiredRoles: WFHUB_OWN },
       { key: 'network', label: 'Your network', comingIn: null },
       { key: 'ecosystem', label: 'Ecosystem', comingIn: null },
       { key: 'views', label: 'Partner views', comingIn: null },
@@ -468,17 +463,18 @@ export const WORKSPACES: WorkspaceConfig[] = [
     homePath: 'admin',
     tabs: [
       { key: 'home', label: 'Overview', comingIn: null },
-      { key: 'services', label: 'Services', comingIn: null },
+      { key: 'services', label: 'Services', comingIn: null, institutionOnly: true },
       { key: 'users', label: 'Staff', comingIn: null },
-      { key: 'activity', label: 'Activity', comingIn: null },
-      { key: 'branding', label: 'Branding', comingIn: null, orgKind: 'college' },
+      { key: 'activity', label: 'Activity', comingIn: null, institutionOnly: true },
+      { key: 'branding', label: 'Branding', comingIn: null, orgKind: 'college', institutionOnly: true },
       { key: 'grants', label: 'Grants', comingIn: null, orgKind: 'college', hideWhenWorkspace: 'development' },
-      { key: 'related', label: 'Related organizations', comingIn: null, orgKind: 'college' },
-      { key: 'connections', label: 'Connected organizations', comingIn: null },
-      { key: 'publicpage', label: 'Public page', comingIn: null, orgKind: 'college' },
+      { key: 'related', label: 'Related organizations', comingIn: null, orgKind: 'college', institutionOnly: true },
+      { key: 'connections', label: 'Connected organizations', comingIn: null, institutionOnly: true },
+      { key: 'publicpage', label: 'Public page', comingIn: null, orgKind: 'college', institutionOnly: true },
+      { key: 'units', label: 'Schools and departments', comingIn: null, orgKind: 'college', institutionOnly: true },
       { key: 'roster', label: 'Roster', comingIn: null },
-      { key: 'board', label: 'Board report', comingIn: null, orgKind: 'college' },
-      { key: 'privacy', label: 'Privacy requests', comingIn: null },
+      { key: 'board', label: 'Board report', comingIn: null, orgKind: 'college', institutionOnly: true },
+      { key: 'privacy', label: 'Privacy requests', comingIn: null, institutionOnly: true },
     ],
   },
   {
@@ -499,12 +495,38 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'etpl', label: 'Eligible-provider listing', comingIn: null },
     ],
   },
+  {
+    // A person at a confirmed ecosystem partner (a college, training provider, employer or community group the organization
+    // confirmed in Partners > Ecosystem). Its own key, not 'partner': /i/<slug>/partner/<token> is the public claim page. They see their own partner's page and what the organization shared with it, nothing else.
+    key: 'partnerview',
+    label: 'Partner',
+    // What someone at a partner organization sees (owner, 2026-11-18: renamed so "Partner Hub" names the staff section).
+    workforceLabel: 'Your partnership',
+    icon: 'Landmark',
+    release: 'V1',
+    requiredRoles: ['PARTNER'],
+    homePath: 'partnerview',
+    orgKind: 'workforce',
+    tabs: [
+      { key: 'overview', label: 'Your partnership', comingIn: null },
+      { key: 'shared', label: 'Shared with you', comingIn: null },
+      { key: 'groups', label: 'Groups', comingIn: null },
+      { key: 'referrals', label: 'Referrals', comingIn: null },
+      { key: 'feed', label: 'Feed', comingIn: null },
+    ],
+  },
 ]
 
 export const V1_WORKSPACE_KEYS = WORKSPACES.filter((w) => w.release === 'V1').map((w) => w.key)
 
 export function getWorkspace(key: string): WorkspaceConfig | undefined {
   return WORKSPACES.find((w) => w.key === key)
+}
+
+// The workspace a web address names. The address is the workspace's homePath, which is not always its key (the Workforce Hub is
+// key 'wfhub', address 'workforce-hub'; the Partner Hub is 'partnerhub', 'partner-hub'): both open it, so a link from the rail never 404s.
+export function getWorkspaceByPath(segment: string): WorkspaceConfig | undefined {
+  return WORKSPACES.find((w) => w.homePath === segment) ?? getWorkspace(segment)
 }
 
 function holdsAny(tokens: ReadonlySet<AccessToken>, required: AccessToken[]): boolean {
@@ -549,8 +571,12 @@ const kindOn = (w: WorkspaceConfig, kind: OrgKind) => !w.orgKind || w.orgKind ==
 // The V1 workspaces these tokens open on this license tier, in rail order.
 // No tier = ignore tiers (tests, config checks). Feature-gated workspaces
 // (the Workforce board) need the college to have switched them on.
+// "Your partnership" is what a partner organization's own people see. Staff never get it in their rail (it was an empty page in every
+// demo's "Everything" view): it opens only for someone who holds the partner role and no staff role. "Preview as: Partner" still shows it.
+const partnerViewOnly = (w: WorkspaceConfig, tokens: ReadonlySet<AccessToken>) => w.key !== 'partnerview' || !tokens.has('INSTITUTION_ADMIN')
+
 export function workspacesFor(tokens: ReadonlySet<AccessToken>, tier?: InstitutionTier, features: WorkspaceFeatures = {}, kind: OrgKind = 'college'): WorkspaceKey[] {
-  return WORKSPACES.filter((w) => w.release === 'V1' && kindOn(w, kind) && featureOn(w, features) && holdsAny(tokens, w.requiredRoles) && (!tier || tierIncludes(tier, w))).map(
+  return WORKSPACES.filter((w) => w.release === 'V1' && kindOn(w, kind) && featureOn(w, features) && holdsAny(tokens, w.requiredRoles) && partnerViewOnly(w, tokens) && (!tier || tierIncludes(tier, w))).map(
     (w) => w.key,
   )
 }

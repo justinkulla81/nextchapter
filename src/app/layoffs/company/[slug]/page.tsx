@@ -1,4 +1,5 @@
 import { meetsCompanyLayoffBar } from '@/lib/seo/page-bars'
+import { ResumeMatchBox } from '@/components/capture/ResumeMatchBox'
 import { shownInSearch } from '@/lib/seo/shown-in-search'
 import { YourState } from '@/components/capture/YourState'
 import { announcedStatus, layoffsAnnouncedDescription, layoffsAnnouncedTitle, layoffsCompanySeo } from '@/lib/seo/templates'
@@ -302,6 +303,8 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             ) : (
               <LandingHero variant={variant} name={c.name} slug={slug} latestWorkers={hasNotices ? (c.notices[0]?.workers ?? null) : (latestAnn?.workers ?? null)} hasNotices={hasNotices} noticeCount={c.notices.length} context={heroContext} action={<AffectedPrompt variant={variant} name={c.name} slug={slug} />} />
             )}
+            {/* The résumé ask for the people this layoff hit (owner decision 2026-11-18). */}
+            <ResumeMatchBox placement="layoff" layoffSlug={slug} company={c.name} className="max-w-2xl" />
             {hasNotices && (
               <section aria-labelledby="glance" className="rounded-xl border border-border bg-white p-6">
                 <h2 id="glance" className="text-xl font-semibold tracking-tight text-navy">{c.name} layoffs at a glance</h2>

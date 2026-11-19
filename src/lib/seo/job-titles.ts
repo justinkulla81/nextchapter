@@ -4,6 +4,7 @@ import { heavy, memoTtl } from '@/lib/db/heavy'
 import { readBoardFigure } from '@/lib/jobs/stored-board-figures'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { withStatementTimeout } from '@/lib/db/statement-timeout'
 import { PUBLIC_JOB_LIST_SELECT, withDescriptionStubs } from '@/lib/jobs/public-job-page-server'
 import { getConfirmedGhostIds } from '@/lib/jobs/job-dismiss-server'
 import { isPublicJob } from '@/lib/jobs/public-job-page'
@@ -100,7 +101,7 @@ interface Dataset {
 }
 
 /** One pass over the open board (25-50 s). Run by the cron /api/cron/board-figures (buildTitleFigures), not by a page. */
-async function scan(): Promise<Dataset> {
+async function scan(timeoutMs?: number): Promise<Dataset> {
   // Titles with enough listings are picked in the same query, so only their rows come back.
   const rowsQuery = prisma.$queryRaw<{ id: string; b: string; state: string | null; city: string | null; company: string; posted: Date; pay: number | null; fn: string | null }[]>`
     WITH t AS (
@@ -124,7 +125,11 @@ async function scan(): Promise<Dataset> {
       (SELECT json_agg(y.id) FROM (SELECT id FROM u u3 WHERE u3.ty = u.ty ORDER BY posted DESC LIMIT 80) y) AS ids,
       (SELECT json_agg(z.b) FROM (SELECT b FROM u u4 WHERE u4.ty = u.ty GROUP BY b ORDER BY count(*) DESC LIMIT 60) z) AS bases
     FROM u GROUP BY ty`
-  const [rows, typeRows] = await Promise.all([rowsQuery, typesQuery])
+  // The cron passes a longer limit than the database's 120 s default: the rows scan outgrew it on 2026-11-18 (all three board-figures
+  // runs that day failed this step on a statement timeout, keeping the 11-17 figures).
+  const [rows, typeRows] = timeoutMs
+    ? await Promise.all([withStatementTimeout(rowsQuery, timeoutMs), withStatementTimeout(typesQuery, timeoutMs)])
+    : await Promise.all([rowsQuery, typesQuery])
   const rowsByBase = new Map<string, ScanRow[]>()
   for (const r of rows) {
     const row: ScanRow = { id: r.id, b: r.b, state: r.state, city: r.city, company: r.company, posted: new Date(r.posted), pay: r.pay == null ? null : Number(r.pay), fn: r.fn }
@@ -144,6 +149,9 @@ async function scan(): Promise<Dataset> {
   const types = new Map(typeRows.map((r) => [r.ty, { total: r.total, payCount: r.pay_n, median: r.med == null ? null : Number(r.med), states: r.states ?? [], ids: r.ids ?? [], bases: r.bases ?? [] }]))
   return { stats, rowsByBase, types }
 }
+
+/** The board-figures cron's limit for the title scan (800 s run; the other steps took ~480 s on 2026-11-18). */
+const TITLE_SCAN_TIMEOUT_MS = 240_000
 
 const sharedScan = memoTtl(6 * 3600_000, () => 'scan', () => heavy(scan))
 
@@ -176,7 +184,7 @@ function titleParts(rows: ScanRow[]): TitleParts {
 
 /** Every figure the title and job-type pages read, from one scan: the title list, the job-type summaries, and each title's parts. */
 export async function buildTitleFigures(): Promise<{ stats: TitleStat[]; types: [string, TypeSummary][]; parts: Map<string, TitleParts>; places: TitlePlace[] }> {
-  const data = await scan()
+  const data = await scan(TITLE_SCAN_TIMEOUT_MS)
   const parts = new Map<string, TitleParts>()
   for (const t of data.stats) parts.set(t.slug, titleParts(data.rowsByBase.get(t.base) ?? []))
   const places = computeTitlePlaces(

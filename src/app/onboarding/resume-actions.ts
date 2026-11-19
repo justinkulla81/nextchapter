@@ -12,6 +12,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { runResumeParse } from '@/lib/resume/background-parse'
 import { claimParse, clearParse, readParseState } from '@/lib/resume/parse-state'
 import { PARSE_STALE_MS, type ResumeParseState } from '@/lib/resume/parse-view'
+import { startLeadResumeParse } from '@/lib/onboarding/lead-resume'
 
 export type StartUploadState = { error?: string } | undefined
 
@@ -104,5 +105,20 @@ export async function discardResumeParse(): Promise<void> {
   await clearParse(profile.id)
   // The unfinished Resume row of a failed reading is removed so it cannot linger as a half-read version.
   if (state?.resumeId) await prisma.resume.deleteMany({ where: { id: state.resumeId, candidateId: profile.id, looksLikeResume: false } })
+  revalidatePath('/onboarding/resume')
+}
+
+// "Use the résumé you sent us": the file a public page stored (leads/...) is copied into the member's own folder and read exactly as an
+// upload is, so nobody uploads twice. Only a lead filed under this profile's own email is used.
+export async function reuseLeadResume(): Promise<StartUploadState> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'Please sign in again.' }
+  const profile = await getOrCreateCandidateProfile(user.id)
+  const started = await startLeadResumeParse(profile, profile.email || user.email)
+  if (started === 'not_found') return { error: 'We could not find the résumé you sent. Upload it here instead.' }
+  if (started === 'copy_failed') return { error: 'Something went wrong reading the résumé you sent. Upload it here instead.' }
   revalidatePath('/onboarding/resume')
 }

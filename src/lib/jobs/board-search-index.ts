@@ -297,7 +297,7 @@ export async function feedSearchFacts(acc: IndexAccumulator): Promise<void> {
         await new Promise((resolve) => setTimeout(resolve, Math.random() * REFRESH_JITTER_MS))
         snapshotParts = await fromSnapshot()
       }
-      // Another instance is already reading the replacement: keep using the last snapshot a little longer.
+      // Another instance is already reading the replacement: keep using the last snapshot (up to a day old) until it is stored.
       if (!snapshotParts && !(await claimSnapshotRefresh('search-facts'))) snapshotParts = await fromSnapshot(REFRESH_GRACE_MS)
     } catch (error) {
       console.error('Board search index: snapshot unreadable, reading the database', error)

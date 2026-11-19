@@ -32,6 +32,8 @@ export type PendingClaim = {
   section: EmployerSectionKey | null
   /** The organization whose related-organization invite the claimant came from. */
   invitedBy: string | null
+  /** A university claim for one school or department. */
+  unit: string | null
 }
 
 // Verified claims for a type with a free workspace that nobody has approved or declined yet. Bounded: the queue is short.
@@ -48,7 +50,7 @@ export async function pendingClaims(): Promise<PendingClaim[]> {
     orderBy: { verifiedAt: 'asc' },
     take: 100,
     select: {
-      id: true, name: true, title: true, email: true, emailDomain: true, needsReview: true, verifiedAt: true, crmOrganizationId: true, section: true, referredByPartnerId: true,
+      id: true, name: true, title: true, email: true, emailDomain: true, needsReview: true, verifiedAt: true, crmOrganizationId: true, section: true, referredByPartnerId: true, unitSchool: true, unitDepartment: true,
       crmOrganization: { select: { name: true, canonicalNameNormalized: true, orgTypes: true, emailDomain: true } },
     },
   })
@@ -71,6 +73,7 @@ export async function pendingClaims(): Promise<PendingClaim[]> {
     orgTypes: r.crmOrganization.orgTypes.map(String), orgDomain: r.crmOrganization.emailDomain ?? null, hasWorkspace: withWorkspace.has(r.crmOrganizationId),
     section: isEmployerSectionKey(r.section) ? r.section : null,
     invitedBy: r.referredByPartnerId ? (inviters.get(r.referredByPartnerId) ?? null) : null,
+    unit: r.unitSchool ? [r.unitSchool, r.unitDepartment].filter(Boolean).join(', ') : null,
   }))
 }
 
@@ -80,7 +83,7 @@ async function loadOpen(claimId: string) {
   return prisma.orgClaim.findUnique({
     where: { id: claimId },
     select: {
-      id: true, name: true, title: true, email: true, emailDomain: true, needsReview: true, verifiedAt: true, approvedAt: true, declinedAt: true, crmOrganizationId: true, section: true, outcome: true, referredByPartnerId: true,
+      id: true, name: true, title: true, email: true, emailDomain: true, needsReview: true, verifiedAt: true, approvedAt: true, declinedAt: true, crmOrganizationId: true, section: true, outcome: true, referredByPartnerId: true, unitSchool: true, unitDepartment: true,
       crmOrganization: { select: { name: true, orgTypes: true, emailDomain: true } },
     },
   })
@@ -111,7 +114,11 @@ export async function approveOrgClaim(claimId: string, adminEmail: string): Prom
   const type = freeWorkspaceType(claim.crmOrganization.orgTypes.map(String))
   if (!type) return { ok: false, error: 'This kind of organization has no free workspace, so there is nothing to approve.' }
   const workspaceType = (await pageWorkspaceType(claim.crmOrganizationId)) ?? type
-  const r = await provisionFreeWorkspace({ crmOrganizationId: claim.crmOrganizationId, name: claim.crmOrganization.name, orgType: workspaceType, claimantEmail: claim.email })
+  const r = await provisionFreeWorkspace({
+    crmOrganizationId: claim.crmOrganizationId, name: claim.crmOrganization.name, orgType: workspaceType, claimantEmail: claim.email,
+    // A university claim for one school or department opens that unit's account (owner decision 2026-11-18).
+    unit: claim.unitSchool ? { school: claim.unitSchool, department: claim.unitDepartment } : null,
+  })
   if (!r.ok) return { ok: false, error: r.error }
   await prisma.orgClaim.update({ where: { id: claim.id }, data: { approvedAt: new Date(), approvedBy: adminEmail } })
   const connected = await connectRelated({ crmOrgId: claim.crmOrganizationId, institutionId: r.institutionId, referredByPartnerId: claim.referredByPartnerId })

@@ -3,6 +3,7 @@
 // Demo colleges never email anyone: their sends are recorded (the demo
 // outbox) and the link works for testing.
 
+import { unitMemberWhere, type UnitFilter } from '@/lib/plans/visible-members'
 import 'server-only'
 import { sendCampaign } from './outreach'
 import { prisma } from '@/lib/prisma'
@@ -21,9 +22,11 @@ export function joinUrl(slug: string, claimToken: string): string {
 
 // Who's due an invitation: on the roster, not joined, not do-not-contact,
 // and never invited before.
-export function invitableWhere(institutionId: string) {
+export function invitableWhere(institutionId: string, units?: UnitFilter[] | null) {
   return {
     institutionId,
+    // A school or department invites only its own alumni (owner decision 2026-11-18).
+    ...unitMemberWhere(units),
     status: { in: ['IMPORTED' as const] },
     candidateId: null,
     doNotContact: false,
@@ -34,11 +37,11 @@ export function invitableWhere(institutionId: string) {
   }
 }
 
-export async function countInvitable(institutionId: string): Promise<number> {
-  return prisma.institutionMember.count({ where: invitableWhere(institutionId) })
+export async function countInvitable(institutionId: string, units?: UnitFilter[] | null): Promise<number> {
+  return prisma.institutionMember.count({ where: invitableWhere(institutionId, units) })
 }
 
-export async function sendJoinInvites(args: { institutionId: string; createdBy: string }): Promise<{ sent: number; remaining: number; demo: boolean; capReached?: { cap: number; left: number; message: string } }> {
+export async function sendJoinInvites(args: { institutionId: string; createdBy: string; units?: UnitFilter[] | null }): Promise<{ sent: number; remaining: number; demo: boolean; capReached?: { cap: number; left: number; message: string } }> {
   const inst = await prisma.institution.findUniqueOrThrow({
     where: { id: args.institutionId },
     select: { slug: true, name: true, programBrandName: true, isDemo: true, orgType: true, plan: true },
@@ -52,13 +55,13 @@ export async function sendJoinInvites(args: { institutionId: string; createdBy: 
     left = Math.max(0, cap - (await engagedMemberCount(args.institutionId)))
     if (left === 0) {
       recordCapReached(args.createdBy, inst.slug, cap, 'invite')
-      return { sent: 0, remaining: await countInvitable(args.institutionId), demo: inst.isDemo, capReached: { cap, left, message: inviteCapMessage(cap, 0) } }
+      return { sent: 0, remaining: await countInvitable(args.institutionId, args.units), demo: inst.isDemo, capReached: { cap, left, message: inviteCapMessage(cap, 0) } }
     }
     room = Math.min(BATCH, left)
   }
   const brand = inst.programBrandName ?? inst.name
   const members = await prisma.institutionMember.findMany({
-    where: invitableWhere(args.institutionId),
+    where: invitableWhere(args.institutionId, args.units),
     take: room,
     orderBy: { createdAt: 'asc' },
     select: { id: true, email: true, firstName: true },
@@ -96,7 +99,7 @@ ${inst.name} Alumni Relations`
   const invited = [...r.sendIds.keys()]
   if (invited.length) await prisma.institutionMember.updateMany({ where: { id: { in: invited }, status: 'IMPORTED' }, data: { status: 'INVITED' } })
   const sent = r.sent
-  const remaining = await countInvitable(args.institutionId)
+  const remaining = await countInvitable(args.institutionId, args.units)
   const leftNow = Math.max(0, left - sent)
   if (cap !== null && remaining > 0 && leftNow === 0) {
     recordCapReached(args.createdBy, inst.slug, cap, 'invite')

@@ -10,12 +10,13 @@ import { prisma } from '@/lib/prisma'
 import { bridgeReport, memberBridge, type BridgeOffering } from '@/lib/higher-ed/skills-bridge'
 import { MIN_CELL_SIZE } from '@/lib/admin/cell-suppression'
 import { EmptyState } from '@/components/ui/empty-state'
+// share is already a percentage (0 to 100), from the skills market snapshot.
+import { fmtPct } from '@/lib/skills/market'
 import { AddToPlanButton } from '@/components/dashboard/learning/PlanControls'
 import { SITE_URL } from '@/lib/reports'
 
 type Props = { ctx: WorkspaceContext; base: string }
 
-const pct = (x: number) => `${Math.round(x * 100)}%`
 const EMPTY = {
   'no-function': { title: 'Tell us the work you do', description: 'Add your field to your NextChapter profile and your bridge appears here.' },
   'no-skills': { title: 'Add your résumé first', description: 'Your bridge compares your résumé’s skills with what jobs in your field ask for.' },
@@ -60,7 +61,7 @@ export async function SkillsBridgeSection({ ctx }: Props) {
               <li key={r.slug} className="grid gap-2 p-4 sm:grid-cols-[minmax(0,14rem)_1fr]">
                 <div>
                   <p className="font-medium">{r.skill}</p>
-                  <p className="text-xs text-muted-foreground">Asked for in {pct(r.share)} of these jobs</p>
+                  <p className="text-xs text-muted-foreground">Asked for in {fmtPct(r.share)} of these jobs</p>
                 </div>
                 {r.offerings.length ? (
                   <ul className="space-y-1">

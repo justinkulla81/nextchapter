@@ -4,11 +4,14 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { requireWorkspace } from '@/lib/higher-ed/access'
+import { WorkspaceAccessError } from '@/lib/higher-ed/resolve'
 import { createOrgKey, revokeOrgKey } from '@/lib/census/api-keys'
 import { readComms } from '@/lib/census/comms-settings'
 
 export async function makeCollegeKey(slug: string, label: string): Promise<{ error?: string; token?: string }> {
   const ctx = await requireWorkspace(slug, 'admin', { write: true })
+  // A whole-institution setting, not one school or department's.
+  if (ctx.units?.length) throw new WorkspaceAccessError(`Whole-institution setting at ${slug}`)
   if (ctx.institution.isDemo) return { error: 'Demo colleges can’t make real API keys.' }
   const r = await createOrgKey('institution', ctx.institution.id, label, ctx.email ?? ctx.userId)
   if ('error' in r) return { error: r.error }
@@ -19,6 +22,8 @@ export async function makeCollegeKey(slug: string, label: string): Promise<{ err
 
 export async function turnOffCollegeKey(slug: string, keyId: string): Promise<{ error?: string }> {
   const ctx = await requireWorkspace(slug, 'admin', { write: true })
+  // A whole-institution setting, not one school or department's.
+  if (ctx.units?.length) throw new WorkspaceAccessError(`Whole-institution setting at ${slug}`)
   const r = await revokeOrgKey('institution', ctx.institution.id, keyId)
   if (r.ok) captureServerEvent(ctx.userId, 'census_api_key_revoked', { orgKind: 'institution', orgId: ctx.institution.id, keyId })
   revalidatePath(`/i/${slug}`, 'layout')
@@ -27,6 +32,8 @@ export async function turnOffCollegeKey(slug: string, keyId: string): Promise<{ 
 
 export async function saveCollegeComms(slug: string, c: { joinReminders: boolean; accessEndingNotice: boolean }): Promise<{ error?: string }> {
   const ctx = await requireWorkspace(slug, 'admin', { write: true })
+  // A whole-institution setting, not one school or department's.
+  if (ctx.units?.length) throw new WorkspaceAccessError(`Whole-institution setting at ${slug}`)
   const inst = await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } })
   const ef = (inst.enabledFeatures ?? {}) as Record<string, unknown>
   const comms = { ...readComms(ef), joinReminders: !!c.joinReminders }

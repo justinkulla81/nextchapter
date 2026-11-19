@@ -110,3 +110,25 @@ describe('isRealOpen', () => {
     expect(isRealOpen(sent, null, 0)).toBe(false)
   })
 })
+
+describe('résumé match welcome', () => {
+  const jobs = [1, 2, 3].map((i) => ({ title: `Analyst ${i}`, company: 'Example Co', place: null, url: `https://x/${i}` }))
+
+  it('leads with the score and the missing terms for a job-page match, then jobs like it', () => {
+    const c = leadEmailContent('saved_job', 'welcome', { firstName: null, detail: 'Analyst at Example Co', jobs, match: { score: 62, bandLabel: 'Good match', missing: ['sql', 'forecasting'] } })
+    expect(c.subject).toBe('Your résumé match for Analyst at Example Co: 62%')
+    expect(c.paragraphs.join(' ')).toContain('sql, forecasting')
+    expect(c.jobs).toHaveLength(3)
+    expect(c.ctaLabel).toBe('Open my free account')
+  })
+
+  it('names the employer for a résumé dropped on a layoff page', () => {
+    const c = leadEmailContent('waitlist', 'welcome', { firstName: null, detail: 'layoff_resume', layoffCompany: 'Example Co' })
+    expect(c.subject).toBe('Your résumé is in: see the jobs you fit')
+    expect(c.paragraphs.join(' ')).toContain('After Example Co')
+  })
+
+  it('leaves the other welcomes alone', () => {
+    expect(leadEmailContent('saved_job', 'welcome', { firstName: null, detail: 'Analyst at Example Co' }).subject).toBe('Saved: Analyst at Example Co')
+  })
+})

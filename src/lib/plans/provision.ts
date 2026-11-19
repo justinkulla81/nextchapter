@@ -26,6 +26,9 @@ export type ProvisionInput = {
   // An InstitutionOrgType, or a CRM organization type (CrmOrgType) to map.
   orgType: string
   claimantEmail: string
+  // A university claim for one school or department (owner decision 2026-11-18): the claimant administers that unit,
+  // not the whole institution.
+  unit?: { school: string; department: string | null } | null
 }
 
 export type ProvisionResult = { ok: true; institutionId: string; slug: string; created: boolean } | { ok: false; error: string }
@@ -77,9 +80,18 @@ export async function provisionFreeWorkspace(input: ProvisionInput): Promise<Pro
   }
 
   // The claimant is the administrator. Skip when they already hold the seat, so a repeat call sends no second email.
-  const seat = await prisma.institutionUser.findFirst({ where: { institutionId: institution.id, invitedEmail: email, role: 'INSTITUTION_ADMIN', revokedAt: null }, select: { id: true } })
+  let unitId: string | null = null
+  if (input.unit?.school) {
+    const school = input.unit.school.trim()
+    const department = input.unit.department?.trim() || null
+    const found = (await prisma.institutionUnit.findMany({ where: { institutionId: institution.id }, select: { id: true, school: true, department: true } })).find(
+      (u) => u.school.toLowerCase() === school.toLowerCase() && (u.department ?? '').toLowerCase() === (department ?? '').toLowerCase(),
+    )
+    unitId = found?.id ?? (await prisma.institutionUnit.create({ data: { institutionId: institution.id, name: department ? `${school}, ${department}` : school, school, department, createdBy: email }, select: { id: true } })).id
+  }
+  const seat = await prisma.institutionUser.findFirst({ where: { institutionId: institution.id, invitedEmail: email, role: 'INSTITUTION_ADMIN', revokedAt: null, unitId }, select: { id: true } })
   if (!seat) {
-    const r = await inviteInstitutionUser({ institutionSlug: institution.slug, email, role: 'INSTITUTION_ADMIN' })
+    const r = await inviteInstitutionUser({ institutionSlug: institution.slug, email, role: 'INSTITUTION_ADMIN', unitId })
     if (r.error) return { ok: false, error: r.error }
   }
 

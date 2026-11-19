@@ -2,6 +2,7 @@
 
 // Admin › Connected organizations: ask to connect, answer a request, choose what to share, disconnect. Admins only.
 
+import { WorkspaceAccessError } from '@/lib/higher-ed/resolve'
 import { revalidatePath } from 'next/cache'
 import { requireWorkspace } from '@/lib/higher-ed/access'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -11,6 +12,8 @@ import type { Party } from '@/lib/connections/rules'
 
 async function admin(slug: string) {
   const ctx = await requireWorkspace(slug, 'admin', { write: true })
+  // A whole-institution setting, not one school or department's.
+  if (ctx.units?.length) throw new WorkspaceAccessError(`Whole-institution setting at ${slug}`)
   const me: Party = { kind: 'INSTITUTION', id: ctx.institution.id }
   return { ctx, me, actor: ctx.email ?? ctx.userId }
 }

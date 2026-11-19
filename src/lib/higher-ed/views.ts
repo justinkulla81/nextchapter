@@ -13,10 +13,10 @@ import { effectiveJourney, JOURNEYS, type JourneyStage, type JourneyType } from 
 import { holds, WorkspaceAccessError, type InstitutionAccess } from './resolve'
 import type { AccessToken } from './workspaces'
 import { logMemberView } from './audit'
-import { visibleMemberSql } from '@/lib/plans/visible-members'
+import { unitMemberWhere, visibleMemberSql } from '@/lib/plans/visible-members'
 
 type Db = PrismaClient | Prisma.TransactionClient
-type Ctx = Pick<InstitutionAccess, 'tokens' | 'institution' | 'staffUsers' | 'mode' | 'email' | 'userId'> & { workspace?: string }
+type Ctx = Pick<InstitutionAccess, 'tokens' | 'institution' | 'staffUsers' | 'mode' | 'email' | 'userId' | 'units'> & { workspace?: string }
 
 const ANY_STAFF: AccessToken[] = [
   'INSTITUTION_ADMIN',
@@ -50,6 +50,8 @@ const ROI_ROLES: AccessToken[] = ['INSTITUTION_ADMIN', 'DEVELOPMENT', 'VIEWER:de
 const OUTCOMES_ROLES: AccessToken[] = ['INSTITUTION_ADMIN', 'CAREER_SERVICES', 'DEVELOPMENT', 'VIEWER:career', 'VIEWER:development']
 // Sees every open caseload (the Career Services director).
 const CASELOAD_ALL_ROLES: AccessToken[] = ['INSTITUTION_ADMIN', 'VIEWER:career']
+// Academic Affairs (Institution tier): counts about alumni, never names.
+const ACADEMIC_ROLES: AccessToken[] = ['INSTITUTION_ADMIN', 'ACADEMIC_AFFAIRS', 'VIEWER:academic']
 
 function assertHolds(ctx: Ctx, roles: AccessToken[], what: string) {
   if (!holds(ctx, roles)) throw new WorkspaceAccessError(`No access to ${what} at ${ctx.institution.slug}`)
@@ -273,6 +275,29 @@ export async function getMemberAiSkills(ctx: Ctx, db: Db = prisma): Promise<Memb
     where "institutionId" = ${ctx.institution.id}`
 }
 
+export type AlumniWorkRow = { employer: string | null; title: string | null; classYear: number | null }
+
+// Academic Affairs: where alumni work, for counts by employer and by role (alumni at risk, retraining demand). Members with
+// SHARE_OUTCOME on only (the view returns employer and title as null otherwise). No names leave this function; the caller
+// counts and hides any group under MIN_CELL_SIZE.
+export async function getAlumniWork(ctx: Ctx, db: Db = prisma): Promise<AlumniWorkRow[]> {
+  assertHolds(ctx, ACADEMIC_ROLES, 'academic affairs')
+  const visible = await visibleMemberSql(ctx)
+  return db.$queryRaw<AlumniWorkRow[]>`
+    select employer, title, "classYear"
+    from private.v_member_directory
+    where "institutionId" = ${ctx.institution.id} and "shareOutcome" and (employer is not null or title is not null) ${visible}`
+}
+
+// Academic Affairs, skills gaps: the same counts-only skill rows as the Outcomes panel, for the academic affairs roles.
+export async function getAlumniSkills(ctx: Ctx, db: Db = prisma): Promise<MemberAiSkillsRow[]> {
+  assertHolds(ctx, ACADEMIC_ROLES, 'academic affairs')
+  return db.$queryRaw<MemberAiSkillsRow[]>`
+    select "primaryFunction", "resumeKeywords", "confirmedSkillsHave", certifications, "skillLevels"
+    from private.v_member_ai_skills
+    where "institutionId" = ${ctx.institution.id}`
+}
+
 export type MentorStats = {
   activeMentors: number
   requestsThisMonth: number
@@ -328,10 +353,12 @@ export type AlumniHomeCounts = { members: number; claimed: number; activeSeats: 
 export async function getAlumniHomeCounts(ctx: Ctx, db: Db = prisma): Promise<AlumniHomeCounts> {
   assertHolds(ctx, TRANSITION_ROLES, 'Alumni Relations counts')
   const institutionId = ctx.institution.id
+  // Staff of a school or department count only their unit's alumni (InstitutionUnit).
+  const unit = unitMemberWhere(ctx.units)
   const [members, claimed, activeSeats, inTransition] = await Promise.all([
-    db.institutionMember.count({ where: { institutionId } }),
-    db.institutionMember.count({ where: { institutionId, status: { in: ['CLAIMED', 'ACTIVE'] } } }),
-    db.institutionMember.count({ where: { institutionId, isActiveSeat: true } }),
+    db.institutionMember.count({ where: { institutionId, ...unit } }),
+    db.institutionMember.count({ where: { institutionId, status: { in: ['CLAIMED', 'ACTIVE'] }, ...unit } }),
+    db.institutionMember.count({ where: { institutionId, isActiveSeat: true, ...unit } }),
     db.$queryRaw<{ n: number }[]>`select count(*)::int as n from private.v_member_transition where "institutionId" = ${institutionId}`,
   ])
   return { members, claimed, activeSeats, inTransition: inTransition[0]?.n ?? 0 }

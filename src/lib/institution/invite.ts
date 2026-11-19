@@ -29,6 +29,8 @@ export async function inviteInstitutionUser(input: {
   fullName?: string | null
   // A VIEWER seat is read-only in exactly one workspace ("alumni", "career"…).
   workspace?: string | null
+  // A school or department the seat is limited to (InstitutionUnit); null or absent = the whole institution.
+  unitId?: string | null
 }): Promise<{ error?: string; acceptUrl?: string }> {
   const email = input.email.trim().toLowerCase()
   if (!email.includes('@')) return { error: 'Enter a valid email address.' }
@@ -52,12 +54,13 @@ export async function inviteInstitutionUser(input: {
         where: { id: existing.id },
         data: {
           workspace,
+          ...(input.unitId !== undefined ? { unitId: input.unitId } : {}),
           ...(input.fullName ? { fullName: input.fullName } : {}),
           ...(existing.revokedAt ? { revokedAt: null, acceptedAt: null, userId: null } : {}),
         },
       })
     : await prisma.institutionUser.create({
-        data: { institutionId: institution.id, invitedEmail: email, role: input.role, fullName: input.fullName ?? null, workspace },
+        data: { institutionId: institution.id, invitedEmail: email, role: input.role, fullName: input.fullName ?? null, workspace, unitId: input.unitId ?? null },
       })
 
   const { actionLink, error } = await createPreConfirmedInviteUser(

@@ -2,6 +2,7 @@
 // Fund, CRM exchange, and the peer benchmark. Giving data is the college's
 // own; anything from the candidate side comes through views.ts.
 
+import { unitMemberWhere } from '@/lib/plans/visible-members'
 import Link from 'next/link'
 import { Download, HandCoins, Sparkles } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
@@ -64,11 +65,12 @@ function RoiBlock({ r, current }: { r: RoiReport; current: boolean }) {
 
 export async function DevelopmentRoi({ ctx, base }: Props) {
   const [now, last, signals] = await Promise.all([
-    roiReport(ctx.institution.id),
-    roiReport(ctx.institution.id, new Date(), -1),
-    prisma.prospectFlag.count({ where: { institutionId: ctx.institution.id, dismissedAt: null, exportedAt: null } }),
+    roiReport(ctx.institution.id, new Date(), 0, ctx.units),
+    roiReport(ctx.institution.id, new Date(), -1, ctx.units),
+    prisma.prospectFlag.count({ where: { institutionId: ctx.institution.id, dismissedAt: null, exportedAt: null, ...(ctx.units?.length ? { member: unitMemberWhere(ctx.units) } : {}) } }),
   ])
-  const gratitude = await prisma.outcomeReport.count({ where: { gratitudeStatus: 'PENDING', member: { institutionId: ctx.institution.id } } })
+  // A school or department's staff see their own alumni only (owner decision 2026-11-18).
+  const gratitude = await prisma.outcomeReport.count({ where: { gratitudeStatus: 'PENDING', member: { institutionId: ctx.institution.id, ...unitMemberWhere(ctx.units) } } })
   return (
     <div className="space-y-8">
       <BriefCard institutionId={ctx.institution.id} agent="development" />
