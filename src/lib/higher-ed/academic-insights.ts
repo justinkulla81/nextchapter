@@ -262,11 +262,16 @@ export function retrainingDemand(roles: RoleExposure[], riskEmployers: Set<strin
   const seen = new Set<string>()
   const pool = gaps.flatMap((g) => g.gaps.map((s) => ({ ...s, fn: g.fn, need: Math.round((1 - (s.alumni ?? 0)) * g.alumni) })))
     .filter((s) => (s.gap ?? 0) > 0)
-    .sort((a, b) => Number(b.rising || b.ai) - Number(a.rising || a.ai) || b.need - a.need)
+    // Rising and AI-related skills first, then the largest gap (not the headcount, which only says how big the group is), and at
+    // most PER_FUNCTION from one kind of work so the list covers every group.
+    .sort((a, b) => Number(b.rising || b.ai) - Number(a.rising || a.ai) || (b.gap ?? 0) - (a.gap ?? 0))
+  const PER_FUNCTION = 3
+  const perFn = new Map<string, number>()
   const skills: RetrainingSkill[] = []
   for (const s of pool) {
-    if (seen.has(s.slug)) continue
+    if (seen.has(s.slug) || (perFn.get(s.fn) ?? 0) >= PER_FUNCTION) continue
     seen.add(s.slug)
+    perFn.set(s.fn, (perFn.get(s.fn) ?? 0) + 1)
     skills.push({ skill: s.skill, slug: s.slug, fn: s.fn, without: cell(s.need), offerings: offerings.filter((o) => teachesSkill(o, { name: s.skill, slug: s.slug })) })
     if (skills.length >= limit) break
   }
