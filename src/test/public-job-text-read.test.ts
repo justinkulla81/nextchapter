@@ -35,3 +35,13 @@ describe('getPublicJob reads the posting text only for a job it shows', () => {
     expect(await getPublicJob('job1234567890')).toBeNull()
   })
 })
+
+describe('getPublicJob keeps the posting text in the shared data cache', () => {
+  it('asks the data cache for the text under one key per job, so a render after a deploy does not read it again', async () => {
+    const nextCache = await import('next/cache')
+    const spy = vi.spyOn(nextCache, 'unstable_cache')
+    findUnique.mockReset().mockResolvedValueOnce(row()).mockResolvedValueOnce({ description: 'x'.repeat(300) })
+    await getPublicJob('job1234567890')
+    expect(spy.mock.calls.some((c) => (c[1] as string[]).includes('job-text:job1234567890'))).toBe(true)
+  })
+})
