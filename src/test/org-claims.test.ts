@@ -21,7 +21,7 @@ import { hashClaimToken, newClaimToken, tokenState, hashIp, CLAIM_TOKEN_DAYS } f
 import { communityStatCards, communityStatSentence, formatWindow, sourceLine } from '@/lib/org-claims/format'
 import type { CommunityStats } from '@/lib/org-claims/community-stats'
 import { canonicalCandidates, claimSlug, claimUrlFor } from '@/lib/org-claims/urls'
-import { confirmOrgClaim, onClaimVerified, requestOrgClaim } from '@/lib/org-claims/claim'
+import { confirmOrgClaim, onClaimVerified, requestOrgClaim, requestQuickClaim } from '@/lib/org-claims/claim'
 import { applyMergeTags, renderEmail } from '@/lib/mailing/render'
 
 describe('email domain rules', () => {
@@ -280,5 +280,38 @@ describe('onClaimVerified hook', () => {
   it('types with no free workspace have nothing to approve', async () => {
     expect(await onClaimVerified({ ...claim, orgTypes: ['EMPLOYER'], needsReview: false })).toEqual({ provisioned: false, awaitingApproval: false })
     expect(provision.provisionFreeWorkspace).not.toHaveBeenCalled()
+  })
+})
+
+describe('requestQuickClaim (email only)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    db.crmOrganization.findMany.mockResolvedValue([org])
+    db.orgClaim.count.mockResolvedValue(0)
+    db.orgClaim.create.mockResolvedValue({ id: 'q1' })
+  })
+  const quick = { slug: 'example-college', email: 'pat.lee@college.edu', ip: '9.9.9.9' }
+
+  it('files a verified claim straight to the queue, with no email link, and tells the team', async () => {
+    const r = await requestQuickClaim(quick)
+    expect(r).toEqual({ ok: true, email: 'pat.lee@college.edu' })
+    const data = db.orgClaim.create.mock.calls[0][0].data
+    expect(data).toMatchObject({ email: 'pat.lee@college.edu', emailDomain: 'college.edu', needsReview: false, name: 'Pat Lee' })
+    expect(data.verifiedAt).toBeInstanceOf(Date)
+    expect(mail.link).not.toHaveBeenCalled()
+    expect(mail.admin).toHaveBeenCalledTimes(1)
+  })
+  it('flags an address off the organization’s domain for review instead of refusing it', async () => {
+    const r = await requestQuickClaim({ ...quick, email: 'pat@gmail.com' })
+    expect(r).toMatchObject({ ok: true })
+    expect(db.orgClaim.create.mock.calls[0][0].data.needsReview).toBe(true)
+  })
+  it('rejects a malformed address and an organization that has no page, and stops a flood', async () => {
+    expect(await requestQuickClaim({ ...quick, email: 'nope' })).toMatchObject({ ok: false })
+    db.crmOrganization.findMany.mockResolvedValueOnce([])
+    expect(await requestQuickClaim(quick)).toMatchObject({ ok: false })
+    db.orgClaim.count.mockResolvedValue(9)
+    expect(await requestQuickClaim(quick)).toMatchObject({ ok: false })
+    expect(db.orgClaim.create).not.toHaveBeenCalled()
   })
 })

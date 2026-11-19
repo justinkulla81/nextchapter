@@ -1,7 +1,7 @@
 'use server'
 
 import { getClientIp } from '@/lib/http/client-ip'
-import { confirmOrgClaim, requestOrgClaim, type ConfirmResult } from '@/lib/org-claims/claim'
+import { confirmOrgClaim, requestOrgClaim, requestQuickClaim, type ConfirmResult } from '@/lib/org-claims/claim'
 
 export type OrgClaimState = { sent?: { email: string; needsReview: boolean }; error?: string; values?: { name: string; title: string; email: string; section?: string; unitSchool?: string; unitDepartment?: string } } | undefined
 
@@ -35,5 +35,20 @@ export async function confirmClaimAction(token: string): Promise<ConfirmState> {
   } catch (e) {
     console.error('Organization claim confirm failed', e)
     return { status: 'invalid' }
+  }
+}
+
+export type QuickClaimState = { sent?: { email: string }; error?: string; email?: string } | undefined
+
+/** The email-only claim on a public organization page: the claim goes to NextChapter's queue and a person decides. */
+export async function quickClaimAction(slug: string, _prev: QuickClaimState, formData: FormData): Promise<QuickClaimState> {
+  const email = text(formData, 'email')
+  if (text(formData, 'website')) return { sent: { email } } // bots fill the hidden field
+  try {
+    const r = await requestQuickClaim({ slug, email, ip: await getClientIp() })
+    return r.ok ? { sent: { email: r.email } } : { error: r.error, email }
+  } catch (e) {
+    console.error('Quick organization claim failed', slug, e)
+    return { error: 'Something went wrong on our side. Try again in a few minutes.', email }
   }
 }
