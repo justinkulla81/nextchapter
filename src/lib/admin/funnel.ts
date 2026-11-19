@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { BOT_SIGNATURES } from '@/lib/http/user-agent'
+import { notJobPageScrapeSql } from '@/lib/http/job-page-scrape'
 import { homeAbOn, visitorsPerArm } from '@/lib/home-ab'
 import { computeAiPayOffers } from '@/lib/admin/funnel-ai-pay'
 
@@ -89,7 +90,7 @@ const botPatterns = BOT_SIGNATURES.map((s) => `%${s}%`)
 
 function humanOnly(): Prisma.Sql {
   // Rows with no user agent are excluded, matching the Visitors report (unknown is not human).
-  return Prisma.sql`"userAgent" IS NOT NULL AND NOT ("userAgent" ILIKE ANY(${botPatterns}))`
+  return Prisma.sql`"userAgent" IS NOT NULL AND NOT ("userAgent" ILIKE ANY(${botPatterns})) AND ${notJobPageScrapeSql}`
 }
 
 async function countRaw(query: Prisma.Sql): Promise<number> {

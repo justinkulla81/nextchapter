@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { BOT_SIGNATURES } from '@/lib/http/user-agent'
+import { notJobPageScrapeSql } from '@/lib/http/job-page-scrape'
 
 // The claim funnel: the public organization pages (college, workforce board, job center, economic development, employer)
 // carry a "Claim your page" button that leads to the organization's page under /prepared/<name>. Where do people drop?
@@ -38,7 +39,7 @@ const KINDS: { key: string; label: string; where: string; path: string; referrer
 ]
 
 const botPatterns = BOT_SIGNATURES.map((s) => `%${s}%`)
-const humanOnly = () => Prisma.sql`"userAgent" IS NOT NULL AND NOT ("userAgent" ILIKE ANY(${botPatterns}))`
+const humanOnly = () => Prisma.sql`"userAgent" IS NOT NULL AND NOT ("userAgent" ILIKE ANY(${botPatterns})) AND ${notJobPageScrapeSql}`
 
 async function distinctIps(query: Prisma.Sql): Promise<number> {
   const rows = await prisma.$queryRaw<{ n: bigint }[]>(query)
