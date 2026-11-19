@@ -13,7 +13,8 @@ import { canonical } from '@/lib/seo/canonical'
 import { collegePath } from '@/lib/seo/college-bar'
 import { areaName, getStateCollegeListings } from '@/lib/seo/college-pages'
 import { stateFromSlug, stateSlug } from '@/lib/seo/states'
-import { isCollegeTerritory, territoryFromSlug } from '@/lib/seo/college-bar'
+import { isCollegeTerritory, territoryFromCodeSlug, territoryFromSlug, territorySlug } from '@/lib/seo/college-bar'
+import { permanentRedirect } from 'next/navigation'
 import { getStateLabor, periodLabel, rateText } from '@/lib/seo/workforce-pages'
 import { titleMeta } from '@/lib/seo/title'
 import { campusImage } from '@/lib/places/place-image'
@@ -46,6 +47,9 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
 
 export default async function HigherEdStatePage({ params }: { params: Promise<{ state: string }> }) {
   const { state } = await params
+  // Old links wrote a territory as its code (/higher-education/pr); its page is /higher-education/puerto-rico.
+  const code = territoryFromCodeSlug(state)
+  if (code) permanentRedirect(`/higher-education/${territorySlug(code)}`)
   const d = await load(state)
   if (!d) emptyStateOrNotFound(state, '/higher-education')
   const layoffLinks = await layoffAndRapidLinks(d.code)

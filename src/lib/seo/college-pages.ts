@@ -11,16 +11,16 @@ import { claimSlug } from '@/lib/org-claims/urls'
 import { uniqueClaimSlugs } from '@/lib/org-claims/org'
 import { getStateCityPlaces, getStateCounties, type County } from '@/lib/places/places'
 import { employerSlug } from '@/lib/seo/employer-slug'
-import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
+import { ALL_STATE_CODES, stateName } from '@/lib/seo/states'
 
-/** URL slug for a state or territory. */
-export const areaSlug = (code: string): string => (isCollegeTerritory(code) ? territorySlug(code) : stateSlug(code))
+/** URL slug for a state or territory (college-bar.ts). */
+export { areaSlug }
 /** Display name for a state or territory. */
 export const areaName = (code: string): string => COLLEGE_TERRITORIES[code] ?? stateName(code)
 const COLLEGE_AREAS = [...ALL_STATE_CODES, ...Object.keys(COLLEGE_TERRITORIES)]
 import { getStateBoards, type PublicBoard } from '@/lib/seo/workforce-pages'
 import { parseAiPrograms, type AiPrograms } from '@/lib/seo/college-bar'
-import { COLLEGE_SLUG_RE, COLLEGE_TERRITORIES, collegeIndexable, collegePath, collegeSlugs, functionsForMajors, isCollegeTerritory, territorySlug, unitidFromSlug } from '@/lib/seo/college-bar'
+import { areaSlug, COLLEGE_SLUG_RE, COLLEGE_TERRITORIES, collegeIndexable, collegePath, collegeSlugs, functionsForMajors, isCollegeTerritory, unitidFromSlug } from '@/lib/seo/college-bar'
 
 // Public college pages (/higher-education/<state>/<college>): IPEDS and College Scorecard facts for the college, the
 // job market in its county, the workforce board and American Job Centers that serve it, and peer colleges in its

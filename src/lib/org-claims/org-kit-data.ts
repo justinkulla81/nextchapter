@@ -6,7 +6,7 @@ import { getStateOrgList, resolveArea } from '@/lib/seo/org-pages'
 import { orgPagePath } from '@/lib/seo/org-page-rules'
 import { employerPath } from '@/lib/seo/employer-pages'
 import { getStateCollegeListings } from '@/lib/seo/college-pages'
-import { collegePath } from '@/lib/seo/college-bar'
+import { areaSlug, collegePath } from '@/lib/seo/college-bar'
 import { resolveClaimableOrg } from '@/lib/org-claims/org'
 import { employerBrandKey, type OrgBrandKind } from '@/lib/branding/store'
 import { KIT_SOURCES, areaPhrase, kitLabel, kitLabelPrefix, parseKitLabelAny, summarizeKit, type KitKind, type KitSource, type KitStats } from './org-kit'
@@ -62,7 +62,7 @@ export async function orgKitContext(claimSlug: string): Promise<KitContext | nul
         if (hit) {
           return {
             kind: 'COLLEGE', id: college.id, crmOrgId: org.id, name: college.name, website: college.website,
-            pagePath: collegePath(stateSlug(college.state), hit.slug),
+            pagePath: collegePath(areaSlug(college.state), hit.slug),
             area: [college.city, stateName(college.state)].filter(Boolean).join(', '),
             claimSlug, brandKind: 'COLLEGE', brandId: college.id,
           }

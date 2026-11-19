@@ -1,8 +1,7 @@
 import 'server-only'
 import { SITE_URL } from '@/lib/seo/facts'
-import { collegePath, planCollegePings } from '@/lib/seo/college-bar'
+import { areaSlug, collegePath, planCollegePings } from '@/lib/seo/college-bar'
 import { indexableColleges } from '@/lib/seo/college-pages'
-import { stateSlug } from '@/lib/seo/states'
 import { readJsonGz, STATE_BUCKET, writeJsonGz } from '@/lib/syndication/storage'
 import { INDEXNOW_BATCH, INDEXNOW_ENDPOINT, chunk, indexNowBody } from '@/lib/syndication/syndication'
 
@@ -15,7 +14,7 @@ interface State { v: 1; urls: Record<string, string>; updatedAt: string }
 export async function runCollegeIndexNow(opts: { dryRun?: boolean } = {}): Promise<{ dryRun: boolean; indexable: number; planned: number; sent: number; stoppedEarly: string | null }> {
   const rows = await indexableColleges()
   const current: Record<string, string> = {}
-  for (const r of rows) current[`${SITE_URL}${collegePath(stateSlug(r.state), r.slug)}`] = r.updatedAt.toISOString()
+  for (const r of rows) current[`${SITE_URL}${collegePath(areaSlug(r.state), r.slug)}`] = r.updatedAt.toISOString()
   const announced = (await readJsonGz<State>(STATE_BUCKET, STATE_PATH))?.urls ?? {}
   const plan = planCollegePings(current, announced)
   const out = { dryRun: !!opts.dryRun, indexable: rows.length, planned: plan.length, sent: 0, stoppedEarly: null as string | null }

@@ -1,8 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { SITE_URL } from '@/lib/seo/facts'
-import { collegePath } from '@/lib/seo/college-bar'
+import { areaSlug, collegePath } from '@/lib/seo/college-bar'
 import { indexableColleges } from '@/lib/seo/college-pages'
-import { stateSlug } from '@/lib/seo/states'
 import { MAJORS, MAJORS_PATH, majorPath } from '@/lib/rankings/majors'
 
 // Served at /higher-education/sitemap.xml and listed in the sitemap index (src/app/sitemap-index.xml/route.ts): only the
@@ -17,7 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const majors: MetadataRoute.Sitemap = [MAJORS_PATH, ...MAJORS.map((m) => majorPath(m))].map((p) => ({ url: `${SITE_URL}${p}`, lastModified: month, changeFrequency: 'monthly', priority: 0.5 }))
   return [
     ...rows.map((r) => ({
-      url: `${SITE_URL}${collegePath(stateSlug(r.state), r.slug)}`,
+      url: `${SITE_URL}${collegePath(areaSlug(r.state), r.slug)}`,
       lastModified: r.updatedAt,
       changeFrequency: 'weekly' as const,
       priority: 0.5,
