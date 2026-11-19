@@ -22,6 +22,13 @@ vi.mock('@/lib/posthog/server', () => ({ captureServerEvent: (...a: unknown[]) =
 const readToken = vi.fn()
 vi.mock('@/lib/leads/light-account', () => ({ readAccountToken: (...a: unknown[]) => readToken(...a) }))
 
+const startLead = vi.fn()
+const markJoined = vi.fn()
+vi.mock('@/lib/onboarding/lead-resume', () => ({
+  startLeadResumeParse: (...a: unknown[]) => startLead(...a),
+  markJoinedWithResume: (...a: unknown[]) => markJoined(...a),
+}))
+
 import { openLightAccount } from '@/app/onboarding/account-ready/actions'
 
 const form = (fields: Record<string, string>) => {
@@ -33,7 +40,8 @@ const good = { t: 'tok', firstName: ' Dana ', lastName: 'Lee' }
 
 describe('openLightAccount', () => {
   beforeEach(() => {
-    for (const m of [redirect, update, signIn, profileFor, existing, claim, crm, capture, readToken]) m.mockReset()
+    for (const m of [redirect, update, signIn, profileFor, existing, claim, crm, capture, readToken, startLead, markJoined]) m.mockReset()
+    startLead.mockResolvedValue('not_found')
     redirect.mockImplementation((to: string) => { throw new Error(`REDIRECT:${to}`) })
     readToken.mockReturnValue('dana@example.org')
     existing.mockResolvedValue(null)
@@ -72,5 +80,16 @@ describe('openLightAccount', () => {
     expect(claim).toHaveBeenCalledWith('c1', 'dana@example.org')
     expect(crm).toHaveBeenCalledWith('c1')
     expect(capture).toHaveBeenCalledWith('dana@example.org', 'light_account_opened', expect.objectContaining({ candidateId: 'c1', savedJobs: 2 }))
+  })
+
+  it('makes someone who sent a résumé a one-click member: reads it and waits on the reading screen', async () => {
+    startLead.mockResolvedValue('started')
+    await expect(openLightAccount(undefined, form(good))).rejects.toThrow('REDIRECT:/onboarding/resume')
+    expect(markJoined).toHaveBeenCalledWith('c1')
+  })
+
+  it('keeps the light-account path for someone with no résumé on file', async () => {
+    await expect(openLightAccount(undefined, form(good))).rejects.toThrow('REDIRECT:/onboarding/your-jobs')
+    expect(markJoined).not.toHaveBeenCalled()
   })
 })

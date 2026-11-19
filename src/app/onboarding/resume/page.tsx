@@ -25,7 +25,7 @@ import { ResumeParseProblem } from '@/components/onboarding/bundles/ResumeParseP
 import { readParseState } from '@/lib/resume/parse-state'
 import { parseView } from '@/lib/resume/parse-view'
 import { RESUME_NOT_REJECTED } from '@/lib/resume/not-rejected'
-import { leadResumeFor } from '@/lib/onboarding/lead-resume'
+import { joinedWithResume, leadResumeFor } from '@/lib/onboarding/lead-resume'
 import { UseSentResume } from '@/components/onboarding/bundles/UseSentResume'
 
 export default async function OnboardingResumePage() {
@@ -124,7 +124,9 @@ export default async function OnboardingResumePage() {
       // is reachable at all (see requireCandidateId in onboarding/actions.ts),
       // so the next step from here is always the confirm screen (§10's new
       // 4-screen sequence between resume upload and the contract screen).
-      if (!bundles) redirect('/onboarding/confirm')
+      // One-click members (joined with the résumé they sent) go straight into their account; the questions wait for later.
+      const oneClick = !!profile.lightAccountAt && joinedWithResume(profile.journeyDetails) && !needsContactDetails(profile)
+      if (!bundles) redirect(oneClick ? '/dashboard' : '/onboarding/confirm')
 
       // Bundles: show what the résumé already answered, then let them go on. Going back here stays possible.
       const prefilled = prefilledAnswers(profile)
@@ -132,9 +134,9 @@ export default async function OnboardingResumePage() {
         <BundleShell id="resume" title="We read your résumé.">
           <PayoffPanel payoff={computePayoff('resume', {}, { journey: null, prefilled })} label="What you gained" />
           <div className="flex flex-wrap items-center gap-5">
-            <PrimaryLink href={needsContactDetails(profile) ? DETAILS_PATH : BUNDLE_ROUTE.aiming}>Continue</PrimaryLink>
+            <PrimaryLink href={oneClick ? '/dashboard' : needsContactDetails(profile) ? DETAILS_PATH : BUNDLE_ROUTE.aiming}>{oneClick ? 'Open my account' : 'Continue'}</PrimaryLink>
             <p className="text-sm text-muted-foreground">
-              {needsContactDetails(profile) ? 'Next: we need your name and email.' : 'Next: check three answers we read from it.'}
+              {oneClick ? 'You can answer the rest of the questions any time from your account.' : needsContactDetails(profile) ? 'Next: we need your name and email.' : 'Next: check three answers we read from it.'}
             </p>
           </div>
         </BundleShell>
