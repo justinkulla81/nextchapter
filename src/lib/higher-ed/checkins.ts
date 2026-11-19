@@ -116,6 +116,7 @@ export const CHECKIN_ANSWERS = [
   { key: 'laid_off', label: 'I was laid off' },
   { key: 'new_job', label: 'New job or promotion' },
   { key: 'new_manager', label: 'I manage people now' },
+  { key: 'back_to_school', label: "I'm thinking about going back to school" },
   { key: 'starting_company', label: "I'm starting a company" },
 ] as const
 
@@ -124,6 +125,7 @@ export const CHECKIN_ANSWERS = [
 export const GOOD_NEWS: Partial<Record<CollegeCheckInAnswer, { office: string; offer: string }>> = {
   new_job: { office: 'Alumni Relations and Advancement', offer: 'Congratulate them; a VP-and-up title raises a signal for Advancement.' },
   new_manager: { office: 'Lifelong Learning', offer: 'Offer management and leadership programs, including from other schools.' },
+  back_to_school: { office: 'Lifelong Learning and the colleges', offer: 'Show the degree, certificate and executive programs that close their gap.' },
   starting_company: { office: 'Entrepreneurship center', offer: 'Introduce founder office hours, programs, investors and alumni customers.' },
 }
 export type CollegeCheckInAnswer = (typeof CHECKIN_ANSWERS)[number]['key']
@@ -142,6 +144,7 @@ I'm starting to look: {{link}}&a=looking
 I was laid off: {{link}}&a=laid_off
 New job or promotion: {{link}}&a=new_job
 I manage people now: {{link}}&a=new_manager
+I'm thinking about going back to school: {{link}}&a=back_to_school
 I'm starting a company: {{link}}&a=starting_company
 
 If you're looking, {{college}} has free help ready: a clear read on your job market, a plan, coaching and alumni who'll take your call.

@@ -52,7 +52,7 @@ describe('check-in answers', () => {
     expect(isCheckInAnswer('new_manager')).toBe(true)
     expect(isCheckInAnswer('starting_company')).toBe(true)
     for (const a of CHECKIN_ANSWERS) expect(CHECKIN_BODY).toContain(`&a=${a.key}`)
-    expect(Object.keys(GOOD_NEWS)).toEqual(['new_job', 'new_manager', 'starting_company'])
+    expect(Object.keys(GOOD_NEWS)).toEqual(['new_job', 'new_manager', 'back_to_school', 'starting_company'])
   })
 
   it('turns an answer into a targeting moment, for alumni who have not joined too', () => {

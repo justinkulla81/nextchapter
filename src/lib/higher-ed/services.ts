@@ -153,6 +153,7 @@ const JOURNEY_MOMENT: Record<string, Moment> = {
 
 const CHECKIN_MOMENT: Record<string, Moment> = {
   new_manager: 'new_manager',
+  back_to_school: 'growing',
   starting_company: 'founders',
   looking: 'exploring',
   laid_off: 'between_jobs',
