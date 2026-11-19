@@ -29,6 +29,8 @@ import { PortalHomeMore, PortalNeeds, PortalNumbers, PortalTable, type NeedsItem
 import { PortalHomeLink } from '@/components/partners/PortalHomeLink'
 import { OrgHomeHero } from '@/components/partners/OrgHomeHero'
 import { seatPoolLeft } from '@/lib/workforce/seat-pool'
+import { teamStep } from '@/lib/workforce/team-step'
+import { institutionEntitlements } from '@/lib/plans/entitlements'
 
 type Props = { ctx: WorkspaceContext; searchParams: { q?: string; company?: string }; base: string }
 
@@ -584,7 +586,8 @@ export async function WorkforceOverview({ ctx }: Props) {
     prisma.institution.findUniqueOrThrow({ where: { id }, select: { name: true, programBrandName: true, slug: true, orgType: true, includedSeats: true, licenseStartAt: true, licenseEndAt: true, enabledFeatures: true } }),
     prisma.memberCompany.count({ where: { institutionId: id } }),
     prisma.rapidResponse.count({ where: { institutionId: id, memberCompanyId: { not: null } } }),
-    prisma.institutionUser.count({ where: { institutionId: id, revokedAt: null } }),
+    // Seats held by anyone other than the signed-in administrator (a new portal starts with the claimant's own seat).
+    prisma.institutionUser.count({ where: { institutionId: id, revokedAt: null, AND: [{ OR: [{ userId: null }, { userId: { not: ctx.userId } }] }, { invitedEmail: { not: ctx.email ?? '', mode: 'insensitive' } }] } }),
     prisma.institutionMember.count({ where: { institutionId: id, affiliation: 'PARTICIPANT' } }),
     prisma.orgApiKey.count({ where: { orgKind: 'institution', orgId: id, revokedAt: null } }),
   ])
@@ -594,7 +597,7 @@ export async function WorkforceOverview({ ctx }: Props) {
     { done: companies > 0, label: 'Add member companies', detail: companies ? `${companies} on your list.` : 'The companies you serve.', href: `${base}/hub/companies` },
     { done: layoffs > 0, label: 'Give seats for a layoff', detail: 'A sign-up page for a member company’s people.', href: `${base}/hub/layoffs` },
     { done: !!ef.services, label: 'Choose your services', detail: 'Switch on what you offer; each becomes a card for job seekers.', href: `${base}/admin/services` },
-    { done: staff > 0, label: 'Invite your team', detail: 'Program staff, business services, your career center.', href: `${base}/admin/users` },
+    teamStep({ otherStaff: staff, staffRoles: institutionEntitlements({ plan: ctx.institution.plan }).staffRoles, base }),
     { done: people > 0 || keys > 0, label: 'Load or connect your participants', detail: people ? `${people.toLocaleString()} participants.` : 'Upload a spreadsheet or connect your system.', href: `${base}/admin/roster` },
   ]
   const done = steps.filter((s) => s.done).length
