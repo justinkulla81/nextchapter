@@ -1,13 +1,14 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { BOT_SIGNATURES } from '@/lib/http/user-agent'
+import { notJobPageScrapeSql } from '@/lib/http/job-page-scrape'
 import type { OfferRow } from '@/lib/admin/funnel'
 
 // Offers-table rows for the pay and AI-skill cluster (docs/PATTERN_PAY_AND_AI.md): the AI-skill pay premium explainer and the
 // pay check. Kept in its own file so the shared funnel queries stay as they are; funnel.ts appends these to the offers list.
 
 const botPatterns = BOT_SIGNATURES.map((s) => `%${s}%`)
-const humanOnly = () => Prisma.sql`"userAgent" IS NOT NULL AND NOT ("userAgent" ILIKE ANY(${botPatterns}))`
+const humanOnly = () => Prisma.sql`"userAgent" IS NOT NULL AND NOT ("userAgent" ILIKE ANY(${botPatterns})) AND ${notJobPageScrapeSql}`
 
 async function reached(since: Date, pathRegex: string): Promise<number> {
   const rows = await prisma.$queryRaw<{ n: bigint }[]>(Prisma.sql`
