@@ -29,7 +29,7 @@ import { PortalHomeMore, PortalNeeds, PortalNumbers, PortalTable, type NeedsItem
 import { PortalHomeLink } from '@/components/partners/PortalHomeLink'
 import { OrgHomeHero } from '@/components/partners/OrgHomeHero'
 import { seatPoolLeft } from '@/lib/workforce/seat-pool'
-import { teamStep } from '@/lib/workforce/team-step'
+import { teamSeatWhere, teamStep } from '@/lib/workforce/team-step'
 import { institutionEntitlements } from '@/lib/plans/entitlements'
 
 type Props = { ctx: WorkspaceContext; searchParams: { q?: string; company?: string }; base: string }
@@ -578,6 +578,16 @@ export async function HubLocal({ ctx }: Props) {
   )
 }
 
+// Active seats held by someone other than the portal's administrator (a new portal starts with the claimant's own seat).
+// NextChapter support viewing a portal holds no seat in it, so there the founding administrator's seat is left out instead.
+async function otherStaffSeats(ctx: WorkspaceContext): Promise<number> {
+  const institutionId = ctx.institution.id
+  const foundingAdmin = ctx.staffUsers.length
+    ? null
+    : await prisma.institutionUser.findFirst({ where: { institutionId, role: 'INSTITUTION_ADMIN', revokedAt: null }, orderBy: { createdAt: 'asc' }, select: { id: true } })
+  return prisma.institutionUser.count({ where: teamSeatWhere({ institutionId, userId: ctx.userId, email: ctx.email, viewerSeats: ctx.staffUsers.length, foundingAdminId: foundingAdmin?.id ?? null }) })
+}
+
 // Admin › Overview for a workforce customer: its launch steps and license.
 export async function WorkforceOverview({ ctx }: Props) {
   const id = ctx.institution.id
@@ -586,8 +596,7 @@ export async function WorkforceOverview({ ctx }: Props) {
     prisma.institution.findUniqueOrThrow({ where: { id }, select: { name: true, programBrandName: true, slug: true, orgType: true, includedSeats: true, licenseStartAt: true, licenseEndAt: true, enabledFeatures: true } }),
     prisma.memberCompany.count({ where: { institutionId: id } }),
     prisma.rapidResponse.count({ where: { institutionId: id, memberCompanyId: { not: null } } }),
-    // Seats held by anyone other than the signed-in administrator (a new portal starts with the claimant's own seat).
-    prisma.institutionUser.count({ where: { institutionId: id, revokedAt: null, AND: [{ OR: [{ userId: null }, { userId: { not: ctx.userId } }] }, { invitedEmail: { not: ctx.email ?? '', mode: 'insensitive' } }] } }),
+    otherStaffSeats(ctx),
     prisma.institutionMember.count({ where: { institutionId: id, affiliation: 'PARTICIPANT' } }),
     prisma.orgApiKey.count({ where: { orgKind: 'institution', orgId: id, revokedAt: null } }),
   ])
