@@ -97,7 +97,8 @@ export interface AtRiskEmployer {
   /** Alumni who work there and share where they work; null under MIN_CELL. */
   alumni: number | null
   reasons: RiskReason[]
-  layoff: { noticeDate: string | null; employees: number | null; where: string | null } | null
+  /** One matched filing, or (`filings` set) every filing the employer made in 12 months: the count, their jobs in total and the latest date. */
+  layoff: { noticeDate: string | null; employees: number | null; where: string | null; filings?: number } | null
   change: number | null
   /** The most common roles alumni hold there, each with at least MIN_CELL alumni. */
   roles: { title: string; n: number }[]
@@ -138,15 +139,16 @@ export function alumniAtRisk(work: AlumniWork[], signals: Map<string, EmployerSi
     const reasons: RiskReason[] = []
     if (hit || (sig && sig.warn12mo > 0)) reasons.push('layoff')
     if (trend === 'cutting') reasons.push('cutting')
-    if (trend === 'growing' && change != null && e.n >= MIN_CELL) growing.push({ employer: sig?.name ?? e.name, alumni: e.n, change })
+    // The name as alumni wrote it: company records can carry odd casing ("Pnc").
+    if (trend === 'growing' && change != null && e.n >= MIN_CELL) growing.push({ employer: e.name, alumni: e.n, change })
     if (reasons.length === 0) continue
     atRisk += e.n
     employers.push({
       key,
-      employer: sig?.name ?? e.name,
+      employer: e.name,
       alumni: cell(e.n),
       reasons,
-      layoff: hit ? { noticeDate: hit.noticeDate, employees: hit.employees, where: hit.where } : sig && sig.warn12mo > 0 ? { noticeDate: sig.lastWarnAt, employees: sig.warnEmployees12mo || null, where: null } : null,
+      layoff: hit ? { noticeDate: hit.noticeDate, employees: hit.employees, where: hit.where } : sig && sig.warn12mo > 0 ? { noticeDate: sig.lastWarnAt, employees: sig.warnEmployees12mo || null, where: null, filings: sig.warn12mo } : null,
       change,
       roles: [...e.titles].filter(([, n]) => n >= MIN_CELL).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([title, n]) => ({ title, n })),
     })

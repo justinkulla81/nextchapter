@@ -45,6 +45,10 @@ describe('academic insights', () => {
     expect(a.growing).toEqual([{ employer: 'Growco', alumni: 7, change: 50 }])
     expect(a.sample).toBe(true)
     expect([...riskKeys(a)].sort()).toEqual(['acme', 'tiny'])
+    // Names as alumni wrote them; an employer's own filings count as filings, not one notice.
+    expect(tiny.employer).toBe('Tiny LLC')
+    const filed = alumniAtRisk(work, new Map([['growco', { name: 'Growco Inc', openNow: 100, open4wAgo: 100, warn12mo: 3, warnEmployees12mo: 900, lastWarnAt: '2026-11-01' }]]), [])
+    expect(filed.employers[0]).toMatchObject({ employer: 'Growco', layoff: { filings: 3, employees: 900, noticeDate: '2026-11-01' } })
   })
 
   it('compares what postings ask for with alumni résumés, per function with enough alumni', () => {
