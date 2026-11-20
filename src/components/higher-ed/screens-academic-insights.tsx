@@ -94,7 +94,8 @@ export async function AcademicAtRisk({ ctx }: Props) {
                 <th scope="row" className="p-3 font-normal">{e.employer}</th>
                 <td className="p-3 text-right tabular-nums">{few(e.alumni)}</td>
                 <td className="space-y-1 p-3">
-                  {e.layoff && <div><Badge tone="warm">Layoff filed</Badge> <span className="text-muted-foreground">{[day(e.layoff.noticeDate), e.layoff.employees ? `${n0(e.layoff.employees)} jobs` : null, e.layoff.where].filter(Boolean).join(' · ')}</span></div>}
+                  {e.layoff && e.layoff.filings != null && <div><Badge tone="warm">{e.layoff.filings === 1 ? 'Layoff filed' : `${n0(e.layoff.filings)} layoff filings`}</Badge> <span className="text-muted-foreground">{[e.layoff.filings > 1 ? 'in 12 months' : null, e.layoff.employees ? `${n0(e.layoff.employees)} jobs${e.layoff.filings > 1 ? ' in all' : ''}` : null, e.layoff.noticeDate ? `${e.layoff.filings > 1 ? 'latest ' : ''}${day(e.layoff.noticeDate)}` : null].filter(Boolean).join(' · ')}</span></div>}
+                  {e.layoff && e.layoff.filings == null && <div><Badge tone="warm">Layoff filed</Badge> <span className="text-muted-foreground">{[day(e.layoff.noticeDate), e.layoff.employees ? `${n0(e.layoff.employees)} jobs` : null, e.layoff.where].filter(Boolean).join(' · ')}</span></div>}
                   {e.reasons.includes('cutting') && e.change != null && <div><Badge tone="warm">Hiring down</Badge> <span className="text-muted-foreground">{signed(e.change)} open roles in four weeks</span></div>}
                 </td>
                 <td className="p-3">{e.roles.length ? e.roles.map((r) => `${r.title} (${r.n})`).join(', ') : <span className="text-muted-foreground">Fewer than {MIN_CELL} share any one role</span>}</td>
