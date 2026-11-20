@@ -7,6 +7,8 @@ const STREET = /\b(road|rd|street|st|avenue|ave|boulevard|blvd|drive|dr|lane|ln|
 
 export function cleanEmployerName(raw: string): string {
   let s = (raw ?? '').replace(/\s+/g, ' ').trim()
+  // A state's revision marker ("*Updated* Revvity", "*Amended* Acme") is not part of the name.
+  s = s.replace(/^\*\s*(updated|amended|revised|corrected)\s*\*\s*/i, '')
   // A street address: from the house number that precedes a street word, to the end.
   const street = /\s+\d{1,6}\s+(?:[A-Za-z0-9.'#-]+\s+){0,4}?(?:road|rd|street|st|avenue|ave|boulevard|blvd|drive|dr|lane|ln|way|highway|hwy|parkway|pkwy|court|ct|place|pl|circle|cir|suite|ste|plaza|turnpike|pike|route|rte)\b.*$/i
   if (STREET.test(s)) s = s.replace(street, '')
