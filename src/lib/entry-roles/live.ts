@@ -16,13 +16,18 @@ import { ENTRY_PLACE_BARS, ENTRY_ROLES, ROLE_HEAD_REGEX_PG, rolesForTitle } from
 interface Row { id: string; title: string; state: string | null; city: string | null; company: string; posted: Date; pay: number | null; noexp: boolean; training: boolean }
 
 async function scanRows(): Promise<Row[]> {
-  // Stage 1: ids and titles of open entry-level-or-unleveled postings whose title has a role's head word (a short regex), cheap enough
-  // for the database's 2-minute statement limit. Stage 2 (below) reads the details of the titles that really match a role.
-  const candidates = await prisma.$queryRaw<{ id: string; title: string }[]>`
-    SELECT id, title FROM "ExclusiveJobPosting"
-    WHERE ${PUBLIC}
-      AND title ~* ${ROLE_HEAD_REGEX_PG}
-      AND (level IS NULL OR level IN ('ENTRY_IC', 'EARLY_IC') OR 'no_experience_ok' = ANY("postingSignals"))`
+  // Stage 1: ids and titles of open entry-level-or-unleveled postings whose title has a role's head word (a short regex). Stage 2
+  // (below) reads the details of the titles that really match a role. The scan ran 120-128 s by 2026-11-18, right at the
+  // database's 2-minute statement limit, and failed on 2026-11-20; this one statement gets 5 minutes (it runs in its own cron,
+  // /api/cron/board-figures-roles, so the longer limit cannot push the main board-figures run past its 800 s).
+  const candidates = await prisma.$transaction(async (tx) => {
+    await tx.$executeRawUnsafe(`SET LOCAL statement_timeout = '300s'`)
+    return tx.$queryRaw<{ id: string; title: string }[]>`
+      SELECT id, title FROM "ExclusiveJobPosting"
+      WHERE ${PUBLIC}
+        AND title ~* ${ROLE_HEAD_REGEX_PG}
+        AND (level IS NULL OR level IN ('ENTRY_IC', 'EARLY_IC') OR 'no_experience_ok' = ANY("postingSignals"))`
+  }, { timeout: 320_000, maxWait: 30_000 })
   const ids = candidates.filter((c) => rolesForTitle(c.title).length > 0).map((c) => c.id)
   const rows: Row[] = []
   for (let i = 0; i < ids.length; i += 4000) {
