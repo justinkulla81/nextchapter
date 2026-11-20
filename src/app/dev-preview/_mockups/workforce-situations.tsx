@@ -14,7 +14,7 @@ export function WorkforceSituations() {
         <p className="mb-2 text-xs uppercase text-muted-foreground">Place page band (Franklin County, OH)</p>
         <OrgCandidateBand orgName="Ohio" branded={false} peopleCount={null} heading="Looking for work in Ohio? See where you stand." properties={{ kind: 'STATE' }} situations={{ state: 'OH', area: 'Franklin County', boardId: 'OH-123', slug: 'place_ohio-franklin', page: 'place' }} />
       </section>
-      <section style={{ ['--org-1' as string]: '#0b6e4f', ['--org-1-ink' as string]: '#ffffff' }}>
+      <section style={{ ['--org-1' as string]: '#e4002b', ['--org-1-ink' as string]: '#ffffff', ['--org-1-text' as string]: '#c40025', ['--org-1-soft' as string]: '#fce1e6' }}>
         <p className="mb-2 text-xs uppercase text-muted-foreground">Workforce board page band, in a board&apos;s colors</p>
         <OrgCandidateBand orgName="Central Ohio Workforce Board" branded peopleCount={14} properties={{ kind: 'WORKFORCE_BOARD' }} situations={{ state: 'OH', area: 'Columbus', boardId: 'OH-123', slug: 'board_sample', page: 'board' }} />
       </section>
