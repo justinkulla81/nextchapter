@@ -365,6 +365,7 @@ describe('verifying directory addresses and cleaning names', async () => {
     expect(cleanEmployerName('The Mosaic Company 5880 Manley Road FORT MEADE, FL, 33841')).toBe('The Mosaic Company')
     expect(cleanEmployerName('Excel Mining LLC - MC Mining Preparation Plant')).toBe('Excel Mining LLC')
     expect(cleanEmployerName('DHL Supply Chain (Formerly Exel)')).toBe('DHL Supply Chain')
+    expect(cleanEmployerName('*Updated* Revvity')).toBe('Revvity')
     expect(cleanEmployerName('Acme Corp 100 Main Street Suite 4 Louisville KY 40202')).toBe('Acme Corp')
     for (const n of ['TomTom', 'Century Aluminum of Kentucky Hawesville', 'Laurel Grocery Company LLC', 'Jabil Inc', '3M', '7-Eleven, Inc.']) expect(cleanEmployerName(n)).toBe(n)
     expect(cleanEmployerName('A'.repeat(30) + ' ' + 'B'.repeat(40)).length).toBeLessThanOrEqual(60)
