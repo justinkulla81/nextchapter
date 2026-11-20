@@ -13,8 +13,10 @@
 //   6 outcome reports (2 thank-you asks pending, 1 VP promotion signal);
 //   Resilience Fund awards; Dossier sharers and an intro request.
 //
-// Fictional people, staff, gifts and employers, every row isSampleData. The
-// one real thing is the layoff: a recent public WARN filing the seed points
+// Fictional people, staff, gifts and employers, every row isSampleData. Two
+// real things: where alumni work, when the tenant lists real alumniEmployers
+// (the roster only; employer accounts, postings and pitches stay fictional),
+// and the layoff: a recent public WARN filing the seed points
 // at but never writes to (WARN notices feed public pages and the CRM, so a
 // fictional one would leak). No Company or MemberEmployment rows are created,
 // so nothing fictional reaches company pages; employers live on the roster.
@@ -234,7 +236,8 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
   const hero = firstAfter(n * 0.565, (i) => !isJoined(i) && !isParent(i) && !dnc(i))
   const atWarn = new Set(notice ? [hero, firstAfter(hero + 1, (i) => !isJoined(i) && !isParent(i) && !dnc(i)), firstAfter(n * 0.76, (i) => !isJoined(i) && !isParent(i) && !dnc(i))] : [])
   const employerCo = tenant.employers[4]
-  const rosterEmployers = tenant.employers.filter((e) => e !== employerCo)
+  // Where alumni work: the tenant's real alumni employers when it has them (roster only), else its fictional ones.
+  const rosterEmployers = tenant.alumniEmployers?.length ? tenant.alumniEmployers : tenant.employers.filter((e) => e !== employerCo)
 
   const idOf = (i: number) => (i === featured ? `${slug}_member_featured` : i === hero ? `${slug}_member_hero` : `${slug}_member_${String(i).padStart(3, '0')}`)
   const joinedIdx: number[] = []

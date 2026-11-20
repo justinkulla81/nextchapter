@@ -53,6 +53,8 @@ export const CMU_TENANT: DemoTenant = {
     'Oakland Bio',
     'Duquesne Logistics',
   ],
+  // Where the alumni work: real employers in Pittsburgh and tech (owner, 2026-11-20), so layoffs and hiring trends attach.
+  alumniEmployers: ['Google', 'Amazon', 'Microsoft', 'PNC', 'UPMC', 'BNY', 'Duolingo', 'Highmark Health', 'Aurora Innovation', 'Deloitte', 'JPMorgan Chase', 'Northrop Grumman', 'Wesco International', 'Philips'],
   majors: [
     'Computer Science',
     'Information Systems',
