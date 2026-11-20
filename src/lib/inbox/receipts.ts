@@ -3,8 +3,11 @@ import { prisma } from '@/lib/prisma'
 import { createResend } from '@/lib/email/resend-client'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { getAllGoogleConnections, getValidAccessTokenFor } from '@/lib/google/connection'
-import { getMessageHeaders, listMessagesForSearch, type GmailHeaderMessage } from '@/lib/google/gmail'
-import { layoffReceiptText, replySubject } from './receipt-text'
+import { getMessageContent, getMessageHeaders, listMessagesForSearch, type GmailHeaderMessage } from '@/lib/google/gmail'
+import { fetchArticle } from '@/lib/research/fetch-article'
+import { extractNewsLinks } from '@/lib/research/news-inbox-text'
+import { unwrapFeedLink } from '@/lib/news/discover'
+import { layoffReceiptText, replySubject, type LayoffReceiptArticle } from './receipt-text'
 
 // Receipts for what the owner emails to news@ and layoffs@ (owner request, 2026-11-20). Both addresses are aliases on the
 // connected Google mailboxes, not on the Resend inbound domain, so mail sent there is found by a Gmail search, not a webhook.
@@ -18,6 +21,26 @@ const FROM = 'NextChapter <support@launchyournextchapter.com>'
 /** A layoffs@ email older than this gets no receipt: it predates the receipts, or a run was missed for days. */
 const LAYOFF_LOOKBACK = '2d'
 const MAX_LAYOFF_EMAILS = 10
+/** Stories named per receipt; a page title is fetched for each, with a short wait so one slow site cannot hold the run. */
+const MAX_LAYOFF_LINKS = 5
+const TITLE_WAIT_MS = 8_000
+
+/** What the receipt names: each story's title and link, or the subject and opening words when there is no link. Never throws. */
+async function whatArrived(token: string, id: string, subject: string | null): Promise<NonNullable<Parameters<typeof layoffReceiptText>[0]>> {
+  const body = (await getMessageContent(token, id, 30_000).catch(() => ({ body: null }))).body ?? ''
+  const links = extractNewsLinks(body, unwrapFeedLink).slice(0, MAX_LAYOFF_LINKS)
+  if (!links.length) return { subject, excerpt: body }
+  const articles: LayoffReceiptArticle[] = await Promise.all(
+    links.map(async (url) => {
+      const title = await Promise.race([
+        fetchArticle(url).then((r) => r.title?.replace(/\s+/g, ' ').trim() || null).catch(() => null),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), TITLE_WAIT_MS)),
+      ])
+      return { url, title }
+    }),
+  )
+  return { articles, subject }
+}
 
 const receiptKey = (message: Pick<GmailHeaderMessage, 'id' | 'rfcMessageId'>) =>
   `receipt:${(message.rfcMessageId ?? `gmail:${message.id}`).slice(0, 300)}`
@@ -103,7 +126,8 @@ export async function sendLayoffReceipts(senders: string[]): Promise<{ checked: 
         const headers = await getMessageHeaders(token, m.id)
         result.checked++
         if (headers) {
-          const outcome = await sendReceiptOnce({ message: headers, address: 'layoffs', text: layoffReceiptText() })
+          const what = await whatArrived(token, m.id, headers.subject)
+          const outcome = await sendReceiptOnce({ message: headers, address: 'layoffs', text: layoffReceiptText(what), extra: { articles: what.articles?.length ?? 0 } })
           if (outcome === 'failed') continue // not marked seen: the next run tries again
           if (outcome === 'sent') result.sent++
         }

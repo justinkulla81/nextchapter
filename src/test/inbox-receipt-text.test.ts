@@ -36,4 +36,11 @@ describe('inbox receipts', () => {
     expect(text).toContain('public layoff tracker')
     expect(text).toContain('https://launchyournextchapter.com/support/admin/crm/warn')
   })
+
+  it('names the layoffs@ story it got', () => {
+    const text = layoffReceiptText({ articles: [{ url: 'https://www.geekwire.com/2026/microsoft-layoffs', title: 'Microsoft cuts 500 more jobs in Washington' }, { url: 'https://example.org/a/b', title: null }] })
+    expect(text).toContain('The stories:\n- Microsoft cuts 500 more jobs in Washington\n  https://www.geekwire.com/2026/microsoft-layoffs\n- example.org/a/b')
+    expect(layoffReceiptText({ subject: 'Acme cutting 200 in Ohio' })).toContain('It had no link to a story. What it said: "Acme cutting 200 in Ohio"')
+    expect(layoffReceiptText({})).toContain('nothing to file')
+  })
 })

@@ -58,9 +58,28 @@ export function newsReceiptText(items: NewsReceiptItem[], kind: 'articles' | 'ne
   return lines.join('\n')
 }
 
-export function layoffReceiptText(): string {
-  return [
-    'Received your email to layoffs@.',
+/** One story in a layoffs@ email: its page title when the page could be read, and its link. */
+export interface LayoffReceiptArticle { url: string; title: string | null }
+
+/**
+ * The layoffs@ receipt names what arrived (owner, 2026-11-20: "tell me what article you are talking about"): each story's title and
+ * link, or the email's subject and opening words when there is no link.
+ */
+export function layoffReceiptText(what: { articles?: LayoffReceiptArticle[]; subject?: string | null; excerpt?: string | null } = {}): string {
+  const articles = what.articles ?? []
+  const lines = ['Received your email to layoffs@.', '']
+  if (articles.length) {
+    lines.push(articles.length === 1 ? 'The story:' : 'The stories:')
+    for (const a of articles) {
+      lines.push(`- ${label({ url: a.url, title: a.title, used: '' })}`)
+      if (a.title?.trim()) lines.push(`  ${a.url}`)
+    }
+  } else {
+    const subject = (what.subject ?? '').replace(/\s+/g, ' ').trim()
+    const excerpt = (what.excerpt ?? '').replace(/\s+/g, ' ').trim().slice(0, 160)
+    lines.push(subject || excerpt ? `It had no link to a story. What it said: "${subject || excerpt}${!subject && (what.excerpt ?? '').trim().length > 160 ? '...' : ''}"` : 'It had no link and no text, so there is nothing to file. Send the link to the story.')
+  }
+  lines.push(
     '',
     'How it is used:',
     '- The story is read for the employer, jobs cut, date and location.',
@@ -68,5 +87,6 @@ export function layoffReceiptText(): string {
     '- If it is new, it is added as a reported layoff and published to the public layoff tracker and the layoff RSS feed. From there it feeds the jobs report, the layoff alerts and the workforce board for that area.',
     '',
     `The layoff tracker: ${LAYOFFS_ADMIN_URL}`,
-  ].join('\n')
+  )
+  return lines.join('\n')
 }
