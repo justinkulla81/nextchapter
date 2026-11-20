@@ -151,6 +151,8 @@ export interface GmailHeaderMessage {
   cc: string[]
   subject: string | null
   snippet: string | null
+  /** The RFC 822 Message-ID: the same in every mailbox that holds a copy, and what a reply's In-Reply-To names. */
+  rfcMessageId: string | null
 }
 
 /**
@@ -355,7 +357,7 @@ export async function getMessageHeaders(
 ): Promise<GmailHeaderMessage | null> {
   const url = new URL(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}`)
   url.searchParams.set('format', 'metadata')
-  for (const h of ['From', 'To', 'Cc', 'Subject', 'Date']) url.searchParams.append('metadataHeaders', h)
+  for (const h of ['From', 'To', 'Cc', 'Subject', 'Date', 'Message-ID']) url.searchParams.append('metadataHeaders', h)
 
   const res = await fetchWithRetry(url, accessToken)
   // A deleted message is genuinely absent. Anything else is a failure the
@@ -383,6 +385,7 @@ export async function getMessageHeaders(
     cc: split(header('Cc')),
     subject: header('Subject'),
     snippet: data.snippet ?? null,
+    rfcMessageId: header('Message-ID'),
   }
 }
 
