@@ -1,7 +1,9 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { getAllGoogleConnections, getValidAccessTokenFor } from '@/lib/google/connection'
-import { getMessageContent, listMessagesForSearch } from '@/lib/google/gmail'
+import { getMessageContent, getMessageHeaders, listMessagesForSearch } from '@/lib/google/gmail'
+import { sendReceiptOnce } from '@/lib/inbox/receipts'
+import { newsReceiptText, type NewsReceiptItem } from '@/lib/inbox/receipt-text'
 import { fetchArticle } from './fetch-article'
 import { routeNewsItem } from './route-news'
 import { unwrapFeedLink } from '@/lib/news/discover'
@@ -35,6 +37,8 @@ export interface NewsInboxResult {
   political: number
   notRelevant: number
   failed: number
+  /** Receipts emailed back to the sender, one per email (owner request, 2026-11-20). */
+  receipts?: number
 }
 
 /** Who may send to news@: anyone else is spam, not a news tip. */
@@ -54,9 +58,10 @@ export function newsInboxSenders(): string[] {
  * An article that belongs nowhere is still filed, flagged needsReview with the
  * reason, so a mistaken "not relevant" can be overruled. Each email is handled
  * once (NewsletterMessage); a failure leaves it unrecorded so the next run retries.
+ * Each email handled gets a receipt back saying where each article went (lib/inbox/receipts).
  */
 export async function sweepNewsInbox(accessToken: string): Promise<NewsInboxResult> {
-  const result: NewsInboxResult = { emails: 0, articles: 0, forReport: 0, forWebsite: 0, forWeekly: 0, published: 0, newsletters: 0, political: 0, notRelevant: 0, failed: 0 }
+  const result: NewsInboxResult = { emails: 0, articles: 0, forReport: 0, forWebsite: 0, forWeekly: 0, published: 0, newsletters: 0, political: 0, notRelevant: 0, failed: 0, receipts: 0 }
   if (!process.env.ANTHROPIC_API_KEY) return result
 
   const senders = newsInboxSenders().join(' OR ')
@@ -72,6 +77,12 @@ export async function sweepNewsInbox(accessToken: string): Promise<NewsInboxResu
     const key = `news-inbox:${message.id}`
     if (done.has(key)) continue
     try {
+      const headers = await getMessageHeaders(accessToken, message.id).catch(() => null)
+      const receipt = async (items: NewsReceiptItem[], kind: 'articles' | 'newsletter' | 'empty') => {
+        if (!headers) return
+        const sent = await sendReceiptOnce({ message: headers, address: 'news', text: newsReceiptText(items, kind), extra: { articles: items.length, kind } })
+        if (sent === 'sent') result.receipts = (result.receipts ?? 0) + 1
+      }
       const { body } = await getMessageContent(accessToken, message.id, 30_000)
       const text = body ?? ''
       const allLinks = extractNewsLinks(text, unwrapFeedLink)
@@ -89,6 +100,7 @@ export async function sweepNewsInbox(accessToken: string): Promise<NewsInboxResu
         }
         await prisma.newsletterMessage.createMany({ data: [{ messageId: key, events: 0 }], skipDuplicates: true })
         result.emails++
+        await receipt([], 'newsletter')
         continue
       }
       const links = allLinks.slice(0, MAX_LINKS_PER_EMAIL)
@@ -100,13 +112,19 @@ export async function sweepNewsInbox(accessToken: string): Promise<NewsInboxResu
           : []
 
       let events = 0
+      const items: NewsReceiptItem[] = []
       for (const source of sources) {
-        if (await prisma.researchLibraryItem.findFirst({ where: { url: source.url }, select: { id: true } })) continue
-        await fileOne(source.url, source.pasted, links.length > 1 ? null : note, result)
+        const existing = await prisma.researchLibraryItem.findFirst({ where: { url: source.url }, select: { title: true, newsTitle: true, suggestedAction: true } })
+        if (existing) {
+          items.push({ url: source.url, title: existing.newsTitle ?? existing.title, used: existing.suggestedAction ?? '', alreadyFiled: true })
+          continue
+        }
+        items.push(await fileOne(source.url, source.pasted, links.length > 1 ? null : note, result))
         events++
       }
       await prisma.newsletterMessage.createMany({ data: [{ messageId: key, events }], skipDuplicates: true })
       result.emails++
+      await receipt(items, items.length ? 'articles' : 'empty')
     } catch (err) {
       result.failed++
       console.error('Failed to process news@ email:', message.id, err)
@@ -121,17 +139,19 @@ export async function sweepNewsInbox(accessToken: string): Promise<NewsInboxResu
   return result
 }
 
-async function fileOne(url: string, pasted: string | null, note: string | null, result: NewsInboxResult): Promise<void> {
+/** Files one article and returns what the receipt says about it. */
+async function fileOne(url: string, pasted: string | null, note: string | null, result: NewsInboxResult): Promise<NewsReceiptItem> {
   const fetched = pasted ? { status: 'success' as const, title: null, text: pasted, image: null } : await fetchArticle(url)
   const base = { url, ingestionSource: 'inbox', discoveryTopic: 'Sent to news@', status: 'new', digestAudiences: [] as never[] }
 
   if (fetched.status !== 'success' || !fetched.text) {
     // Never drop what Justin sent: file it for a person to read.
+    const used = 'Sent to news@, but the page could not be read (paywall or blocked). Read it and decide.'
     await prisma.researchLibraryItem.create({
-      data: { ...base, title: fetched.title, fetchFailed: true, needsReview: true, suggestedAction: 'Sent to news@, but the page could not be read (paywall or blocked). Read it and decide.' },
+      data: { ...base, title: fetched.title, fetchFailed: true, needsReview: true, suggestedAction: used },
     })
     result.articles++
-    return
+    return { url, title: fetched.title, used }
   }
 
   try {
@@ -154,6 +174,11 @@ async function fileOne(url: string, pasted: string | null, note: string | null, 
       { website: route.website, political: route.political, tone: route.tone, credibilityTier: route.credibilityTier, confidenceScore: route.confidenceScore, hasTitle: !!route.newsTitle.trim() },
       recentTones,
     )
+    const used = route.political
+      ? `Sent to news@. Kept out because it is political${route.report ? ', except for the monthly report' : ''}. ${route.reason}`
+      : route.relevant
+        ? `Sent to news@. ${live ? 'Published to News automatically. ' : ''}Goes to: ${where.join(', ')}${audiences.length ? ` (${audiences.join(', ').toLowerCase()})` : ''}. ${route.reason}`
+        : `Sent to news@. Not used: ${route.reason}`
     await prisma.researchLibraryItem.create({
       data: {
         ...base,
@@ -166,11 +191,7 @@ async function fileOne(url: string, pasted: string | null, note: string | null, 
         discoveryTopic: `Sent to news@ · ${route.tone}`,
         status: live ? 'reviewed' : 'new',
         needsReview: !route.relevant || route.confidenceScore < 0.6,
-        suggestedAction: route.political
-          ? `Sent to news@. Kept out because it is political${route.report ? ', except for the monthly report' : ''}. ${route.reason}`
-          : route.relevant
-            ? `Sent to news@. ${live ? 'Published to News automatically. ' : ''}Goes to: ${where.join(', ')}${audiences.length ? ` (${audiences.join(', ').toLowerCase()})` : ''}. ${route.reason}`
-            : `Sent to news@. Not used: ${route.reason}`,
+        suggestedAction: used,
         digestAudiences: audiences,
         ...(route.website
           ? {
@@ -192,14 +213,17 @@ async function fileOne(url: string, pasted: string | null, note: string | null, 
     if (route.website) result.forWebsite++
     if (audiences.length > 0) result.forWeekly++
     if (!route.relevant) result.notRelevant++
+    return { url, title: (route.website ? route.newsTitle : null) || fetched.title, used }
   } catch (err) {
     // A routing failure still files the article, unrouted, for a person.
     console.error('News routing failed:', url, err)
+    const used = 'Sent to news@, but the automatic routing failed. Read it and decide.'
     await prisma.researchLibraryItem.create({
-      data: { ...base, title: fetched.title, fetchedContent: fetched.text, needsReview: true, suggestedAction: 'Sent to news@, but the automatic routing failed. Read it and decide.' },
+      data: { ...base, title: fetched.title, fetchedContent: fetched.text, needsReview: true, suggestedAction: used },
     })
     result.articles++
     result.failed++
+    return { url, title: fetched.title, used }
   }
 }
 
@@ -210,13 +234,13 @@ async function fileOne(url: string, pasted: string | null, note: string | null, 
  * is filed once (rows are matched on url).
  */
 export async function sweepNewsInboxAllMailboxes(): Promise<NewsInboxResult & { mailboxes: number }> {
-  const total = { emails: 0, articles: 0, forReport: 0, forWebsite: 0, forWeekly: 0, published: 0, newsletters: 0, political: 0, notRelevant: 0, failed: 0, mailboxes: 0 }
+  const total = { emails: 0, articles: 0, forReport: 0, forWebsite: 0, forWeekly: 0, published: 0, newsletters: 0, political: 0, notRelevant: 0, failed: 0, receipts: 0, mailboxes: 0 }
   for (const connection of await getAllGoogleConnections()) {
     try {
       const token = await getValidAccessTokenFor(connection)
       const r = await sweepNewsInbox(token)
       total.mailboxes++
-      for (const k of Object.keys(r) as (keyof NewsInboxResult)[]) total[k] += r[k]
+      for (const k of Object.keys(r) as (keyof NewsInboxResult)[]) total[k] += r[k] ?? 0
     } catch (err) {
       total.failed++
       console.error('News inbox: could not read mailbox', connection.email, err)

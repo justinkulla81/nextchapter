@@ -289,7 +289,8 @@ export async function runNewsDiscoveryNow(_prev: NewsFormState | undefined): Pro
 /**
  * What was sent to news@, read now instead of at tomorrow's sweep. Only that
  * pass runs: the full research-inbox sweep emails people (PR alerts), so it is
- * schedule-only; this one files rows and sends nothing.
+ * schedule-only; this one files rows and sends only the receipt back to the
+ * owner for each email (once per email, lib/inbox/receipts).
  */
 export async function checkNewsInboxNow(_prev: NewsFormState | undefined): Promise<NewsFormState> {
   const admin = await requireAdmin()

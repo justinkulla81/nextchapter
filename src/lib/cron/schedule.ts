@@ -60,7 +60,7 @@ export const CRON_BUNDLES: Readonly<Record<string, readonly string[]>> = {
   'bundle-sunday': ['partner-scores', 'workforce-boards', 'job-segments'],
   'bundle-afternoon': ['lead-nurture', 'layoff-alerts', 'job-alerts', 'deadline-reminders', 'census-comms', 'notify-recruiters-new-candidates', 'backchannel-match', 'registration-reminders', 'interim-role-reverify'],
   'bundle-hourly-light': ['egress-watch', 'indexnow-layoffs', 'mailing-verify', 'mailing-open-reconcile', 'topic-snapshots', 'layoff-outreach', 'layoff-backfill', 'direct-reverify'],
-  'bundle-every-5': ['lead-lifecycle', 'mailing-send', 'social-filings', 'slow-page-alert'],
+  'bundle-every-5': ['lead-lifecycle', 'mailing-send', 'social-filings', 'slow-page-alert', 'inbox-receipts'],
   'bundle-data-light': ['ceo-speaking', 'higher-ed-nightly', 'catalog-seeds', 'landed-to-managing', 'events-refresh', 'funding-opportunities', 'expire-job-postings', 'likely-openings'],
   'bundle-market-data': ['pivot-market', 'market-size', 'company-hiring-index', 'pay-data'],
   'bundle-contracts': ['competitor-awards', 'board-bids', 'federal-contracts'],
