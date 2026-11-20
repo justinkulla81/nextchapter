@@ -6,7 +6,7 @@
  */
 import { ALONGSIDE, SIGN_OFF, draftFor, draftKind, type DraftContext } from '@/lib/warn/layoff-alert-drafts'
 import type { ContactCard, ContactGroup } from '@/lib/warn/layoff-alert-rules'
-import { askArm, noteSignature, outreachCopy, type CopyAudience, type CopyMode } from './copy'
+import { askArm, closeArm, noteSignature, outreachCopy, variantLabel, type CopyAudience, type CopyMode } from './copy'
 
 export const CAMPAIGN = 'layoff_outreach'
 
@@ -102,9 +102,13 @@ export interface PlanOptions {
   noticeId?: string
   /** 'older' for a layoff announced weeks ago (the continued-support wording); the live sweep only ever sees 'new'. */
   mode?: CopyMode
+  /** A held draft (the backfill): its send day is not known yet, so the close never names days. */
+  held?: boolean
+  /** When the emails start sending, for the close that names two days. Defaults to now. */
+  sendAt?: Date
 }
 
-/** The v3 copy (copy.ts) covers every audience, economic development included (2026-11-19). */
+/** The v4 copy (copy.ts) covers every audience, economic development included (2026-11-19). */
 const COPY_AUDIENCE: Partial<Record<OutreachAudience, CopyAudience>> = { outplacement: 'hr', rapid_response: 'rapid_response', workforce_board: 'workforce_board', job_center: 'job_center', economic_development: 'economic_development' }
 const BLS_LINE = `${BLS_NOW.pct}% of unemployed Americans have been looking for 27 weeks or longer (BLS, ${BLS_NOW.month})`
 
@@ -135,9 +139,10 @@ export function planOutreach(groups: ContactGroup[], ctx: DraftContext, opts: Pl
       let body: string
       if (copyAudience) {
         const arm = askArm(email, copyAudience)
-        // No link in the first email (v3): the owner sends the tagged page link (taggedLink) in his reply.
-        const v = outreachCopy({ audience: copyAudience, mode: opts.mode ?? 'new', arm, greet: c.greet ?? 'team', picture: ctx.picture, bls: BLS_LINE, signOff: SIGN_OFF, partners: ctx.partners })
-        draft = { subject: v.subject, body: v.body, variant: arm }
+        const close = closeArm(email, copyAudience, !!opts.held)
+        // No link in the first email (v3, v4): the owner sends the tagged page link (taggedLink) in his reply.
+        const v = outreachCopy({ audience: copyAudience, mode: opts.mode ?? 'new', arm, close, sendAt: opts.sendAt, greet: c.greet ?? 'team', picture: ctx.picture, bls: BLS_LINE, signOff: SIGN_OFF, partners: ctx.partners })
+        draft = { subject: v.subject, body: v.body, variant: variantLabel(arm, close) }
         body = withGreetingMerge(v.body, c.greet)
       } else {
         const d = draftFor(kind, c, ctx)
