@@ -27,6 +27,12 @@ export type DemoTenant = {
   staff: [InstitutionUserRole, string][]
   // Fictional employers for fictional members.
   employers: string[]
+  /**
+   * Real employers the fictional alumni list as where they work (owner, 2026-11-20), so Academic Affairs' layoff and hiring
+   * signals attach to them in the demo. Used for the roster only: employer accounts, postings and pitches keep `employers`, so
+   * no real company is shown saying or posting anything. Without it the roster uses `employers`.
+   */
+  alumniEmployers?: string[]
   majors: string[]
   memberCount?: number
   // How many of the members are current students (classes graduating this year onward). Default: about one in eight.
