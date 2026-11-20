@@ -94,7 +94,7 @@ export async function queueLayoffOutreach(input: { noticeId: string; employer: s
 
     // The employer's name as a person writes it (no filing street address, no plant name) in every subject and body.
     const ctx = { ...input.ctx, picture: { ...input.ctx.picture, employer: cleanEmployerName(input.ctx.picture.employer) } }
-    const plans = planOutreach(input.groups, ctx, { blocked, ownAddresses: own, noticeId: input.noticeId, mode: input.opts?.mode })
+    const plans = planOutreach(input.groups, ctx, { blocked, ownAddresses: own, noticeId: input.noticeId, mode: input.opts?.mode, held: !!input.opts?.hold, sendAt: new Date() })
     if (plans.length === 0) return none(waiting > 0 ? 'waiting for address verification' : 'no contact with a verified address')
 
     const bcc = settings.testEmail
