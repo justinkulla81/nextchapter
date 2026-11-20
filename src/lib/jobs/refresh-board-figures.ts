@@ -64,16 +64,24 @@ const STEPS: readonly (readonly [string, () => Promise<void>])[] = [
   ['exposure-rows', single('exposure-rows', buildExposureRows)],
   ['places-job-aggregate', single('places-job-aggregate', loadJobAggregate)],
   ['job-titles', refreshTitleFigures],
-  ['entry-roles', refreshEntryRoleFigures],
-  ['roles', refreshRoleFigures],
   ['org-job-stats', refreshOrgJobStats],
 ]
 
-export async function refreshBoardFigures(): Promise<{ done: Record<string, number>; failed: string[]; errors: Record<string, string> }> {
+// The role pages' two scans run in their own cron (/api/cron/board-figures-roles): with them the main run reached 768 s of its
+// 800 s on 2026-11-20, and the entry-role scan needs more than the 2-minute statement limit.
+const ROLE_STEPS: readonly (readonly [string, () => Promise<void>])[] = [
+  ['entry-roles', refreshEntryRoleFigures],
+  ['roles', refreshRoleFigures],
+]
+
+export const refreshBoardFigures = () => runSteps(STEPS)
+export const refreshRoleBoardFigures = () => runSteps(ROLE_STEPS)
+
+async function runSteps(steps: readonly (readonly [string, () => Promise<void>])[]): Promise<{ done: Record<string, number>; failed: string[]; errors: Record<string, string> }> {
   const done: Record<string, number> = {}
   const failed: string[] = []
   const errors: Record<string, string> = {}
-  for (const [name, run] of STEPS) {
+  for (const [name, run] of steps) {
     const started = Date.now()
     try {
       await run()
