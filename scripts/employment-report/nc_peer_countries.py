@@ -28,10 +28,11 @@ NAMES = {"USA": "United States", "GBR": "United Kingdom", "CAN": "Canada", "AUS"
          "NLD": "Netherlands", "SWE": "Sweden"}
 OECD = "https://sdmx.oecd.org/public/rest/data/"
 
-def get(url, tries=3):
+def get(url, tries=3, accept=None):
     # The IMF API returns 403 to custom and browser-style User-Agents but serves
     # the default one; the OECD API does the opposite. Pick per host.
     headers = {} if "imf.org" in url else {"User-Agent": "NextChapter Research"}
+    if accept: headers["Accept"] = accept
     for i in range(tries):
         try:
             req = urllib.request.Request(url, headers=headers)
@@ -42,8 +43,8 @@ def get(url, tries=3):
                 raise
             time.sleep(3 * (i + 1))
 
-def rows(url):
-    return list(csv.DictReader(io.StringIO(get(url))))
+def rows(url, accept=None):
+    return list(csv.DictReader(io.StringIO(get(url, accept=accept))))
 
 def num(v):
     try: return float(v)
@@ -87,10 +88,17 @@ def long_term_share():
                 for y, d in sorted(s.items()) if "Y_GE1" in d and d.get("TOTD")] for c, s in lv.items()}
 
 def gdp_growth():
-    import json as j
-    raw = j.loads(get("https://www.imf.org/external/datamapper/api/v1/NGDP_RPCH/" + "/".join(PEERS)))
-    vals = raw["values"]["NGDP_RPCH"]
-    return {c: {y: round(v, 2) for y, v in vals.get(c, {}).items() if int(y) >= 2015} for c in PEERS}
+    # The IMF DataMapper API (www.imf.org/external/datamapper/api/v1/NGDP_RPCH/...) was withdrawn in 2026 and now answers
+    # 404 "Blob not found" for every path. The same World Economic Outlook series (real GDP growth, annual) is served by the
+    # IMF's SDMX API: dataflow IMF.RES:WEO, key COUNTRY.INDICATOR.FREQUENCY. WEO country codes are ISO alpha-3, like PEERS.
+    url = ("https://api.imf.org/external/sdmx/2.1/data/IMF.RES,WEO,9.0.0/" + "+".join(PEERS) +
+           ".NGDP_RPCH.A?startPeriod=2015")
+    out = {c: {} for c in PEERS}
+    for r in rows(url, accept="application/vnd.sdmx.data+csv;version=1.0.0"):
+        v = num(r.get("OBS_VALUE"))
+        if v is None or r.get("COUNTRY") not in out: continue
+        out[r["COUNTRY"]][r["TIME_PERIOD"]] = round(v, 2)
+    return out
 
 def ai_adoption():
     # Eurostat ignores most filter parameters on this dataset, so filter on the columns.
