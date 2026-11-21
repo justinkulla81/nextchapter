@@ -164,7 +164,8 @@
       "image-size": "^2.0.4"
     },
     "@prisma/config": {
-      "deepmerge-ts": "^8.0.2"
+      "deepmerge-ts": "^8.0.2",
+      "effect": "3.22.5"
     },
     "mammoth": {
       "argparse": "^2.0.1"
