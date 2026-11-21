@@ -54,7 +54,8 @@ export async function SkillsBridgeSection({ ctx }: Props) {
       ) : (
         <>
           <p className="text-xs text-muted-foreground">
-            From {bridge.basis.toLocaleString()} open {bridge.fnLabel} jobs that list skills. The percentage is the share of them asking for the skill.
+            {bridge.moving ? `Measured against ${bridge.fnLabel}, the field you’re moving to: ` : 'From '}
+            {bridge.moving ? `${bridge.basis.toLocaleString()} open jobs that list skills` : `${bridge.basis.toLocaleString()} open ${bridge.fnLabel} jobs that list skills`}. The percentage is the share of them asking for the skill.
           </p>
           <ul className="divide-y divide-border rounded-lg border border-border bg-card">
             {bridge.rows.map((r) => (

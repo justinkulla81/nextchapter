@@ -26,6 +26,7 @@ import { loadSkillsMarket } from '@/lib/skills/market-server'
 import { functionKeyFor, skillsIntel } from '@/lib/jobs/widen-strategy'
 import { skillTerms } from '@/lib/profile/skill-matrix'
 import { normalizeMajor } from './major-groups-shared'
+import { pivotTargetOf } from '@/lib/journey/pivot-target'
 import { serviceSettingsFrom, serviceTarget, allServices, PRICING_LABELS } from './services'
 
 export const normSkill = (s: string) => normalizeMajor(s)
@@ -74,7 +75,7 @@ export function teaches(o: BridgeOffering, skill: { name: string; slug: string }
 
 export type BridgeRow = { skill: string; slug: string; share: number; offerings: BridgeOffering[] }
 export type MemberBridge =
-  | { state: 'ready'; fnLabel: string; basis: number; have: string[]; rows: BridgeRow[] }
+  | { state: 'ready'; fnLabel: string; basis: number; have: string[]; rows: BridgeRow[]; moving?: boolean }
   | { state: 'no-function' | 'no-skills' | 'no-data' }
 
 /** One alum's bridge. Pure given its inputs; exported for tests. */
@@ -95,14 +96,19 @@ export function buildBridge(
 export async function memberBridge(args: { institution: { id: string; slug: string }; memberId: string; enabledFeatures: unknown }): Promise<MemberBridge> {
   const member = await prisma.institutionMember.findUnique({
     where: { id: args.memberId },
-    select: { candidate: { select: { primaryFunction: true, resumeKeywords: true, confirmedSkillsHave: true, certifications: true, skillLevels: true } } },
+    select: { candidate: { select: { primaryFunction: true, targetFunction: true, resumeKeywords: true, confirmedSkillsHave: true, certifications: true, skillLevels: true } } },
   })
   const p = member?.candidate
-  if (!p?.primaryFunction) return { state: 'no-function' }
+  // Someone moving to another function is measured against the jobs they want, not the ones they're leaving
+  // (owner, 2026-11-21; pivotTargetOf is the one source of truth for a move).
+  const target = p ? pivotTargetOf(p) : null
+  const fn = target ?? p?.primaryFunction
+  if (!p || !fn) return { state: 'no-function' }
   const terms = skillTerms(p)
   if (!terms.length) return { state: 'no-skills' }
   const [market, offerings] = await Promise.all([loadSkillsMarket(), bridgeOfferings(args.institution, args.enabledFeatures)])
-  const bridge = buildBridge(skillsIntel(market, terms, { dim: 'function', key: functionKeyFor(p.primaryFunction) }, p.primaryFunction, 6), offerings)
+  const built = buildBridge(skillsIntel(market, terms, { dim: 'function', key: functionKeyFor(fn) }, fn, 6), offerings)
+  const bridge: MemberBridge = built.state === 'ready' && target ? { ...built, moving: true } : built
   if (bridge.state === 'ready' && bridge.rows.length) {
     // What alumni need, for staff counts. Once per member and skill.
     await prisma.skillBridgeEvent

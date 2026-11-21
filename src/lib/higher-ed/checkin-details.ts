@@ -48,3 +48,25 @@ export function cleanDetails(answer: CollegeCheckInAnswer, raw: Record<string, u
   return out
 }
 
+
+// The member function (PRIMARY_FUNCTION_OPTIONS) a typed role or field names, or null when it names none (teaching and
+// nursing are fields of their own, with no function in the skills market). First match wins. Exported for tests.
+const FUNCTION_WORDS: [RegExp, string][] = [
+  [/\b(data|analytics?|analyst|data scien\w*)\b/, 'Data & Analytics'],
+  [/\bproduct\b/, 'Product'],
+  [/\b(marketing|brand|growth|communications?)\b/, 'Marketing'],
+  [/\b(finance|financial|accounting|accountant|fp&a|treasury|controller)\b/, 'Finance'],
+  [/\b(sales|business development|account executive)\b/, 'Sales'],
+  [/\b(engineer\w*|software|developer|devops)\b/, 'Engineering'],
+  [/\b(design|designer|ux|ui)\b/, 'Design'],
+  [/\b(hr|human resources|recruit\w*|talent|people operations)\b/, 'Human Resources'],
+  [/\b(legal|law|lawyer|attorney|paralegal|compliance)\b/, 'Legal'],
+  [/\b(customer success|account manage\w*|client services)\b/, 'Customer Success'],
+  [/\b(operations|ops|supply chain|logistics|procurement)\b/, 'Operations'],
+  [/\b(administrat\w*|executive assistant|office manager)\b/, 'Administration'],
+]
+export function functionFromText(text: string | undefined): string | null {
+  const t = (text ?? '').toLowerCase()
+  if (!t.trim()) return null
+  return FUNCTION_WORDS.find(([re]) => re.test(t))?.[1] ?? null
+}
