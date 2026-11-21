@@ -78,7 +78,8 @@ export async function ensureDemoAlumni(institutionId: string, now = new Date(), 
     },
   )
   await shape(manager, { lastKnownTitle: 'Finance Manager' }, { journey: 'GROWING', primaryFunction: 'Finance' })
-  await shape(grad, { classYear: year - 1 }, { journey: 'STUDENT_NEW_GRAD' })
+  // Economics maps to entry-level roles (career paths on Learn) at every demo college.
+  await shape(grad, { classYear: year - 1, major: 'Economics' }, { journey: 'STUDENT_NEW_GRAD' })
   // The new manager told the college so in a check-in: their cards lean to leadership programs.
   if (manager) {
     const at = new Date(now.getTime() - 12 * DAY)

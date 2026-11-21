@@ -14,6 +14,8 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { fmtPct } from '@/lib/skills/market'
 import { AddToPlanButton } from '@/components/dashboard/learning/PlanControls'
 import { SITE_URL } from '@/lib/reports'
+import { careerPaths, wantsCareerPaths } from '@/lib/higher-ed/career-paths'
+import { CareerPathsView } from './CareerPathsView'
 
 type Props = { ctx: WorkspaceContext; base: string }
 
@@ -28,6 +30,12 @@ export async function SkillsBridgeSection({ ctx }: Props) {
   if (!ctx.memberId) return null
   const slug = ctx.institution.slug
   const row = await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } })
+  // Students and graduates of the last two years see the jobs their major leads to instead (no job function to measure yet).
+  const who = await prisma.institutionMember.findUnique({ where: { id: ctx.memberId }, select: { affiliation: true, classYear: true } })
+  if (who && wantsCareerPaths(who)) {
+    const paths = await careerPaths({ institution: { id: ctx.institution.id, slug }, memberId: ctx.memberId, enabledFeatures: row.enabledFeatures })
+    if (paths.state === 'ready') return <CareerPathsView majorLabel={paths.majorLabel} roles={paths.roles} college={ctx.institution.name} slug={slug} student={who.affiliation === 'STUDENT'} />
+  }
   const [bridge, member] = await Promise.all([
     memberBridge({ institution: { id: ctx.institution.id, slug }, memberId: ctx.memberId, enabledFeatures: row.enabledFeatures }),
     prisma.institutionMember.findUnique({ where: { id: ctx.memberId }, select: { candidateId: true } }),

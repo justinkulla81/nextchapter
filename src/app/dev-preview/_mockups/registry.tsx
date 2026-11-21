@@ -39,6 +39,7 @@ import { SearchStrategyApplicationMatch, ApplicationMatchFew } from './applicati
 import { NotFoundCandidate, NotFoundAdmin } from './not-found'
 import { AdminSkillsMatch } from './admin-skills-match'
 import { CheckInUnlock } from './checkin-unlock'
+import { CollegeNewGrad } from './college-newgrad'
 import { MarketReportShort } from './report-short'
 import { WorkHelpMock } from './work-help'
 import { ExposureMarketReport, ExposureSearchStrategy, ExposurePivots, ExposureLearn } from './ai-exposure'
@@ -272,6 +273,7 @@ export const MOCKUPS: Mockup[] = [
   { path: 'home/strategy/application-match-few', place: 'Home', title: 'Applications match: two applications, failed add (sample data)', replaces: 'the same section, early and error states', Component: ApplicationMatchFew },
   { path: 'help/not-found', place: 'Help', title: 'Page not found: signed-in member (the built view)', replaces: 'the default Next.js 404', Component: NotFoundCandidate },
   { path: 'admin/not-found', place: 'Admin', title: 'Page not found: admin (the built view)', replaces: 'the default Next.js 404', Component: NotFoundAdmin },
+  { path: 'college/new-grad', place: 'College portal', title: 'College: first five years and career paths (W&J sample)', replaces: 'new: candidate Home and Learn for recent grads', Component: CollegeNewGrad },
   { path: 'college/checkin-unlock', place: 'College portal', title: 'College check-in: what the answer unlocked (W&J sample)', replaces: 'new: /i/[slug]/checkin/[id] step three', Component: CheckInUnlock },
   { path: 'admin/skills-match', place: 'Admin', title: 'Admin: skills match and gaps in applications (sample data)', replaces: 'new: support/admin/jobs/skills-match', Component: AdminSkillsMatch },
   { path: 'home/strategy/negotiation', place: 'Home', title: 'Search strategy step 5: interviews, offers and pay (the built form, sample answers)', replaces: 'the step 5 form with nine benefits questions; they moved to Know your worth', Component: StrategyNegotiationLive },
