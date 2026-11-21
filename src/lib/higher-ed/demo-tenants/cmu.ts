@@ -30,6 +30,7 @@ export const CMU_TENANT: DemoTenant = {
   givingUrl: 'https://www.cmu.edu/engage/give/',
   staffEmailDomain: 'cmu-demo.test',
   tier: 'INSTITUTION',
+  workforceBoard: false,
   staff: [
     ['INSTITUTION_ADMIN', 'Morgan Reyes'],
     ['ALUMNI_RELATIONS', 'Taylor Okafor'],

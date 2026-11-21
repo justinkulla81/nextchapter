@@ -87,6 +87,8 @@ export async function DevelopmentRoi({ ctx, base }: Props) {
       )}
       <RoiBlock r={now} current />
       <RoiBlock r={last} current={false} />
+      {/* The Resilience Fund is hidden on a sales demo (Development › Resilience Fund is pitchHidden). */}
+      {!ctx.institution.isDemo && (
       <section aria-labelledby="fund-total" className="grid gap-3 sm:grid-cols-3">
         <h2 id="fund-total" className="sr-only">
           Resilience Fund
@@ -95,6 +97,7 @@ export async function DevelopmentRoi({ ctx, base }: Props) {
         <StatTile label="Awards made" value={now.fund.awards.toLocaleString()} />
         <StatTile label="Value awarded" value={usd(now.fund.awardedCents)} />
       </section>
+      )}
       <PeerBenchmarkCard ctx={ctx} />
     </div>
   )

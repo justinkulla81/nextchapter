@@ -43,6 +43,8 @@ export type DemoTenant = {
   /** The college's own office names (Admin › Branding), by workspace key. */
   officeNames?: Record<string, string>
   profile?: InstitutionProfile
+  // false: no Workforce board workspace (a college sales demo, owner 2026-11-21). Default on.
+  workforceBoard?: boolean
   // License tier; INSTITUTION opens Lifelong Learning (Exec Ed) and Teaching. Default ADVANCEMENT.
   tier?: 'CAREER' | 'ADVANCEMENT' | 'INSTITUTION'
   // The college's own programs (at least three: the seed builds cohorts and capstones on the first three).

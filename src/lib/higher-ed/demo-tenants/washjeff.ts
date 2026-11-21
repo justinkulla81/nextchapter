@@ -35,6 +35,7 @@ export const WASHJEFF_TENANT: DemoTenant = {
   staffEmailDomain: 'washjeff-demo.test',
   // Every office opens in the demo (Graduate and Continuing Studies, Teaching, Academic Affairs).
   tier: 'INSTITUTION',
+  workforceBoard: false,
   staff: [
     ['INSTITUTION_ADMIN', 'Morgan Ashby'],
     ['ALUMNI_RELATIONS', 'Taylor Brennan'],

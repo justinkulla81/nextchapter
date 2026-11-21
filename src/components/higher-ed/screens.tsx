@@ -1427,6 +1427,7 @@ async function SettingsServices({ ctx }: ScreenProps) {
         canEdit={canEdit}
         kind={kind}
         plan={ctx.institution.plan}
+        pitch={ctx.institution.isDemo && kind === 'college'}
       />
     </div>
   )

@@ -45,6 +45,13 @@ export const AUDIENCE_LABELS: Record<Audience, string> = {
 export const PRICING_LABELS: Record<Pricing, string> = { free: 'Free', paid: 'Paid', donor: 'Donor-funded' }
 export const OFFICES = ['Career Services', 'Alumni Relations', 'Development', 'Exec Ed', 'Library', 'Employer Relations', 'Admissions'] as const
 
+// Hidden from a college sales demo's service catalog (owner, 2026-11-21): services that are only a link to a college page,
+// with no NextChapter screen behind them. A real college still sees and can switch on every one.
+export const PITCH_HIDDEN_SERVICES: ReadonlySet<string> = new Set([
+  'legal_clinic', 'health_insurance', 'email_forwarding', 'alumni_discounts', 'relocation', 'credentials', 'board_matching',
+  'encore', 'mentoring_circles', 'entrepreneur_support', 'outcomes_survey', 'digital_resources', 'family_access',
+])
+
 export const SERVICE_GROUPS: { key: ServiceGroup; label: string; blurb: string }[] = [
   { key: 'core', label: 'Core services', blurb: 'What most organizations switch on first.' },
   { key: 'more', label: 'More you could offer', blurb: 'Add any of these when an office is ready to own it.' },
