@@ -44,6 +44,9 @@ import { HiddenMembersNote } from '@/components/plans/HiddenMembersNote'
 import { AdminRelatedOrgs } from './screens-related'
 import { AdminUnits } from './screens-units'
 import { AdminImpact } from './screens-impact'
+import { MemberJourneyView } from './MemberJourneyView'
+import { unitMemberWhere, visibleIdsForInstitution } from '@/lib/plans/visible-members'
+import { memberJourney } from '@/lib/higher-ed/member-journey'
 import { FirstFiveYearsCard, isRecentGrad } from './FirstFiveYearsCard'
 import { AdminConnections } from './screens-connections'
 import { AdminPublicPage } from '@/components/public-page/screens-public-page'
@@ -138,7 +141,7 @@ import { removeStaff, resendStaffInvite } from '@/app/i/[slug]/(portal)/staff-ac
 import { ActionButton } from './CommunityForms'
 import { addEarlyCareerRoleAction, addRecruitingDateAction, archiveEarlyCareerRoleAction, removeRecruitingDateAction, saveCoreRecruiter, archiveAlumniJob, addTargetCompany, inviteStaff, postAlumniJob, removeTargetCompany, saveBranding, saveCollegeSettings, saveOfficeNames, uploadCrmFile } from '@/app/i/[slug]/(portal)/staff-actions'
 
-export type ScreenSearchParams = { field?: string; purpose?: string; q?: string; page?: string; status?: string; transition?: string; industry?: string; fn?: string; edit?: string; group?: string; company?: string; track?: string; need?: string } & CommunityParams
+export type ScreenSearchParams = { field?: string; purpose?: string; q?: string; page?: string; status?: string; transition?: string; member?: string; industry?: string; fn?: string; edit?: string; group?: string; company?: string; track?: string; need?: string } & CommunityParams
 type ScreenProps = { ctx: WorkspaceContext; searchParams: ScreenSearchParams; base: string }
 
 const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
@@ -467,6 +470,26 @@ async function AlumniHome({ ctx, base }: ScreenProps) {
 }
 
 async function AlumniMembers({ ctx, searchParams, base }: ScreenProps) {
+  // One alum's journey (owner, 2026-11-21): only someone the plan and the staff member's school or department let them see.
+  if (searchParams.member) {
+    const id = String(searchParams.member)
+    const visible = await visibleIdsForInstitution(ctx.institution.id)
+    const inScope = (!visible || visible.includes(id)) && !!(await prisma.institutionMember.findFirst({ where: { id, institutionId: ctx.institution.id, ...unitMemberWhere(ctx.units) }, select: { id: true } }))
+    const inst = inScope ? await prisma.institution.findUnique({ where: { id: ctx.institution.id }, select: { enabledFeatures: true, profile: true } }) : null
+    const names = officeNamesOf(inst?.enabledFeatures)
+    const office = (k: string) => names[k] ?? getWorkspace(k)?.label ?? k
+    const j = inScope
+      ? await memberJourney(ctx.institution.id, id, { alumni: office('alumni'), career: office('career'), development: office('development'), execed: office('execed'), ventures: readProfile(inst?.profile).college?.entrepreneurshipCenter?.name ?? office('ventures') })
+      : null
+    return (
+      <div className="space-y-3">
+        <Link href={`${base}/members`} className="text-sm font-medium text-primary hover:underline">
+          Back to all members
+        </Link>
+        {j ? <MemberJourneyView name={j.name} classYear={j.classYear} items={j.items} /> : <p className="text-sm text-muted-foreground">That member isn’t in your list.</p>}
+      </div>
+    )
+  }
   if (searchParams.transition === '1') {
     const rows = await listOpenTransitions(ctx)
     return (
@@ -525,7 +548,11 @@ async function AlumniMembers({ ctx, searchParams, base }: ScreenProps) {
         <Table caption="Members" head={['Name', 'Class', 'Status', 'Employer', 'Title', 'Engagement (12 mo)']}>
           {rows.map((r) => (
             <tr key={r.memberId}>
-              <td className="px-4 py-2 font-medium">{fullName(r)}</td>
+              <td className="px-4 py-2 font-medium">
+                <Link href={`${base}/members?member=${encodeURIComponent(r.memberId)}`} className="text-primary hover:underline">
+                  {fullName(r)}
+                </Link>
+              </td>
               <td className="px-4 py-2 tabular-nums">{r.classYear ?? '—'}</td>
               <td className="px-4 py-2">{STATUS_LABELS[r.status]}</td>
               <td className="px-4 py-2">{r.shareOutcome ? (r.employer ?? '—') : <NotShared />}</td>
