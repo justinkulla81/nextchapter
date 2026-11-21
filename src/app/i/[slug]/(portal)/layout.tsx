@@ -132,6 +132,7 @@ export default async function InstitutionPortalLayout({
           college={orgKindOf(institution.orgType) === 'college'}
           checkinHref={`${orgBasePath(slug, institution.orgType)}/checkin/demo`}
           alum={(await cookies()).get(DEMO_ALUM_COOKIE)?.value ?? null}
+          start={access.demoStart ?? null}
         />
       )}
       {access.mode === 'view-as' && (

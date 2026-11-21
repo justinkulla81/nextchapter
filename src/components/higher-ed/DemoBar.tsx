@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
 import posthog from 'posthog-js'
-import { resetDemoData, setDemoAlum, setDemoPersona, skipDemoAhead } from '@/app/i/[slug]/(portal)/actions'
+import { resetDemoData, setDemoAlum, setDemoPersona, setDemoStart, skipDemoAhead } from '@/app/i/[slug]/(portal)/actions'
+import { DEMO_STARTS } from '@/lib/higher-ed/demo-start-shared'
 import { DEMO_ALUMNI } from '@/lib/higher-ed/demo-alumni-shared'
 
 // "Demo mode" banner (spec §4). Everyone on a demo tenant sees the banner;
@@ -23,7 +24,10 @@ export function DemoBar({
   alum = null,
   college = false,
   checkinHref = null,
+  start = null,
 }: {
+  // The "Start with" choice (DEMO_STARTS).
+  start?: string | null
   // The demo check-in walkthrough's address on this host.
   checkinHref?: string | null
   // The sample alum the Candidate view shows (DEMO_ALUMNI), and whether this demo is a college (alumni stories apply).
@@ -131,6 +135,23 @@ export function DemoBar({
               </SubmitButton>
             </form>
 
+            {college && (
+              <form action={setDemoStart.bind(null, slug)} className="flex items-center gap-2">
+                <label htmlFor="demo-start" className="font-medium">
+                  Start with
+                </label>
+                <select id="demo-start" name="start" defaultValue={start ?? 'all'} className="h-8 rounded-md border border-amber-300 bg-white px-2 text-sm">
+                  {DEMO_STARTS.map((x) => (
+                    <option key={x.key} value={x.key}>
+                      {x.label}
+                    </option>
+                  ))}
+                </select>
+                <SubmitButton size="sm" variant="outline" pendingLabel="Switching…" savedLabel="Switched">
+                  Show
+                </SubmitButton>
+              </form>
+            )}
             {college && (
               <form action={setDemoAlum.bind(null, slug)} className="flex items-center gap-2">
                 <label htmlFor="demo-alum" className="font-medium">

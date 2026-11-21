@@ -9,6 +9,7 @@ import { prisma } from '@/lib/prisma'
 import { isAdminEmail } from '@/lib/admin/is-admin-email'
 import { adminMfaSatisfied, type Aal } from '@/lib/admin/mfa'
 import { demoAlumMember } from './demo-alumni'
+import { workspacesForStart } from './demo-start-shared'
 import { ALL_TOKENS, demoPersonaTokens, EMPLOYER_ROLES, orgKindOf, workspaceFeaturesOf, workspacesFor, type AccessToken, type EmployerRole, type WorkspaceKey } from './workspaces'
 
 type Db = PrismaClient | Prisma.TransactionClient
@@ -58,6 +59,8 @@ export type InstitutionAccess = {
   // site's (members only), or a demo guest pass.
   via?: 'org' | 'candidate' | 'guest'
   demoPersona: string | null
+  // A college demo's "Start with" choice (DEMO_STARTS): which offices are on. Null outside demos.
+  demoStart?: string | null
   staffUsers: { id: string; role: InstitutionUserRole; workspace: string | null; unitId?: string | null }[]
   // The schools or departments this person's staff seats are limited to (InstitutionUnit). Null or absent = the whole
   // institution. Their members are only the alumni of those units, and `institution.plan` is the units' plan.
@@ -109,6 +112,8 @@ export async function resolveInstitutionAccess(
     demoPersona?: string | null
     // The demo bar's sample-alum choice (DEMO_ALUM_COOKIE).
     demoAlum?: string | null
+    // The demo bar's "Start with" choice (DEMO_START_COOKIE).
+    demoStart?: string | null
     now?: Date
     // A candidate-portal session: only the person's own membership counts
     // (the Candidate workspace), never staff, employer or admin roles.
@@ -230,7 +235,8 @@ export async function resolveInstitutionAccess(
     ownTokens: own,
     units,
     tokens,
-    workspaces: workspacesFor(tokens, institution.tier, features, orgKindOf(institution.orgType)),
+    workspaces: mode === 'demo-admin' ? workspacesForStart(workspacesFor(tokens, institution.tier, features, orgKindOf(institution.orgType)), args.demoStart) : workspacesFor(tokens, institution.tier, features, orgKindOf(institution.orgType)),
+    demoStart: mode === 'demo-admin' ? (args.demoStart ?? null) : null,
     isNcAdmin: ncAdmin,
     mode,
     demoPersona,
@@ -251,7 +257,7 @@ export function holds(ctx: Pick<InstitutionAccess, 'tokens'>, roles: AccessToken
 }
 
 // A guest pass to a demo: every workspace the demo has, read-only, no user.
-export async function resolveDemoGuestAccess(args: { slug: string; demoPersona?: string | null; demoAlum?: string | null }, db: Db = prisma): Promise<InstitutionAccess | null> {
+export async function resolveDemoGuestAccess(args: { slug: string; demoPersona?: string | null; demoAlum?: string | null; demoStart?: string | null }, db: Db = prisma): Promise<InstitutionAccess | null> {
   const row = await db.institution.findUnique({
     where: { slug: args.slug },
     select: { id: true, slug: true, name: true, programBrandName: true, logoUrl: true, accentColor: true, isDemo: true, tier: true, plan: true, orgType: true, enabledFeatures: true, isSampleData: true },
@@ -267,7 +273,8 @@ export async function resolveDemoGuestAccess(args: { slug: string; demoPersona?:
     email: null,
     ownTokens: new Set<AccessToken>(),
     tokens,
-    workspaces: workspacesFor(tokens, institution.tier, features, orgKindOf(institution.orgType)),
+    workspaces: workspacesForStart(workspacesFor(tokens, institution.tier, features, orgKindOf(institution.orgType)), args.demoStart),
+    demoStart: args.demoStart ?? null,
     isNcAdmin: false,
     mode: 'demo-guest',
     demoPersona,

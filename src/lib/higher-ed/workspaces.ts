@@ -476,6 +476,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'publicpage', label: 'Public page', comingIn: null, orgKind: 'college', institutionOnly: true },
       { key: 'units', label: 'Schools and departments', comingIn: null, orgKind: 'college', institutionOnly: true },
       { key: 'roster', label: 'Roster', comingIn: null },
+      { key: 'impact', label: 'Impact by office', comingIn: null, orgKind: 'college' },
       { key: 'board', label: 'Board report', comingIn: null, orgKind: 'college', institutionOnly: true },
       { key: 'privacy', label: 'Privacy requests', comingIn: null, institutionOnly: true },
     ],
