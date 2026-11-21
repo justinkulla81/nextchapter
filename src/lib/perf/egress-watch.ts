@@ -5,7 +5,8 @@ import { emailDocument, escapeHtml } from '@/lib/help/email-layout'
 
 // Hourly data budget check (owner decisions 2026-11-14, after the Supabase egress quota cut the site off). The plan includes ~250 GB a
 // month, about 8 GB a day, and the owner is emailed as soon as the rate goes over that (at most once a day). Postgres does not count bytes sent, so this estimates them from pg_stat_statements: rows returned over the last
-// six hours or so, times a row width (a statement that reads the full posting text is ~5 KB a row, others ~250 B). It is an
+// six hours or so, times a row width (a statement that reads the full posting text is ~5 KB a row; others are measured from the average width of the
+// columns they name, in pg_stats). It is an
 // estimate; the real figure is on the Usage page. When the rate, as GB a day, passes the alert line the admin gets an email naming the
 // statements behind it.
 
@@ -29,29 +30,86 @@ const CLIPPED_TEXT_ROW_BYTES = 1_200
 /** A statement that returns only ids (a cuid and the row framing). */
 const ID_ROW_BYTES = 40
 
-/** Bytes a row of this statement sends, roughly: full posting or course text is ~5 KB, anything else a few hundred bytes. */
-export function rowBytes(query: string): number {
+/** Average stored width in bytes of each column, by table (pg_stats, the planner's own statistics). */
+export type ColumnWidths = Map<string, Map<string, number>>
+
+const FULL_TEXT_COLUMNS = ['description', 'descriptionHtml', 'rawText']
+/** A text column whose stored average is under this is short text, not a posting (stored widths are compressed). */
+const SHORT_TEXT_MAX_WIDTH = 400
+
+/** Per-value framing on the wire (length word) and per-row framing, roughly. */
+const COLUMN_OVERHEAD_BYTES = 4
+const ROW_OVERHEAD_BYTES = 8
+
+/** The table a plain `SELECT <columns> FROM <table>` reads, and its column list; null for anything else (a CTE, a subquery in the list). */
+function plainSelect(query: string): { table: string; list: string } | null {
+  if (!/^\s*SELECT\s/i.test(query)) return null
+  const from = /\sFROM\s+(?:"?public"?\.)?"?(\w+)"?/i.exec(query)
+  if (!from) return null
+  const list = query.slice(query.search(/SELECT\s/i) + 7, from.index)
+  if (/\(\s*SELECT\s/i.test(list)) return null
+  return { table: from[1], list }
+}
+
+/**
+ * Bytes a row of this statement sends, roughly. With `widths`, a plain SELECT is measured: the average width of each column it names
+ * (pg_stats) plus framing. A flat 250 B a row put narrow reads (an id and an email, ~60 B) at four times their size and the
+ * 2026-11-20 alert at 8.6 GB a day. Posting text keeps a fixed size: pg_stats holds its compressed size, and it is sent uncompressed
+ * (~4.1 KB on average, sampled 2026-11-21). Without widths, or for a statement it can't read: full text ~5 KB, anything else 250 B.
+ */
+export function rowBytes(query: string, widths?: ColumnWidths): number {
   // A statement that clips the text (left(description, n)) sends at most the clip, even when a subquery names the full column: the
   // windowed company-signals read was counted as full text and put a 6-hour estimate at 22 GB a day (2026-11-16).
   if (/left\(\s*"?description"?\s*,/i.test(query)) return CLIPPED_TEXT_ROW_BYTES
-  if (/"description"|"descriptionHtml"|"rawText"/i.test(query)) return FULL_TEXT_ROW_BYTES
+  const plain = widths ? plainSelect(query) : null
+  const cols = plain ? widths!.get(plain.table) : undefined
+  const longText = /"description"|"descriptionHtml"|"rawText"/i.test(query)
+  // A short column that happens to be called description (a mailing list's one line) is measured like any other: counting it as a
+  // posting put a list read at 3 GB a day in the 2026-11-21 alert.
+  if (longText && !(cols && [...FULL_TEXT_COLUMNS].every((c) => (cols.get(c) ?? 0) < SHORT_TEXT_MAX_WIDTH))) return FULL_TEXT_ROW_BYTES
+  if (plain && cols) {
+    const named = new Set<string>()
+    for (const m of plain.list.matchAll(/"(\w+)"|\b([A-Za-z_]\w*)\b/g)) {
+      const name = m[1] ?? m[2]
+      if (cols.has(name)) named.add(name)
+    }
+    if (named.size > 0) return ROW_OVERHEAD_BYTES + [...named].reduce((sum, c) => sum + cols.get(c)! + COLUMN_OVERHEAD_BYTES, 0)
+  }
   // Only ids come back (the AI-skill id set, the board's count read): counting them at 250 B put a ~0.06 GB a day read at 0.6 (2026-11-17).
   if (/^\s*SELECT\s+(?:DISTINCT\s+)?(?:"?\w+"?\.)?"?id"?\s+FROM\s/i.test(query)) return ID_ROW_BYTES
   return NARROW_ROW_BYTES
+}
+
+/** Column widths for the tables these statements read (one catalog read, a few hundred rows). Empty when pg_stats is unreadable. */
+async function columnWidths(queries: string[]): Promise<ColumnWidths> {
+  const tables = [...new Set(queries.map((q) => plainSelect(q)?.table).filter((t): t is string => !!t))]
+  const out: ColumnWidths = new Map()
+  if (tables.length === 0) return out
+  try {
+    const rows = await prisma.$queryRaw<{ tablename: string; attname: string; avg_width: number }[]>`
+      SELECT tablename::text, attname::text, avg_width FROM pg_stats WHERE schemaname = 'public' AND tablename = ANY(${tables})`
+    for (const r of rows) {
+      if (!out.has(r.tablename)) out.set(r.tablename, new Map())
+      out.get(r.tablename)!.set(r.attname, Number(r.avg_width))
+    }
+  } catch (error) {
+    console.warn('Egress watch: column widths unreadable, using fixed row sizes', error instanceof Error ? error.message : error)
+  }
+  return out
 }
 
 export type WatchRow = { queryid: string; rows: number; calls: number; query: string }
 export type WatchDelta = WatchRow & { deltaRows: number; deltaCalls: number; gb: number }
 
 /** Each kept statement's rows since the snapshot (all of them when the counters were reset or it is new there), with its estimated GB. */
-export function dailyDelta(now: WatchRow[], before: Record<string, { rows: number; calls: number }> | null): WatchDelta[] {
+export function dailyDelta(now: WatchRow[], before: Record<string, { rows: number; calls: number }> | null, widths?: ColumnWidths): WatchDelta[] {
   return now
     .map((r) => {
       const b = before?.[r.queryid]
       const reset = !b || r.rows < b.rows
       const deltaRows = reset ? r.rows : r.rows - b.rows
       const deltaCalls = reset ? r.calls : Math.max(0, r.calls - b.calls)
-      return { ...r, deltaRows, deltaCalls, gb: (deltaRows * rowBytes(r.query)) / 1e9 }
+      return { ...r, deltaRows, deltaCalls, gb: (deltaRows * rowBytes(r.query, widths)) / 1e9 }
     })
     .filter((d) => d.deltaRows > 0)
     .sort((a, b) => b.gb - a.gb)
@@ -63,7 +121,7 @@ export async function runEgressWatch(): Promise<{ estimatedGb: number; alerted: 
   let rows: WatchRow[]
   try {
     const raw = await prisma.$queryRawUnsafe<{ queryid: string; rows: number; calls: number; query: string }[]>(
-      `SELECT queryid::text AS queryid, rows::float8 AS rows, calls::float8 AS calls, left(regexp_replace(query, '\\s+', ' ', 'g'), 400) AS query
+      `SELECT queryid::text AS queryid, rows::float8 AS rows, calls::float8 AS calls, left(regexp_replace(query, '\\s+', ' ', 'g'), 1500) AS query
        FROM pg_stat_statements
        WHERE dbid = (SELECT oid FROM pg_database WHERE datname = current_database())
        ORDER BY rows DESC LIMIT ${KEEP}`
@@ -88,7 +146,7 @@ export async function runEgressWatch(): Promise<{ estimatedGb: number; alerted: 
   const firstRun = before === null || !last
   if (firstRun) return { estimatedGb: 0, alerted: false, firstRun: true }
   const hours = Math.max(1, (now - last.createdAt.getTime()) / 3_600_000)
-  const deltas = dailyDelta(rows, before)
+  const deltas = dailyDelta(rows, before, await columnWidths(rows.map((r) => r.query)))
   const perDay = (gb: number) => (gb * 24) / hours
   const estimatedGb = perDay(deltas.reduce((s, d) => s + d.gb, 0))
   const rounded = Math.round(estimatedGb * 10) / 10
@@ -112,7 +170,7 @@ export async function runEgressWatch(): Promise<{ estimatedGb: number; alerted: 
   const html = emailDocument({
     preheader: `${headline}; the alert line is ${EGRESS_ALERT_GB} GB and the plan allows about 8.`,
     label: 'Database',
-    footer: `Daily estimate from pg_stat_statements (rows returned times a row width). The real egress figure is on the Usage page: ${USAGE_PAGE}.`,
+    footer: `Daily estimate from pg_stat_statements (rows returned times the average width of the columns read). The real egress figure is on the Usage page: ${USAGE_PAGE}.`,
     bodyHtml: `
       <p style="margin:0 0 6px;font-size:20px;font-weight:700;line-height:1.3">${escapeHtml(headline)}</p>
       <p style="margin:0 0 14px;font-size:14px;color:#55606e">Measured over the last ${fmt(hours, 0)} hours. The plan includes about 8 GB a day (250 GB a month). Over that, Supabase bills extra or, with the spend cap on, cuts the site's database off. These statements sent the most:</p>

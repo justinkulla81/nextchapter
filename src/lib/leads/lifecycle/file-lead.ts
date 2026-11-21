@@ -29,8 +29,23 @@ export function isInternalAddress(email: string): boolean {
   return email.toLowerCase().endsWith('@launchyournextchapter.com')
 }
 
-async function leadList() {
+/** The leads list's id, held per instance once it exists (it is never deleted). */
+let leadListId: Promise<string> | null = null
+
+function leadList(): Promise<{ id: string }> {
+  leadListId ??= ensureLeadList().then(
+    (l) => l.id,
+    (e) => {
+      leadListId = null
+      throw e
+    }
+  )
+  return leadListId.then((id) => ({ id }))
+}
+
+async function ensureLeadList() {
   return prisma.mailingList.upsert({
+    select: { id: true },
     where: { key: LEAD_LIST_KEY },
     update: {},
     create: {

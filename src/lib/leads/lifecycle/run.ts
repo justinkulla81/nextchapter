@@ -165,10 +165,19 @@ export async function runLeadLifecycle(now = new Date()): Promise<LifecycleSumma
   const stopList = new Set(suppressed.map((s) => s.email))
   const offList = new Set(members.filter((m) => m.status !== 'ACTIVE').map((m) => m.email))
   const sentAt = new Map(sentRows.map((r) => [r.sourceRef!, r.occurredAt]))
+  const personByEmail = new Map(persons.map((p) => [p.email!, p.id]))
+  const onLeadList = new Set(members.map((m) => m.email))
 
   let sends = 0
   for (const [email, lead] of byEmail) {
-    const personId = await fileLeadInCrm({ email, name: lead.name, channel: lead.channel, detail: lead.detail ?? undefined, b2b: lead.variant === 'waitlist_b2b', capturedAt: lead.capturedAt })
+    const b2b = lead.variant === 'waitlist_b2b'
+    // Filed already (in the CRM and, for a candidate lead, on the leads list): skip the filing. Every run (every 5 minutes) re-filed
+    // all ~1,800 leads of the last 30 days, ~150k list reads and as many person lookups in 7 hours (egress alert, 2026-11-21).
+    const filedId = personByEmail.get(email)
+    const personId =
+      filedId && (b2b || onLeadList.has(email))
+        ? filedId
+        : await fileLeadInCrm({ email, name: lead.name, channel: lead.channel, detail: lead.detail ?? undefined, b2b, capturedAt: lead.capturedAt })
 
     if (registeredEmails.has(email)) {
       summary.registered++
