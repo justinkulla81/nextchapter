@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import { openDemo } from '@/lib/higher-ed/open-demo'
 import type { CSSProperties } from 'react'
-import { headers } from 'next/headers'
+import { cookies, headers } from 'next/headers'
+import { DEMO_ALUM_COOKIE } from '@/lib/higher-ed/demo-alumni-shared'
 import { notFound, redirect } from 'next/navigation'
 import { getInstitutionAccess } from '@/lib/higher-ed/access'
 import { demoPersonasFor, orgHostKindOf, labelFor, lockedWorkspacesFor, officeLabel, officeNamesOf, orgBasePath, orgKindOf, tabsFor, TIER_LABELS, workspaceFeaturesOf, WORKSPACES } from '@/lib/higher-ed/workspaces'
@@ -128,6 +129,9 @@ export default async function InstitutionPortalLayout({
           canReset
           canSkip={orgKindOf(institution.orgType) === 'college'}
           personas={demoPersonasFor(orgKindOf(institution.orgType), institution.tier)}
+          college={orgKindOf(institution.orgType) === 'college'}
+          checkinHref={`${orgBasePath(slug, institution.orgType)}/checkin/demo`}
+          alum={(await cookies()).get(DEMO_ALUM_COOKIE)?.value ?? null}
         />
       )}
       {access.mode === 'view-as' && (

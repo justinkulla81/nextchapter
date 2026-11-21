@@ -12,6 +12,8 @@ import { redirect } from 'next/navigation'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getInstitutionAccess, requireWorkspace, DEMO_PREVIEW_COOKIE } from '@/lib/higher-ed/access'
+import { DEMO_ALUM_COOKIE, isDemoAlumKey } from '@/lib/higher-ed/demo-alumni-shared'
+import { ensureDemoAlumni } from '@/lib/higher-ed/demo-alumni'
 import { institutionEntitlements, lockedReason } from '@/lib/plans/entitlements'
 import { AUDIENCE_LABELS, customOfferingsFrom, getService, isTargeted, MOMENT_LABELS, NO_TARGETING, PRICING_LABELS, type Audience, type Moment, type Pricing, type ServiceSetting, type Targeting } from '@/lib/higher-ed/services'
 import { parseMajors } from '@/lib/higher-ed/major-groups-shared'
@@ -43,6 +45,19 @@ export async function setDemoPersona(slug: string, formData: FormData) {
   const inst = await prisma.institution.findUniqueOrThrow({ where: { id: access.institution.id }, select: { tier: true, orgType: true, enabledFeatures: true } })
   const first = workspacesFor(demoPersonaTokens(persona), inst.tier, { wioa: (inst.enabledFeatures as { wioa?: boolean } | null)?.wioa === true }, orgKindOf(inst.orgType))[0]
   redirect(`${orgBasePath(slug, inst.orgType)}${first ? `/${getWorkspace(first)!.homePath}` : ''}`)
+}
+
+// The demo bar's "Sample alum": which seeded alum the Candidate view shows (owner, 2026-11-21).
+export async function setDemoAlum(slug: string, formData: FormData) {
+  const found = await getInstitutionAccess(slug)
+  const access = found !== 'signed-out' && found && found.institution.isDemo && (found.isNcAdmin || found.mode === 'demo-guest') ? found : await requireDemoAdmin(slug)
+  const alum = String(formData.get('alum') ?? 'featured')
+  if (!isDemoAlumKey(alum)) throw new Error(`Unknown sample alum ${alum}`)
+  if (alum !== 'featured') await ensureDemoAlumni(access.institution.id)
+  const cookieStore = await cookies()
+  cookieStore.set(DEMO_ALUM_COOKIE, alum, { path: '/', httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' })
+  captureServerEvent(access.userId, 'he_demo_alum_changed', { institutionId: access.institution.id, slug, alum })
+  redirect(`${orgBasePath(slug, access.institution.orgType)}/candidate`)
 }
 
 export async function resetDemoData(slug: string): Promise<{ error?: string; members?: number }> {

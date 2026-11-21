@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { saveCheckInDetails, submitCheckInAnswer } from '@/app/i/[slug]/checkin/[id]/actions'
+import { saveCheckInDetails, saveDemoCheckInDetails, submitCheckInAnswer } from '@/app/i/[slug]/checkin/[id]/actions'
 import { CHANGE_DISTANCES, DETAIL_FIELDS } from '@/lib/higher-ed/checkin-details'
 import type { Unlocks } from '@/lib/higher-ed/checkin-unlocks'
 import { posthog } from '@/lib/posthog/client'
@@ -108,6 +108,10 @@ export function CheckInAnswerForm(props: {
   initial: string | null
   college: string
   joined: boolean
+  // The demo walkthrough: the same steps, recording nothing (no token, no answer saved).
+  demo?: boolean
+  // The demo's sample alum (DEMO_ALUMNI key).
+  demoAlum?: string | null
 }) {
   const [answer, setAnswer] = useState<string | null>(props.initial)
   const [done, setDone] = useState<string | null>(null)
@@ -124,7 +128,7 @@ export function CheckInAnswerForm(props: {
     const send = (skip: boolean) =>
       start(async () => {
         setError(null)
-        const r = await saveCheckInDetails(props.slug, props.checkInId, props.token, skip ? {} : details)
+        const r = props.demo ? await saveDemoCheckInDetails(props.slug, props.demoAlum ?? null, done, skip ? {} : details) : await saveCheckInDetails(props.slug, props.checkInId, props.token, skip ? {} : details)
         if (r.error || !r.unlocks) setError(r.error ?? 'Something went wrong. Try again.')
         else setUnlocks(r.unlocks)
       })
@@ -203,7 +207,7 @@ export function CheckInAnswerForm(props: {
         onClick={() =>
           start(async () => {
             setError(null)
-            const r = await submitCheckInAnswer(props.slug, props.checkInId, props.token, answer!)
+            const r = props.demo ? {} : await submitCheckInAnswer(props.slug, props.checkInId, props.token, answer!)
             if (r.error) setError(r.error)
             else setDone(answer)
           })

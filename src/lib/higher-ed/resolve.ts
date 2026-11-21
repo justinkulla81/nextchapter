@@ -8,6 +8,7 @@ import type { InstitutionOrgType, InstitutionTier, InstitutionUserRole, Prisma, 
 import { prisma } from '@/lib/prisma'
 import { isAdminEmail } from '@/lib/admin/is-admin-email'
 import { adminMfaSatisfied, type Aal } from '@/lib/admin/mfa'
+import { demoAlumMember } from './demo-alumni'
 import { ALL_TOKENS, demoPersonaTokens, EMPLOYER_ROLES, orgKindOf, workspaceFeaturesOf, workspacesFor, type AccessToken, type EmployerRole, type WorkspaceKey } from './workspaces'
 
 type Db = PrismaClient | Prisma.TransactionClient
@@ -76,7 +77,10 @@ async function demoConfirmedPartners(db: Db, institution: { id: string; isDemo: 
   return p ? [p.id] : []
 }
 
-async function demoFeaturedMember(db: Db, institution: { id: string; slug: string }): Promise<string | null> {
+async function demoFeaturedMember(db: Db, institution: { id: string; slug: string }, demoAlum?: string | null): Promise<string | null> {
+  // The demo bar's "Sample alum" choice (./demo-alumni.ts), else the seeded featured alum.
+  const chosen = await demoAlumMember(db, institution, demoAlum)
+  if (chosen) return chosen
   const m = await db.institutionMember.findFirst({ where: { id: `${institution.slug}_member_featured`, institutionId: institution.id }, select: { id: true } })
   return m?.id ?? null
 }
@@ -103,6 +107,8 @@ export async function resolveInstitutionAccess(
     userId: string
     email: string | null
     demoPersona?: string | null
+    // The demo bar's sample-alum choice (DEMO_ALUM_COOKIE).
+    demoAlum?: string | null
     now?: Date
     // A candidate-portal session: only the person's own membership counts
     // (the Candidate workspace), never staff, employer or admin roles.
@@ -230,7 +236,7 @@ export async function resolveInstitutionAccess(
     demoPersona,
     staffUsers,
     // On a demo, previewing as an alum acts as the seeded featured alum.
-    memberId: member?.id ?? (mode === 'demo-admin' ? await demoFeaturedMember(db, institution) : null),
+    memberId: member?.id ?? (mode === 'demo-admin' ? await demoFeaturedMember(db, institution, args.demoAlum) : null),
     employerProfileIds: [...new Set([...employerLinks.map((l) => l.employerProfileId), ...contactProfiles])],
     memberCompanyIds: contacts.map((c) => c.memberCompanyId),
     partnerIds: tokens.has('PARTNER') && partnerContacts.length === 0 ? await demoConfirmedPartners(db, institution) : partnerContacts.map((c) => c.partnerId),
@@ -245,7 +251,7 @@ export function holds(ctx: Pick<InstitutionAccess, 'tokens'>, roles: AccessToken
 }
 
 // A guest pass to a demo: every workspace the demo has, read-only, no user.
-export async function resolveDemoGuestAccess(args: { slug: string; demoPersona?: string | null }, db: Db = prisma): Promise<InstitutionAccess | null> {
+export async function resolveDemoGuestAccess(args: { slug: string; demoPersona?: string | null; demoAlum?: string | null }, db: Db = prisma): Promise<InstitutionAccess | null> {
   const row = await db.institution.findUnique({
     where: { slug: args.slug },
     select: { id: true, slug: true, name: true, programBrandName: true, logoUrl: true, accentColor: true, isDemo: true, tier: true, plan: true, orgType: true, enabledFeatures: true, isSampleData: true },
@@ -266,7 +272,7 @@ export async function resolveDemoGuestAccess(args: { slug: string; demoPersona?:
     mode: 'demo-guest',
     demoPersona,
     staffUsers: [],
-    memberId: tokens.has('MEMBER') ? await demoFeaturedMember(db, institution) : null,
+    memberId: tokens.has('MEMBER') ? await demoFeaturedMember(db, institution, args.demoAlum) : null,
     employerProfileIds: [],
     partnerIds: tokens.has('PARTNER') ? await demoConfirmedPartners(db, institution) : [],
   }
