@@ -112,6 +112,19 @@ Added November 7, 2026 (October edition, versions 1.2 to 1.5). Each monthly edit
 clouds), not political, no claim that AI caused an outcome, no "displacement"/"displaced" in our own wording, month-over-month seasonally adjusted
 (and year-over-year where useful), every "larger than" or "differs from" claim tested against a margin or labeled untested, an early-warning section.
 
+**Materiality check: every time a new CPS month is run, answer this and tell the owner.** Owner rule (2026-11-21): *does the new CPS
+month change the published report materially, enough to need an emergency update or a special report?* Run it right after the CPS
+run, before anything else, and put the answer at the top of the reply with the numbers. Steps: (1) pool the edition's months again
+with the new month added (an n-weighted average of the monthly `us-early-warning.csv` rows reproduces the published pooled figures to
+the first decimal, so it is a quick first pass); (2) compare with the figures the report published: white-collar unemployment rate,
+white-collar and all-worker share out 27+ weeks, ages 50+/55 to 64 share, and any claim of the form "up from"; (3) check the new
+single month against the published margins (white-collar long-spell share margin about 2.3 points; 55 to 64 about 6); (4) check
+whether any sentence in the report would now be wrong or its direction flips. Call it **material** if a headline figure moves by
+more than its margin, a claim flips, or a new month contradicts the headline; otherwise **not material**. Say which, give the
+before and after, and let the owner decide on a special report. October 2026: not material (white-collar share out 27+ weeks 28.5%
+Jan to Sep, 28.7% Jan to Oct; unemployment rate 2.63% to 2.58%; ages 50+ 36.9% to 36.8%; all workers 25.8% to 26.1%). There is no
+October 2025 CPS file (Census returns 404), so October has no year-over-year pair.
+
 **Public CPS files need no API key.** Download `https://www2.census.gov/programs-surveys/cps/datasets/<YYYY>/basic/<mon><yy>pub.csv`
 (Jan to latest month, this year and last) into one folder; the scripts below read that folder. Do not read `CENSUS_API_KEY` out of Vercel.
 
