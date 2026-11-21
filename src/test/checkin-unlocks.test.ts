@@ -4,7 +4,7 @@ vi.mock('server-only', () => ({}))
 vi.mock('@/lib/prisma', () => ({ prisma: {} }))
 
 import { CHECKIN_ANSWERS } from '@/lib/higher-ed/checkins'
-import { cleanDetails, DETAIL_FIELDS } from '@/lib/higher-ed/checkin-details'
+import { cleanDetails, DETAIL_FIELDS, functionFromText } from '@/lib/higher-ed/checkin-details'
 import { rankPrograms } from '@/lib/higher-ed/checkin-unlocks'
 
 const P = (name: string, extra: Partial<{ summary: string; skills: string[]; credential: string; credentialType: string }> = {}) => ({
@@ -49,5 +49,15 @@ describe('programs for a check-in', () => {
   it('leans to degrees for a whole new field and to certificates for a field next door', () => {
     expect(rankPrograms([cert, mat], 'looking', { distance: 'new' })[0]).toBe(mat)
     expect(rankPrograms([mat, cert], 'looking', { distance: 'adjacent' })[0]).toBe(cert)
+  })
+})
+
+describe('the field a typed target names', () => {
+  it('maps common roles to a member function and leaves fields without one alone', () => {
+    expect(functionFromText('product manager')).toBe('Product')
+    expect(functionFromText('Data analyst')).toBe('Data & Analytics')
+    expect(functionFromText('corporate finance')).toBe('Finance')
+    expect(functionFromText('teaching')).toBeNull()
+    expect(functionFromText('')).toBeNull()
   })
 })
