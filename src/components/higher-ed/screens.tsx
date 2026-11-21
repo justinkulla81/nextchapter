@@ -44,6 +44,7 @@ import { HiddenMembersNote } from '@/components/plans/HiddenMembersNote'
 import { AdminRelatedOrgs } from './screens-related'
 import { AdminUnits } from './screens-units'
 import { AdminImpact } from './screens-impact'
+import { FirstFiveYearsCard, isRecentGrad } from './FirstFiveYearsCard'
 import { AdminConnections } from './screens-connections'
 import { AdminPublicPage } from '@/components/public-page/screens-public-page'
 import { listPartnerAudit } from '@/lib/partners/audit'
@@ -328,7 +329,8 @@ async function CandidateHome({ ctx, base }: ScreenProps) {
       {kind === 'college' && <YourVentureCard ctx={ctx} base={base} />}
       <MyProgramCard ctx={ctx} />
       <NewsCard ctx={ctx} />
-      <StagePanel ctx={ctx} />
+      {/* A graduate of the last five years sees their five-year timeline in place of the stage panel (owner, 2026-11-21). */}
+      {kind === 'college' && isRecentGrad(member) ? <FirstFiveYearsCard ctx={ctx} classYear={member.classYear} /> : <StagePanel ctx={ctx} />}
       <ul className="grid gap-3 sm:grid-cols-2">
         {CANDIDATE_TOOLS.map((t) => (
           <li key={t.label}>
