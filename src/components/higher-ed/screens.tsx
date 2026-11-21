@@ -43,6 +43,7 @@ import { OrgHomeHero } from '@/components/partners/OrgHomeHero'
 import { HiddenMembersNote } from '@/components/plans/HiddenMembersNote'
 import { AdminRelatedOrgs } from './screens-related'
 import { AdminUnits } from './screens-units'
+import { AdminImpact } from './screens-impact'
 import { AdminConnections } from './screens-connections'
 import { AdminPublicPage } from '@/components/public-page/screens-public-page'
 import { listPartnerAudit } from '@/lib/partners/audit'
@@ -260,7 +261,18 @@ async function CandidateHome({ ctx, base }: ScreenProps) {
         checkInAnswer: await latestCheckInAnswer(ctx.memberId!),
       })
     : null
-  const services = memberCards(serviceSettingsFrom(enabledFeatures, kind), member ? memberAudiences(member, new Date(), inTransition) : null, kind, { traits, enabledFeatures })
+  const allCards = memberCards(serviceSettingsFrom(enabledFeatures, kind), member ? memberAudiences(member, new Date(), inTransition) : null, kind, { traits, enabledFeatures })
+  // A demo's "Start with" one office or two: only those offices' cards show, and the rest wait for their office to join.
+  const startPartial = !!ctx.demoStart && ctx.demoStart !== 'all'
+  const onWs = new Set<string>(ctx.workspaces)
+  const services = startPartial ? allCards.filter((s) => !s.workspace || onWs.has(s.workspace)) : allCards
+  const officeNames = officeNamesOf(enabledFeatures)
+  const waiting = startPartial
+    ? [...new Set(allCards.filter((s) => s.workspace && !onWs.has(s.workspace)).map((s) => s.workspace!))].map((w) => ({
+        office: officeNames[w] ?? getWorkspace(w)?.label ?? w,
+        adds: allCards.filter((s) => s.workspace === w).map((s) => s.name),
+      }))
+    : []
   const hero = profile.heroImageUrl ? { url: profile.heroImageUrl, alt: `${ctx.institution.name} campus`, credit: null } : profile.photos?.[0]
   const career = profile.college?.careerCenter
   // "Give back" only for a joined alum who isn't between jobs or in their
@@ -349,6 +361,21 @@ async function CandidateHome({ ctx, base }: ScreenProps) {
                   <span className="text-xs text-muted-foreground">{sv.pitch}</span>
                   {sv.partnerName && <span className="mt-1 text-xs text-muted-foreground">From {sv.partnerName}</span>}
                 </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {waiting.length > 0 && (
+        <section aria-labelledby="when-join" className="space-y-2 rounded-lg border border-dashed border-border p-4">
+          <h2 id="when-join" className="text-base font-semibold">
+            When more offices join
+          </h2>
+          <p className="text-sm text-muted-foreground">This demo starts with some offices. Each office that joins adds to the same page for every alum:</p>
+          <ul className="space-y-1.5">
+            {waiting.map((w) => (
+              <li key={w.office} className="text-sm">
+                <span className="font-medium">{w.office}:</span> <span className="text-muted-foreground">{w.adds.join(', ')}</span>
               </li>
             ))}
           </ul>
@@ -1798,6 +1825,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'candidate:network': CandidatePeople,
   'alumni:events': AlumniEvents,
   'admin:board': AdminBoard,
+  'admin:impact': AdminImpact,
   'admin:home': SettingsOverview,
   'admin:branding': AdminBranding,
   'admin:roster': AdminRoster,

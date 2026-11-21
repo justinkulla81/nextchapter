@@ -11,6 +11,7 @@ import { notFound, redirect } from 'next/navigation'
 import { getCurrentUser, getOrgUser, getSessionAal } from '@/lib/supabase/get-current-user'
 import { EMPLOYER_ROLE_LABELS, employerCan, isReadOnlyIn, orgBasePath, type EmployerRole, type WorkspaceKey } from './workspaces'
 import { DEMO_ALUM_COOKIE } from './demo-alumni-shared'
+import { DEMO_START_COOKIE } from './demo-start-shared'
 import { DEMO_PREVIEW_COOKIE, resolveDemoGuestAccess, resolveInstitutionAccess, WorkspaceAccessError, type InstitutionAccess } from './resolve'
 import { DEMO_GUEST_COOKIE, guestSlugs } from './demo-guest'
 
@@ -28,10 +29,11 @@ export const getInstitutionAccess = cache(async (slug: string): Promise<Institut
   const cookieStore = await cookies()
   const persona = cookieStore.get(DEMO_PREVIEW_COOKIE)?.value ?? null
   const demoAlum = cookieStore.get(DEMO_ALUM_COOKIE)?.value ?? null
+  const demoStart = cookieStore.get(DEMO_START_COOKIE)?.value ?? null
   // A prospect's guest pass to a demo they generated.
   const guest = async () => {
     if (!guestSlugs(cookieStore.get(DEMO_GUEST_COOKIE)?.value).includes(slug)) return null
-    const g = await resolveDemoGuestAccess({ slug, demoPersona: persona, demoAlum })
+    const g = await resolveDemoGuestAccess({ slug, demoPersona: persona, demoAlum, demoStart })
     return g ? { ...g, via: 'guest' as const } : null
   }
   if (!user) return (await guest()) ?? 'signed-out'
@@ -41,6 +43,7 @@ export const getInstitutionAccess = cache(async (slug: string): Promise<Institut
     email: user.email ?? null,
     demoPersona: persona,
     demoAlum,
+    demoStart,
     memberOnly: !orgUser,
     aal: orgUser ? await getSessionAal('org') : null,
   })

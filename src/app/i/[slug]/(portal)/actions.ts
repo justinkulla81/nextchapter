@@ -13,6 +13,7 @@ import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getInstitutionAccess, requireWorkspace, DEMO_PREVIEW_COOKIE } from '@/lib/higher-ed/access'
 import { DEMO_ALUM_COOKIE, isDemoAlumKey } from '@/lib/higher-ed/demo-alumni-shared'
+import { DEMO_START_COOKIE, isDemoStartKey } from '@/lib/higher-ed/demo-start-shared'
 import { ensureDemoAlumni } from '@/lib/higher-ed/demo-alumni'
 import { institutionEntitlements, lockedReason } from '@/lib/plans/entitlements'
 import { AUDIENCE_LABELS, customOfferingsFrom, getService, isTargeted, MOMENT_LABELS, NO_TARGETING, PRICING_LABELS, type Audience, type Moment, type Pricing, type ServiceSetting, type Targeting } from '@/lib/higher-ed/services'
@@ -57,6 +58,18 @@ export async function setDemoAlum(slug: string, formData: FormData) {
   const cookieStore = await cookies()
   cookieStore.set(DEMO_ALUM_COOKIE, alum, { path: '/', httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' })
   captureServerEvent(access.userId, 'he_demo_alum_changed', { institutionId: access.institution.id, slug, alum })
+  redirect(`${orgBasePath(slug, access.institution.orgType)}/candidate`)
+}
+
+// The demo bar's "Start with": which offices are on, to show a university starting with one office (owner, 2026-11-21).
+export async function setDemoStart(slug: string, formData: FormData) {
+  const found = await getInstitutionAccess(slug)
+  const access = found !== 'signed-out' && found && found.institution.isDemo && (found.isNcAdmin || found.mode === 'demo-guest') ? found : await requireDemoAdmin(slug)
+  const start = String(formData.get('start') ?? 'all')
+  if (!isDemoStartKey(start)) throw new Error(`Unknown start ${start}`)
+  const cookieStore = await cookies()
+  cookieStore.set(DEMO_START_COOKIE, start, { path: '/', httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' })
+  captureServerEvent(access.userId, 'he_demo_start_changed', { institutionId: access.institution.id, slug, start })
   redirect(`${orgBasePath(slug, access.institution.orgType)}/candidate`)
 }
 
