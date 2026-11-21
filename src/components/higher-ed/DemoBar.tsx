@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
 import posthog from 'posthog-js'
-import { resetDemoData, setDemoPersona, skipDemoAhead } from '@/app/i/[slug]/(portal)/actions'
+import { resetDemoData, setDemoAlum, setDemoPersona, skipDemoAhead } from '@/app/i/[slug]/(portal)/actions'
+import { DEMO_ALUMNI } from '@/lib/higher-ed/demo-alumni-shared'
 
 // "Demo mode" banner (spec §4). Everyone on a demo tenant sees the banner;
 // only an nc_admin gets the Preview-as and Reset controls.
@@ -19,7 +20,15 @@ export function DemoBar({
   canSkip = true,
   personas,
   guestLink = null,
+  alum = null,
+  college = false,
+  checkinHref = null,
 }: {
+  // The demo check-in walkthrough's address on this host.
+  checkinHref?: string | null
+  // The sample alum the Candidate view shows (DEMO_ALUMNI), and whether this demo is a college (alumni stories apply).
+  alum?: string | null
+  college?: boolean
   slug: string
   // A link that opens this demo read-only, no account needed (src/lib/higher-ed/demo-guest.ts). Null: not offered.
   guestLink?: string | null
@@ -121,6 +130,29 @@ export function DemoBar({
                 Switch view
               </SubmitButton>
             </form>
+
+            {college && (
+              <form action={setDemoAlum.bind(null, slug)} className="flex items-center gap-2">
+                <label htmlFor="demo-alum" className="font-medium">
+                  Sample alum
+                </label>
+                <select id="demo-alum" name="alum" defaultValue={alum ?? 'featured'} className="h-8 rounded-md border border-amber-300 bg-white px-2 text-sm">
+                  {DEMO_ALUMNI.map((a) => (
+                    <option key={a.key} value={a.key}>
+                      {a.label}
+                    </option>
+                  ))}
+                </select>
+                <SubmitButton size="sm" variant="outline" pendingLabel="Switching…" savedLabel="Switched">
+                  Show this alum
+                </SubmitButton>
+              </form>
+            )}
+            {college && checkinHref && (
+              <a href={`${checkinHref}?alum=${alum ?? 'featured'}`} onClick={() => posthog.capture('he_demo_checkin_opened', { slug, alum: alum ?? 'featured' })} className="font-medium underline underline-offset-2">
+                Try the check-in
+              </a>
+            )}
 
             {isNcAdmin && canReset && (
             <>

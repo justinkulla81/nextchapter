@@ -3,6 +3,7 @@
 import { answerCheckIn, findCheckInForAnswer, isCheckInAnswer } from '@/lib/higher-ed/checkins'
 import { checkInUnlocks, cleanDetails, saveDetailsToMember, type Unlocks } from '@/lib/higher-ed/checkin-unlocks'
 import { prisma } from '@/lib/prisma'
+import { demoCheckInMember } from '@/lib/higher-ed/demo-checkin'
 import { functionFromText } from '@/lib/higher-ed/checkin-details'
 import { pivotTargetWrite } from '@/lib/journey/pivot-target'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -46,5 +47,17 @@ export async function saveCheckInDetails(
     targetFunction: targetFn,
     unlocked: unlocks.cards.map((x) => x.key),
   })
+  return { unlocks }
+}
+
+// The demo walkthrough (/i/[slug]/checkin/demo): the same steps for the demo's sample alum, recording nothing.
+// The alum comes from the demo bar's choice on the server, never from the client.
+export async function saveDemoCheckInDetails(slug: string, alum: string | null, answer: string, raw: Record<string, unknown>): Promise<{ unlocks?: Unlocks; error?: string }> {
+  if (!isCheckInAnswer(answer)) return { error: 'Pick one of the answers.' }
+  const demo = await demoCheckInMember(slug, alum)
+  if (!demo) return { error: 'This walkthrough is only on a demo.' }
+  const details = cleanDetails(answer, raw)
+  const unlocks = await checkInUnlocks({ memberId: demo.memberId, answer, details, joined: true, joinHref: `/i/${slug}/candidate`, assume: true })
+  captureServerEvent(`demo:${slug}`, 'he_demo_checkin_answered', { slug, alum, answer, fields: Object.keys(details), distance: details.distance ?? null, unlocked: unlocks.cards.map((x) => x.key) })
   return { unlocks }
 }

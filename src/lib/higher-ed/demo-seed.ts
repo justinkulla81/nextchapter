@@ -25,6 +25,7 @@
 // candidate and employer profiles, and seeds again. Deterministic: the same
 // day produces the same people, so screenshots stay comparable.
 
+import { ensureDemoAlumni } from './demo-alumni'
 import 'server-only'
 import { demoProfile } from '@/lib/higher-ed/demo-skills'
 import { createHash } from 'crypto'
@@ -847,6 +848,9 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
     facultyUserId: facultyUser?.id ?? null,
     employers: rosterEmployers,
   })
+
+  // The demo bar's sample alumni, one story each (./demo-alumni.ts).
+  await ensureDemoAlumni(institutionId, now, db)
 
   return {
     institutionId,

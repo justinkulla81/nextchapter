@@ -70,6 +70,8 @@ export async function checkInUnlocks(args: {
   details: CheckInDetails
   joinHref: string
   joined: boolean
+  // A demo walkthrough records nothing: show what answering would do (an advisor's follow-up, paused asks).
+  assume?: boolean
 }): Promise<Unlocks> {
   const m = await prisma.institutionMember.findUniqueOrThrow({
     where: { id: args.memberId },
@@ -116,9 +118,9 @@ export async function checkInUnlocks(args: {
 
   // What the college now knows and does, in its own office names. Each line is true of this member right now.
   const sees: { office: string; what: string }[] = []
-  const paused = m.transitionFlags.length > 0
+  const paused = m.transitionFlags.length > 0 || (!!args.assume && args.answer === 'laid_off')
   if (args.answer === 'looking' || args.answer === 'laid_off') {
-    if (m.caseloadAssignments.length) sees.push({ office: office('career'), what: 'An advisor will follow up with you.' })
+    if (m.caseloadAssignments.length || args.assume) sees.push({ office: office('career'), what: 'An advisor will follow up with you.' })
     if (args.details.distance === 'adjacent' || args.details.distance === 'new' || args.details.target) sees.push({ office: office('execed'), what: 'Sees the field you want, so its programs can reach you.' })
   }
   if (paused) sees.push({ office: office('development'), what: 'No donation asks while you search.' })
