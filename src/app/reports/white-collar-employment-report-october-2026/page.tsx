@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { StructuredData } from '@/components/StructuredData'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { NextStepBox } from '@/components/capture/NextStepBox'
+import { EarlyWarningPanels, buildEarlyWarning } from '@/components/reports/EarlyWarningPanels'
 import { ReportNextSteps } from '@/components/reports/ReportNextSteps'
 import { NewerEditionNotice } from '@/components/reports/NewerEditionNotice'
 import { SITE_URL } from '@/lib/reports'
@@ -16,6 +17,7 @@ import { ReportDownloads } from './ReportDownloads'
 import { titleMeta } from '@/lib/seo/title'
 import { fitDescription } from '@/lib/seo/templates'
 
+const EARLY_WARNING_LEAD = buildEarlyWarning('2026-10').lead
 const SLUG = 'white-collar-employment-report-october-2026'
 const URL = `${SITE_URL}/reports/${SLUG}`
 const OG_IMAGE = `${SITE_URL}/reports/white-collar-employment-report-2026-10-og.png`
@@ -168,15 +170,25 @@ export default function WhiteCollarEmploymentReportOctober2026() {
 
       <div className="border-b border-brand/30 bg-brand/5">
         <div className="mx-auto w-full max-w-5xl px-6 py-2.5 text-sm text-navy">
-          <span className="font-semibold">About this edition.</span> It uses Census CPS microdata through September 2026. The early-warning section on
-          early-career and senior white-collar unemployment is{' '}
-          <Link href="/reports/early-warning" className="font-medium underline underline-offset-4">live through September</Link>
-          {' '}and will be updated with the October data when Census publishes it.
+          <span className="font-semibold">About this edition.</span> The report&apos;s Census CPS figures cover January to September 2026. The{' '}
+          <Link href="#early-warning" className="font-medium underline underline-offset-4">early-warning section</Link>
+          {' '}below adds the October file, which Census published on November 19.
         </div>
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: REPORT_CSS }} />
       <div className="ncr" dangerouslySetInnerHTML={{ __html: REPORT_BODY_HTML }} />
+
+      <section id="early-warning" className="scroll-mt-6 border-t border-light-gray bg-white">
+        <div className="mx-auto w-full max-w-4xl px-6 py-10">
+          <h2 className="text-2xl font-bold tracking-tight text-navy">Early warning: new graduates, early-career and senior white-collar workers</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {EARLY_WARNING_LEAD} Monthly Census CPS figures through October 2026, not seasonally adjusted, shown as three-month averages because single months are noisy.
+            Our calculation; no claim that AI caused any change.
+          </p>
+          <EarlyWarningPanels edition="2026-10" />
+        </div>
+      </section>
 
       <section className="border-t border-light-gray bg-white">
         <div className="mx-auto w-full max-w-3xl px-6 py-10">
