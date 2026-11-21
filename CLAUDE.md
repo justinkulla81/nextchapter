@@ -202,6 +202,14 @@ journalists, funders or researchers). Applies to list email sent from the mailin
 - Judge a send by replies of interest and human clicks. Opens within 10 seconds of sending are scanners, and `MailingClickEvent.bot` clicks
   are not people.
 
+## Report research: grants, policies and retraining programs go into the CRM
+
+Owner rule (2026-11-22). When research for a White Collar Employment Report (or any report) finds a grant, policy, retraining
+program or funding initiative, add its sponsor to the CRM as an organization, file a note on it (what, who it targets, dollars and
+people, source URL and date, VERIFIED or TO VERIFY), and tell the owner in the reply what was added. The steps and fields are in
+`scripts/employment-report/README.md` (section "Grants, policies, retraining money and initiatives we find go into the CRM").
+Retraining is always split blue-collar from white-collar, and where two sources disagree on a figure both are cited.
+
 ## Onboarding flow
 
 The onboarding order is decided and final: `docs/onboarding-flow.md`. Any
