@@ -41,14 +41,18 @@ const select = 'h-9 w-full rounded-md border border-input bg-background px-2 tex
 
 export function ProgramForm(props: {
   slug: string
-  program?: { id: string; name: string; summary: string | null; audience: string | null; credential: string | null; priceCents: number; wioaEligible: boolean; isActive: boolean; skills: string[]; cipCode: string | null; hours: number | null; credentialType: string | null; prerequisites: string | null }
+  program?: { id: string; name: string; summary: string | null; audience: string | null; credential: string | null; priceCents: number; wioaEligible: boolean; isActive: boolean; skills: string[]; cipCode: string | null; hours: number | null; credentialType: string | null; prerequisites: string | null; school?: string | null; openToOtherSchools?: boolean }
   showWioa: boolean
+  // The roster's schools: a university's program can belong to one school and be opened to the others.
+  schools?: string[]
 }) {
   const p = props.program
   const [state, action] = useActionState<FormResult, FormData>(saveProgramForm.bind(null, props.slug, p?.id ?? null), undefined)
   const bind = useFields({ name: p?.name ?? '', summary: p?.summary ?? '', audience: p?.audience ?? '', credential: p?.credential ?? '', price: p ? String(p.priceCents / 100) : '', skills: p?.skills.join(', ') ?? '', cipCode: p?.cipCode ?? '', hours: p?.hours ? String(p.hours) : '', credentialType: p?.credentialType ?? '', prerequisites: p?.prerequisites ?? '' })
   const [wioa, setWioa] = useState(p?.wioaEligible ?? false)
   const [active, setActive] = useState(p?.isActive ?? true)
+  const [school, setSchool] = useState(p?.school ?? '')
+  const [open, setOpen] = useState(p?.openToOtherSchools ?? false)
   const id = p?.id ?? 'new'
   return (
     <form action={action} className="grid gap-3 sm:grid-cols-2">
@@ -77,6 +81,26 @@ export function ProgramForm(props: {
         <Input id={`pk-${id}`} {...bind('skills')} placeholder="SQL, data analysis, dashboards" />
         <p className="text-xs text-muted-foreground">Matched to gaps in alumni’s Market Reality reports, so the program is suggested to the people it helps.</p>
       </div>
+      {!!props.schools?.length && (
+        <div className="space-y-1.5 sm:col-span-2">
+          <Label htmlFor={`psch-${id}`}>Which school offers it</Label>
+          <select id={`psch-${id}`} name="school" className={select} value={school} onChange={(e) => setSchool(e.target.value)}>
+            <option value="">The whole university (every alum sees it)</option>
+            {props.schools.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+          {school ? (
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" name="openToOtherSchools" checked={open} onChange={(e) => setOpen(e.target.checked)} />
+              Open to alumni of every school, not only {school}
+            </label>
+          ) : null}
+          <p className="text-xs text-muted-foreground">A school’s program shows only to its own alumni until the school opens it to everyone.</p>
+        </div>
+      )}
       {props.showWioa && (
         <details className="sm:col-span-2">
           <summary className="cursor-pointer text-sm text-muted-foreground">State eligible-provider fields</summary>

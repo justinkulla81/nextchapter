@@ -9,6 +9,7 @@ import { visibleIdsForInstitution } from '@/lib/plans/visible-members'
 import type { CapstoneStatus, EnrollmentStatus, ProgramPayer } from '@prisma/client'
 import { randomUUID } from 'crypto'
 import { prisma } from '@/lib/prisma'
+import { programsVisibleTo } from './program-sharing'
 import type { LearnerRow } from './crm-csv'
 
 const DAY = 86_400_000
@@ -72,6 +73,9 @@ export async function saveProgram(args: {
   hours?: number | null
   credentialType?: string | null
   prerequisites?: string | null
+  // undefined = leave as is (a form without the school field).
+  school?: string | null
+  openToOtherSchools?: boolean
 }) {
   const data = {
     name: args.name,
@@ -86,6 +90,7 @@ export async function saveProgram(args: {
     ...(args.hours !== undefined ? { hours: args.hours } : {}),
     ...(args.credentialType !== undefined ? { credentialType: args.credentialType } : {}),
     ...(args.prerequisites !== undefined ? { prerequisites: args.prerequisites } : {}),
+    ...(args.school !== undefined ? { school: args.school, openToOtherSchools: !!args.school && !!args.openToOtherSchools } : {}),
   }
   if (args.id) {
     const r = await prisma.program.updateMany({ where: { id: args.id, institutionId: args.institutionId }, data })
@@ -111,11 +116,12 @@ export async function addCohort(args: { institutionId: string; programId: string
 
 // Cohorts an alum can apply to: active programs, not started more than two
 // weeks ago, with seats left.
-export async function openCohorts(institutionId: string, now = new Date()) {
+// `forMember`: an alum's view, which shows only programs their school can see (program-sharing.ts); staff see all.
+export async function openCohorts(institutionId: string, now = new Date(), forMember?: { school: string | null }) {
   const cohorts = await prisma.cohort.findMany({
-    where: { program: { institutionId, isActive: true }, startsAt: { gte: new Date(now.getTime() - 14 * DAY) } },
+    where: { program: { institutionId, isActive: true, ...(forMember ? programsVisibleTo(forMember.school) : {}) }, startsAt: { gte: new Date(now.getTime() - 14 * DAY) } },
     orderBy: { startsAt: 'asc' },
-    include: { program: { select: { name: true, summary: true, credential: true, priceCents: true, wioaEligible: true, skills: true } }, _count: { select: { enrollments: { where: { status: { in: ['APPLIED', 'ENROLLED'] } } } } } },
+    include: { program: { select: { name: true, summary: true, credential: true, priceCents: true, wioaEligible: true, skills: true, school: true } }, _count: { select: { enrollments: { where: { status: { in: ['APPLIED', 'ENROLLED'] } } } } } },
   })
   return cohorts.map((c) => ({ ...c, seatsLeft: c.seats === null ? null : Math.max(c.seats - c._count.enrollments, 0) })).filter((c) => c.seatsLeft !== 0)
 }
@@ -123,7 +129,8 @@ export async function openCohorts(institutionId: string, now = new Date()) {
 // ── Enrollment ───────────────────────────────────────────────────────────────
 
 export async function applyToCohort(args: { institutionId: string; memberId: string; cohortId: string; payer: (typeof APPLY_PAYERS)[number]['key']; note: string }) {
-  const cohort = (await openCohorts(args.institutionId)).find((c) => c.id === args.cohortId)
+  const member = await prisma.institutionMember.findUnique({ where: { id: args.memberId }, select: { school: true } })
+  const cohort = (await openCohorts(args.institutionId, new Date(), { school: member?.school ?? null })).find((c) => c.id === args.cohortId)
   if (!cohort) return { error: 'That cohort is full or no longer taking applications.' }
   const existing = await prisma.enrollment.findUnique({ where: { cohortId_memberId: { cohortId: args.cohortId, memberId: args.memberId } }, select: { status: true } })
   if (existing && existing.status !== 'WITHDREW') return { error: 'You’ve already applied to this cohort.' }

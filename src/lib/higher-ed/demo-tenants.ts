@@ -73,6 +73,9 @@ export type DemoProgram = {
   hours?: number | null
   credentialType?: string | null
   prerequisites?: string | null
+  // The school that offers it (null = the whole university) and whether it is open to every school's alumni.
+  school?: string | null
+  openToOtherSchools?: boolean
 }
 
 const DEMO_COLLEGE: DemoTenant = {

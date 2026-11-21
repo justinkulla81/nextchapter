@@ -349,8 +349,8 @@ export async function groupView(institutionId: string, key: string) {
 
 // Words from the latest Market Reality report's gap areas and the member's
 // own growth areas, matched to each open cohort's program skills.
-export async function programRecommendations(institutionId: string, candidateId: string | null) {
-  const cohorts = await openCohorts(institutionId)
+export async function programRecommendations(institutionId: string, candidateId: string | null, memberSchool: string | null = null) {
+  const cohorts = await openCohorts(institutionId, new Date(), { school: memberSchool })
   if (!candidateId || !cohorts.length) return []
   const [report, profile] = await Promise.all([
     prisma.marketRealityReport.findFirst({ where: { candidateId }, orderBy: { generatedAt: 'desc' }, select: { gapAnalysis: true } }),

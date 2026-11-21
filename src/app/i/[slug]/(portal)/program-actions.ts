@@ -52,9 +52,10 @@ export async function saveProgramForm(slug: string, id: string | null, _prev: Fo
     hours: str(f, 'hours') && Number.isInteger(Number(str(f, 'hours'))) ? Number(str(f, 'hours')) : null,
     credentialType: ['certificate', 'industry_certification', 'badge', 'degree'].includes(str(f, 'credentialType')) ? str(f, 'credentialType') : null,
     prerequisites: str(f, 'prerequisites') || null,
+    ...(f.has('school') ? { school: str(f, 'school').slice(0, 120) || null, openToOtherSchools: f.get('openToOtherSchools') === 'on' } : {}),
   })
   if ('error' in r) return { error: r.error }
-  captureServerEvent(ctx.userId, 'he_program_saved', { institutionId: ctx.institution.id, programId: r.id, isNew: !id, priceCents, wioaEligible: f.get('wioaEligible') === 'on' })
+  captureServerEvent(ctx.userId, 'he_program_saved', { institutionId: ctx.institution.id, programId: r.id, isNew: !id, priceCents, wioaEligible: f.get('wioaEligible') === 'on', school: str(f, 'school') || null, openToOtherSchools: f.get('openToOtherSchools') === 'on' })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true, message: id ? 'Saved.' : 'Program added. Add a cohort so alumni can apply.' }
 }

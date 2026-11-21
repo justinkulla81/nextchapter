@@ -11,11 +11,23 @@
 // use a .test domain so nothing can reach a real person. No logo: we have no
 // license to CMU's marks, so the portal shows the name.
 
-import type { DemoTenant } from '../demo-tenants'
+import type { DemoProgram, DemoTenant } from '../demo-tenants'
 
 const TEPPER = 'Tepper School of Business Executive Education'
 const HEINZ = 'Heinz College Executive Education'
 const SEI = 'Software Engineering Institute training'
+
+// Which school offers each program, and which ones that school opened to every CMU alum (sample choices for the demo's
+// cross-school story: a Heinz policy alum sees Tepper's analytics program, not its leadership seminar).
+const TEPPER_SCHOOL = 'Tepper School of Business'
+const HEINZ_SCHOOL = 'Heinz College of Information Systems and Public Policy'
+const OPEN = new Set(['Business Analytics: Data-Informed Decision-Making', 'AI for Business', 'Data Storytelling', 'Chief Information Security Officer (CISO) Certificate', 'Chief Data and Artificial Intelligence Officer (CDAIO) Certificate Program', 'AI Engineering Foundations & Agents (Online Graduate Certificate)'])
+function withSchools(list: DemoProgram[]): DemoProgram[] {
+  return list.map((p) => {
+    const school = p.summary.startsWith(TEPPER) ? TEPPER_SCHOOL : p.summary.startsWith(HEINZ) ? HEINZ_SCHOOL : p.summary.startsWith('College of Engineering') ? 'College of Engineering' : null
+    return { ...p, school, openToOtherSchools: !!school && OPEN.has(p.name) }
+  })
+}
 
 export const CMU_TENANT: DemoTenant = {
   slug: 'cmu',
@@ -139,7 +151,7 @@ export const CMU_TENANT: DemoTenant = {
     reviews: { on: true },
     exec_ed: { on: true, linkUrl: 'https://www.cmu.edu/tepper/executive-education/individual-programs' },
   },
-  programs: [
+  programs: withSchools([
     {
       name: 'Business Analytics: Data-Informed Decision-Making',
       summary: `${TEPPER}. Descriptive, predictive and prescriptive analytics (regression, decision trees, neural networks, optimization) for business problems, and communicating insights to executives. Live online, four sessions.`,
@@ -266,7 +278,7 @@ export const CMU_TENANT: DemoTenant = {
       wioaEligible: false,
       skills: ['DevOps', 'infrastructure as code', 'continuous integration', 'continuous delivery', 'software testing'],
     },
-  ],
+  ]),
   // Subjects, not real CMU course numbers: the demo shows how auditing works without naming a section.
   auditCourses: [
     { title: 'Behavioral Economics', courseCode: null, term: 'Spring 2027', schedule: 'Tue/Thu afternoons', modality: 'in_person', seats: 4, description: 'Why people don’t do what models predict, and what that means for policy and product design.', skills: ['economics', 'decision making'] },

@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { Award, Briefcase, Building2, GraduationCap, Landmark } from 'lucide-react'
 import type { EnrollmentStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { otherSchoolLabel } from '@/lib/higher-ed/program-sharing'
 import type { WorkspaceContext } from '@/lib/higher-ed/access'
 import { PROGRAM_IDEAS } from '@/lib/higher-ed/services'
 import { employerProfileFor } from '@/lib/higher-ed/employers'
@@ -62,6 +63,8 @@ export async function ExecEdPrograms({ ctx, base }: Props) {
     facultyOptions(ctx.institution.id),
     prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } }),
   ])
+  // The roster's schools (a few dozen at most), so a university's program can belong to one school and be opened to the others.
+  const schools = (await prisma.institutionMember.groupBy({ by: ['school'], where: { institutionId: ctx.institution.id, school: { not: null } }, orderBy: { school: 'asc' }, take: 40 })).map((r) => r.school!).filter(Boolean)
   const edit = canEditExec(ctx)
   const showWioa = wioaOn(inst.enabledFeatures)
   return (
@@ -127,7 +130,7 @@ export async function ExecEdPrograms({ ctx, base }: Props) {
                   <details>
                     <summary className="cursor-pointer text-sm text-muted-foreground">Edit program</summary>
                     <div className="pt-3">
-                      <ProgramForm slug={ctx.institution.slug} program={p} showWioa={showWioa} />
+                      <ProgramForm slug={ctx.institution.slug} program={p} showWioa={showWioa} schools={schools.length > 1 ? schools : undefined} />
                     </div>
                   </details>
                 </>
@@ -143,7 +146,7 @@ export async function ExecEdPrograms({ ctx, base }: Props) {
           <h2 id="add-program" className="text-base font-semibold">
             Add a program
           </h2>
-          <ProgramForm slug={ctx.institution.slug} showWioa={showWioa} />
+          <ProgramForm slug={ctx.institution.slug} showWioa={showWioa} schools={schools.length > 1 ? schools : undefined} />
           <details className="text-sm">
             <summary className="cursor-pointer text-muted-foreground">Ideas</summary>
             <ul className="mt-2 space-y-1 text-muted-foreground">
@@ -425,7 +428,9 @@ export async function EmployerCapstones({ ctx }: { ctx: WorkspaceContext }) {
 // ── Candidate › Programs, and the "My program" card ─────────────────────────
 
 export async function CandidatePrograms({ ctx }: Props) {
-  const [cohorts, mine] = await Promise.all([openCohorts(ctx.institution.id), ctx.memberId ? myEnrollments(ctx.memberId) : Promise.resolve([])])
+  // The alum's own school decides which schools' programs they see (program-sharing.ts); a staff preview with no member sees all.
+  const me = ctx.memberId ? await prisma.institutionMember.findUnique({ where: { id: ctx.memberId }, select: { school: true } }) : null
+  const [cohorts, mine] = await Promise.all([openCohorts(ctx.institution.id, new Date(), ctx.memberId ? { school: me?.school ?? null } : undefined), ctx.memberId ? myEnrollments(ctx.memberId) : Promise.resolve([])])
   const appliedTo = new Set(mine.map((m) => m.cohort.name + m.cohort.program.name))
   return (
     <div className="space-y-6">
@@ -466,6 +471,7 @@ export async function CandidatePrograms({ ctx }: Props) {
               <li key={c.id} className="space-y-2 rounded-lg border border-border bg-card p-4">
                 <div>
                   <p className="font-semibold">{c.program.name}</p>
+                  {otherSchoolLabel(c.program, me?.school) && <p className="text-xs font-medium text-primary">{otherSchoolLabel(c.program, me?.school)}</p>}
                   <p className="text-sm text-muted-foreground">
                     {[c.name, startWord(c.startsAt), c.modality && (MODALITY[c.modality] ?? c.modality), usd(c.program.priceCents), c.seatsLeft !== null && `${c.seatsLeft} seats left`]
                       .filter(Boolean)
