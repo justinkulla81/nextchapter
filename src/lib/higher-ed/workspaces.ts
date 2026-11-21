@@ -73,6 +73,9 @@ export type WorkspaceTab = {
   hideWhenWorkspace?: WorkspaceKey
   // A setting of the whole institution: hidden from staff of one school or department (InstitutionUnit).
   institutionOnly?: boolean
+  // Hidden on a college sales demo (isDemo): a real screen that is an edge case for a pitch (owner, 2026-11-21: lead with
+  // career navigation on live job data; grants, the fund, CRM plumbing and activity logs stay for real colleges).
+  pitchHidden?: boolean
   // The section of a long tab list it sits under (a second row of navigation).
   group?: string
   // The screen belongs to another workspace and is shown here too (a workforce customer's Program holds what Exec Ed and the
@@ -172,7 +175,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     tabs: [
       { key: 'home', label: 'Home', comingIn: null },
       { key: 'members', label: 'Members', comingIn: null },
-      { key: 'jobs', label: 'Alumni jobs', comingIn: null, requiredRoles: POST_JOBS },
+      { key: 'jobs', label: 'Alumni jobs', comingIn: null, requiredRoles: POST_JOBS, hideWhenWorkspace: 'career' },
       { key: 'region', label: 'Local market', comingIn: null },
       { key: 'outreach', label: 'Outreach', comingIn: null },
       { key: 'mentors', label: 'Mentoring', comingIn: null },
@@ -200,9 +203,9 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'transition', label: 'In transition', comingIn: null },
       { key: 'signals', label: 'Signals', comingIn: null },
       // The university's one fund and its whole-roster data exchange stay with the whole institution.
-      { key: 'fund', label: 'Resilience Fund', comingIn: null, institutionOnly: true },
-      { key: 'grants', label: 'Grants and RFPs', comingIn: null },
-      { key: 'crm', label: 'CRM exchange', comingIn: null, institutionOnly: true },
+      { key: 'fund', label: 'Resilience Fund', comingIn: null, institutionOnly: true, pitchHidden: true },
+      { key: 'grants', label: 'Grants and RFPs', comingIn: null, pitchHidden: true },
+      { key: 'crm', label: 'CRM exchange', comingIn: null, institutionOnly: true, pitchHidden: true },
     ],
   },
   {
@@ -221,12 +224,12 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'companies', label: 'Target companies', comingIn: null, requiredRoles: TARGET_COMPANIES },
       { key: 'recruiting', label: 'Recruiting & internships', comingIn: null, requiredRoles: TARGET_COMPANIES },
       { key: 'outcomes', label: 'Outcomes', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
-      { key: 'bridge', label: 'Skills bridge', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
+      { key: 'bridge', label: 'Skills bridge', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'INSTITUTION_ADMIN', 'VIEWER:career'], hideWhenWorkspace: 'execed' },
       { key: 'checkins', label: 'Check-ins', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
       { key: 'students', label: 'Student tools', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
       { key: 'internships', label: 'Internships', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'COACH', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
-      { key: 'circles', label: 'Circles & career fairs', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'COACH', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
-      { key: 'region', label: 'Local market', comingIn: null },
+      { key: 'circles', label: 'Circles & career fairs', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'COACH', 'INSTITUTION_ADMIN', 'VIEWER:career'], hideWhenWorkspace: 'alumni' },
+      { key: 'region', label: 'Local market', comingIn: null, hideWhenWorkspace: 'alumni' },
       { key: 'employers', label: 'Employers', comingIn: null },
     ],
   },
@@ -255,8 +258,8 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'home', label: 'Courses', comingIn: null },
       { key: 'faculty', label: 'Faculty', comingIn: null },
       { key: 'capstones', label: 'Employer capstones', comingIn: null },
-      { key: 'auditors', label: 'Alumni auditors', comingIn: null },
-      { key: 'groups', label: 'Industry groups', comingIn: null },
+      { key: 'auditors', label: 'Alumni auditors', comingIn: null, pitchHidden: true },
+      { key: 'groups', label: 'Industry groups', comingIn: null, pitchHidden: true },
     ],
   },
   {
@@ -465,11 +468,11 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'home', label: 'Overview', comingIn: null },
       { key: 'services', label: 'Services', comingIn: null, institutionOnly: true },
       { key: 'users', label: 'Staff', comingIn: null },
-      { key: 'activity', label: 'Activity', comingIn: null, institutionOnly: true },
+      { key: 'activity', label: 'Activity', comingIn: null, institutionOnly: true, pitchHidden: true },
       { key: 'branding', label: 'Branding', comingIn: null, orgKind: 'college', institutionOnly: true },
       { key: 'grants', label: 'Grants', comingIn: null, orgKind: 'college', hideWhenWorkspace: 'development' },
       { key: 'related', label: 'Related organizations', comingIn: null, orgKind: 'college', institutionOnly: true },
-      { key: 'connections', label: 'Connected organizations', comingIn: null, institutionOnly: true },
+      { key: 'connections', label: 'Connected organizations', comingIn: null, institutionOnly: true, pitchHidden: true },
       { key: 'publicpage', label: 'Public page', comingIn: null, orgKind: 'college', institutionOnly: true },
       { key: 'units', label: 'Schools and departments', comingIn: null, orgKind: 'college', institutionOnly: true },
       { key: 'roster', label: 'Roster', comingIn: null },
@@ -706,6 +709,14 @@ export function brandingEditPath(ctx: { institution: { slug: string; orgType: In
   if (!ctx.workspaces.includes('admin') || ctx.mode === 'demo-guest') return null
   // A workforce organization's Branding is in the Workforce Hub (owner, 2026-11-18).
   return `${orgBasePath(ctx.institution.slug, ctx.institution.orgType)}/${orgKindOf(ctx.institution.orgType) === 'workforce' ? 'workforce-hub' : 'admin'}/branding`
+}
+
+/** A duplicate tab hidden by hideWhenWorkspace: where the same screen lives for someone who can open both (owner, 2026-11-21). */
+export const SAME_SCREEN_HOME: Record<string, { workspace: WorkspaceKey; tab: string }> = {
+  'alumni:jobs': { workspace: 'career', tab: 'jobs' },
+  'career:region': { workspace: 'alumni', tab: 'region' },
+  'career:circles': { workspace: 'alumni', tab: 'connect' },
+  'career:bridge': { workspace: 'execed', tab: 'bridge' },
 }
 
 /**

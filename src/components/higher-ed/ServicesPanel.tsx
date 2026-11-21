@@ -23,6 +23,7 @@ import {
   type Provider,
   type Service,
   type ServiceSetting,
+  PITCH_HIDDEN_SERVICES,
 } from '@/lib/higher-ed/services'
 import type { OrgKind } from '@/lib/higher-ed/workspaces'
 import { LockedFeature } from '@/components/plans/LockedFeature'
@@ -46,6 +47,7 @@ export function ServicesPanel({
   canEdit,
   kind = 'college',
   plan = 'PAID',
+  pitch = false,
 }: {
   slug: string
   initial: Record<string, ServiceSetting>
@@ -55,10 +57,12 @@ export function ServicesPanel({
   canEdit: boolean
   kind?: OrgKind
   plan?: string
+  // A college sales demo: link-only services are left out of the catalog (PITCH_HIDDEN_SERVICES).
+  pitch?: boolean
 }) {
   const ownOnly = plan === 'FREE'
   const [custom, setCustom] = useState<Service[]>(initialCustom)
-  const catalog = [...servicesFor(kind), ...custom]
+  const catalog = [...servicesFor(kind).filter((s) => !pitch || !PITCH_HIDDEN_SERVICES.has(s.key)), ...custom]
   const offices = officesFor(kind)
   const ours = kind === 'workforce' ? 'Your organization' : 'Your college'
   const [settings, setSettings] = useState(initial)

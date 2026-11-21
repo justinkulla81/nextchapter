@@ -163,8 +163,8 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
         graceDays: 60,
         fiscalYearStartMonth: 7,
         engagementWeights: {},
-        // On so the demo shows the Workforce board workspace.
-        wioa: true,
+        // On so the demo shows the Workforce board workspace; a college sales demo leaves it off (owner, 2026-11-21).
+        wioa: tenant.workforceBoard !== false,
         ...(tenant.services ? { services: tenant.services } : {}),
         ...(tenant.annualCheckInMonth ? { checkIns: { annualMonth: tenant.annualCheckInMonth } } : {}),
         ...(tenant.officeNames ? { officeNames: tenant.officeNames } : {}),

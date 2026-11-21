@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import { Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { requireWorkspace } from '@/lib/higher-ed/access'
-import { getWorkspace, getWorkspaceByPath, MOVED_TABS, labelFor, officeLabel, officeNamesOf, orgBasePath, orgKindOf, tabsFor, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
+import { getWorkspace, getWorkspaceByPath, MOVED_TABS, SAME_SCREEN_HOME, labelFor, officeLabel, officeNamesOf, orgBasePath, orgKindOf, tabsFor, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
 import { loadModules } from '@/components/higher-ed/screens-community'
 import { LockedFeature } from '@/components/plans/LockedFeature'
 import { PLAN_CONTACT_EMAIL, blockedScreen, trialForLock, trialState } from '@/lib/plans/entitlements'
@@ -44,10 +44,17 @@ export default async function WorkspacePage({
   const instRow = await prisma.institution.findUnique({ where: { id: ctx.institution.id }, select: { enabledFeatures: true, profile: true } })
   const officeNames = officeNamesOf(instRow?.enabledFeatures)
   const hubHero = readProfile(instRow?.profile).hubHeroes?.[config.key]
+  const base0 = `${orgBasePath(slug, ctx.institution.orgType)}/${config.homePath}`
   const tabs = tabsFor(ctx.tokens, config.key, await loadModules(ctx.institution.id), kind).filter(
-    (t) => (!t.demoOnly || ctx.institution.isDemo) && (!t.from || ctx.workspaces.includes(t.from.workspace)) && (t.key !== 'groups' || framed) && (!t.hideWhenWorkspace || !ctx.workspaces.includes(t.hideWhenWorkspace)) && (!t.institutionOnly || !ctx.units?.length),
+    (t) => (!t.demoOnly || ctx.institution.isDemo) && (!t.pitchHidden || !ctx.institution.isDemo || kind !== 'college') && (!t.from || ctx.workspaces.includes(t.from.workspace)) && (t.key !== 'groups' || framed) && (!t.hideWhenWorkspace || !ctx.workspaces.includes(t.hideWhenWorkspace)) && (!t.institutionOnly || !ctx.units?.length),
   )
   const activeKey = tab?.[0] ?? tabs[0]?.key
+  // A tab hidden here (a duplicate whose screen another open workspace holds, or an edge case hidden on a sales demo)
+  // sends its old address to the copy that stays, or to the workspace's home, rather than a 404.
+  if (tab?.length === 1 && !tabs.some((t) => t.key === activeKey) && config.tabs.some((t) => t.key === activeKey)) {
+    const home = SAME_SCREEN_HOME[`${config.key}:${activeKey}`]
+    redirect(home && ctx.workspaces.includes(home.workspace) ? `${orgBasePath(slug, ctx.institution.orgType)}/${getWorkspace(home.workspace)!.homePath}/${home.tab}` : base0)
+  }
   const active = tabs.find((t) => t.key === activeKey)
   if (!active || (tab && tab.length > 1)) notFound()
 
