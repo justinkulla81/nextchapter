@@ -15,6 +15,7 @@ const db = {
   sent: [] as Record<string, unknown>[],
 }
 const sendLifecycleEmail = vi.fn()
+const fileLeadInCrm = vi.fn()
 
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/prisma', () => ({
@@ -32,7 +33,7 @@ vi.mock('@/lib/prisma', () => ({
   },
 }))
 vi.mock('@/lib/jobs/public-job-page-server', () => ({ publicJobLabels: async () => new Map() }))
-vi.mock('@/lib/leads/lifecycle/file-lead', () => ({ fileLeadInCrm: async () => 'person_1', isInternalAddress: (e: string) => e.endsWith('@launchyournextchapter.com') }))
+vi.mock('@/lib/leads/lifecycle/file-lead', () => ({ fileLeadInCrm: (...a: unknown[]) => fileLeadInCrm(...a), isInternalAddress: (e: string) => e.endsWith('@launchyournextchapter.com') }))
 vi.mock('@/lib/leads/lifecycle/send', () => ({ lifecycleRef: (s: string, e: string) => `lifecycle:${s}:${e}`, sendLifecycleEmail: (...a: unknown[]) => sendLifecycleEmail(...a) }))
 
 import { runLeadLifecycle } from '@/lib/leads/lifecycle/run'
@@ -41,6 +42,7 @@ describe('runLeadLifecycle', () => {
   beforeEach(() => {
     for (const k of Object.keys(db) as (keyof typeof db)[]) db[k] = []
     sendLifecycleEmail.mockReset().mockResolvedValue(true)
+    fileLeadInCrm.mockReset().mockResolvedValue('person_1')
     process.env.LEAD_LIFECYCLE_EMAILS = '1'
   })
 
@@ -61,6 +63,18 @@ describe('runLeadLifecycle', () => {
     )
     expect(calls).toHaveLength(2)
     expect(summary.steps.welcome).toBe(2)
+  })
+
+  it('files only leads not filed yet: one already in the CRM and on the leads list is skipped, and still gets its email', async () => {
+    db.homepageLead = [
+      { kind: 'job_alert', email: 'filed@example.org', searchQ: 'analyst', searchLoc: 'Austin', confirmedAt: ago(1) },
+      { kind: 'job_alert', email: 'new@example.org', searchQ: 'analyst', searchLoc: 'Austin', confirmedAt: ago(1) },
+    ]
+    db.persons = [{ id: 'person_filed', email: 'filed@example.org', candidateId: null }]
+    db.members = [{ email: 'filed@example.org', status: 'ACTIVE' }]
+    await runLeadLifecycle(now)
+    expect(fileLeadInCrm.mock.calls.map(([l]) => l.email)).toEqual(['new@example.org'])
+    expect(sendLifecycleEmail.mock.calls.find(([c]) => c.email === 'filed@example.org')?.[0].personId).toBe('person_filed')
   })
 
   it('welcomes a member who stopped at the no-Gmail step once a day has passed, with a note that Gmail is not needed', async () => {
