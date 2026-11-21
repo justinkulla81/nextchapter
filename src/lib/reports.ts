@@ -63,7 +63,6 @@ export const REPORT_EDITIONS: ReportEdition[] = [
     publishedAt: '2026-11-06',
     updatedAt: '2026-11-09',
     ogImage: '/reports/white-collar-employment-report-2026-10-og.png',
-    earlyWarningPending: 'October CPS file (Census, about November 19, 2026)',
   },
   {
     slug: 'white-collar-employment-report-september-2026',
