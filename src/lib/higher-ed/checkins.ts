@@ -112,7 +112,9 @@ export async function pendingCheckIns(institutionId: string, now = new Date()) {
 
 export const CHECKIN_ANSWERS = [
   { key: 'good', label: 'All good' },
-  { key: 'looking', label: "I'm starting to look" },
+  // Was "I'm starting to look" (owner, 2026-11-21: one answer for any job change, near or far; the next step asks how far).
+  // The key stays 'looking' so older emails and answers keep working.
+  { key: 'looking', label: "I'm looking to change jobs or fields" },
   { key: 'laid_off', label: 'I was laid off' },
   { key: 'new_job', label: 'New job or promotion' },
   { key: 'new_manager', label: 'I manage people now' },
@@ -140,7 +142,7 @@ export const CHECKIN_BODY = `Hi {{firstName}},
 {{college}} checks in with alumni once a year (and a few times in your first two years out). One click:
 
 All good: {{link}}&a=good
-I'm starting to look: {{link}}&a=looking
+I'm looking to change jobs or fields: {{link}}&a=looking
 I was laid off: {{link}}&a=laid_off
 New job or promotion: {{link}}&a=new_job
 I manage people now: {{link}}&a=new_manager
