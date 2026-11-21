@@ -56,7 +56,7 @@ const kindLabel = (k: string) => EVENT_KINDS.find((e) => e.key === k)?.label ?? 
 
 export async function StagePanel({ ctx }: { ctx: WorkspaceContext }) {
   if (!ctx.memberId) return null
-  const m = await prisma.institutionMember.findUnique({ where: { id: ctx.memberId }, select: { candidateId: true, candidate: { select: { journey: true, journeyStage: true, currentJobStatus: true } } } })
+  const m = await prisma.institutionMember.findUnique({ where: { id: ctx.memberId }, select: { candidateId: true, school: true, candidate: { select: { journey: true, journeyStage: true, currentJobStatus: true } } } })
   const stage = m?.candidate ? effectiveStage(m.candidate) : null
   if (stage === 'PAUSED') return null
   const id = ctx.institution.id
@@ -66,7 +66,7 @@ export async function StagePanel({ ctx }: { ctx: WorkspaceContext }) {
     prisma.officeHourSlot.count({ where: { institutionId: id, startsAt: { gte: now }, bookedByMemberId: null, cancelledAt: null } }),
     prisma.collegeEvent.count({ where: { institutionId: id, startsAt: { gte: now }, cancelledAt: null } }),
     prisma.exclusiveJobPosting.count({ where: { institutionScopeId: id, status: 'approved', archivedAt: null } }),
-    programRecommendations(id, m?.candidateId ?? null),
+    programRecommendations(id, m?.candidateId ?? null, m?.school ?? null),
   ])
   const journey = m?.candidate ? effectiveJourney(m.candidate) : null
   const items = stageHelp(stage, ctx.institution.slug, { hasPrograms: programs > 0, hasOfficeHours: slots > 0, hasEvents: events > 0, hasJobs: jobs > 0, journey, workforce: ctx.institution.orgType !== 'COLLEGE' })

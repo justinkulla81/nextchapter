@@ -15487,6 +15487,10 @@ model Program {
   hours          Int?
   credentialType String? // 'certificate' | 'industry_certification' | 'badge' | 'degree'
   prerequisites  String?
+  /// The school it belongs to (matched against InstitutionMember.school, ignoring case); null = the whole institution.
+  school             String?
+  /// The school opened it to alumni of its other schools (prisma/manual/program-school-sharing.sql). Default off.
+  openToOtherSchools Boolean @default(false)
   isActive       Boolean     @default(true)
   createdBy      String
   isSampleData   Boolean     @default(false)

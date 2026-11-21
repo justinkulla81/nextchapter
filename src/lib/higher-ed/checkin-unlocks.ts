@@ -15,6 +15,7 @@ import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { serviceSettingsFrom, serviceTarget, allServices } from './services'
 import { officeNamesOf, getWorkspace } from './workspaces'
 import { readProfile } from './profile'
+import { programsVisibleTo } from './program-sharing'
 import type { CollegeCheckInAnswer } from './checkins'
 import type { ChangeDistance, CheckInDetails } from './checkin-details'
 export { cleanDetails } from './checkin-details'
@@ -77,6 +78,7 @@ export async function checkInUnlocks(args: {
     where: { id: args.memberId },
     select: {
       firstName: true,
+      school: true,
       institution: { select: { id: true, slug: true, name: true, enabledFeatures: true, profile: true } },
       transitionFlags: { where: { clearedAt: null, doNotSolicit: true }, select: { id: true }, take: 1 },
       caseloadAssignments: { where: { endedAt: null }, select: { id: true }, take: 1 },
@@ -94,7 +96,7 @@ export async function checkInUnlocks(args: {
   const cards: UnlockCard[] = []
   if (wantsPrograms(args.answer, args.details.distance)) {
     const programs = await prisma.program.findMany({
-      where: { institutionId: inst.id, isActive: true },
+      where: { institutionId: inst.id, isActive: true, ...programsVisibleTo(m.school) },
       select: { id: true, name: true, summary: true, skills: true, credential: true, credentialType: true, priceCents: true },
       take: 100,
     })

@@ -27,6 +27,7 @@ import { functionKeyFor, skillsIntel } from '@/lib/jobs/widen-strategy'
 import { skillTerms } from '@/lib/profile/skill-matrix'
 import { normalizeMajor } from './major-groups-shared'
 import { pivotTargetOf } from '@/lib/journey/pivot-target'
+import { programsVisibleTo } from './program-sharing'
 import { serviceSettingsFrom, serviceTarget, allServices, PRICING_LABELS } from './services'
 
 export const normSkill = (s: string) => normalizeMajor(s)
@@ -34,9 +35,10 @@ export const normSkill = (s: string) => normalizeMajor(s)
 export type BridgeOffering = { key: string; kind: 'program' | 'audit' | 'service'; name: string; detail: string | null; skills: string[]; href: string }
 
 /** The college's offerings that teach at least one tagged skill. */
-export async function bridgeOfferings(institution: { id: string; slug: string }, enabledFeatures: unknown): Promise<BridgeOffering[]> {
+// `forMember`: one alum's bridge shows only programs their school can see (program-sharing.ts); the staff report sees all.
+export async function bridgeOfferings(institution: { id: string; slug: string }, enabledFeatures: unknown, forMember?: { school: string | null }): Promise<BridgeOffering[]> {
   const [programs, audits] = await Promise.all([
-    prisma.program.findMany({ where: { institutionId: institution.id, isActive: true, NOT: { skills: { isEmpty: true } } }, select: { id: true, name: true, priceCents: true, credential: true, skills: true }, take: 100 }),
+    prisma.program.findMany({ where: { institutionId: institution.id, isActive: true, NOT: { skills: { isEmpty: true } }, ...(forMember ? programsVisibleTo(forMember.school) : {}) }, select: { id: true, name: true, priceCents: true, credential: true, skills: true }, take: 100 }),
     prisma.auditCourse.findMany({ where: { institutionId: institution.id, isActive: true, NOT: { skills: { isEmpty: true } } }, select: { id: true, title: true, term: true, skills: true }, take: 100 }),
   ])
   const settings = serviceSettingsFrom(enabledFeatures)
@@ -96,7 +98,7 @@ export function buildBridge(
 export async function memberBridge(args: { institution: { id: string; slug: string }; memberId: string; enabledFeatures: unknown }): Promise<MemberBridge> {
   const member = await prisma.institutionMember.findUnique({
     where: { id: args.memberId },
-    select: { candidate: { select: { primaryFunction: true, targetFunction: true, resumeKeywords: true, confirmedSkillsHave: true, certifications: true, skillLevels: true } } },
+    select: { school: true, candidate: { select: { primaryFunction: true, targetFunction: true, resumeKeywords: true, confirmedSkillsHave: true, certifications: true, skillLevels: true } } },
   })
   const p = member?.candidate
   // Someone moving to another function is measured against the jobs they want, not the ones they're leaving
@@ -106,7 +108,7 @@ export async function memberBridge(args: { institution: { id: string; slug: stri
   if (!p || !fn) return { state: 'no-function' }
   const terms = skillTerms(p)
   if (!terms.length) return { state: 'no-skills' }
-  const [market, offerings] = await Promise.all([loadSkillsMarket(), bridgeOfferings(args.institution, args.enabledFeatures)])
+  const [market, offerings] = await Promise.all([loadSkillsMarket(), bridgeOfferings(args.institution, args.enabledFeatures, { school: member?.school ?? null })])
   const built = buildBridge(skillsIntel(market, terms, { dim: 'function', key: functionKeyFor(fn) }, fn, 6), offerings)
   const bridge: MemberBridge = built.state === 'ready' && target ? { ...built, moving: true } : built
   if (bridge.state === 'ready' && bridge.rows.length) {
