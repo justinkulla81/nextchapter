@@ -5,7 +5,7 @@ import { emailDocument, escapeHtml } from '@/lib/help/email-layout'
 
 // Hourly data budget check (owner decisions 2026-11-14, after the Supabase egress quota cut the site off). The plan includes ~250 GB a
 // month, about 8 GB a day, and the owner is emailed as soon as the rate goes over that (at most once a day). Postgres does not count bytes sent, so this estimates them from pg_stat_statements: rows returned over the last
-// six hours or so, times a row width (a statement that reads the full posting text is ~5 KB a row; others are measured from the average width of the
+// day (or six hours, for a spike or before a day of snapshots exists), times a row width (a statement that reads the full posting text is ~5 KB a row; others are measured from the average width of the
 // columns they name, in pg_stats). It is an
 // estimate; the real figure is on the Usage page. When the rate, as GB a day, passes the alert line the admin gets an email naming the
 // statements behind it.
@@ -14,8 +14,16 @@ const ADMIN_TO = process.env.HELP_FORWARD_TO || process.env.CONTACT_FORWARD_TO |
 const SUPPORT = 'support@launchyournextchapter.com'
 const SNAPSHOT_EVENT = 'db_egress_watch_snapshot'
 const ALERT_EVENT = 'db_egress_alert_sent'
-/** The rate is measured against the newest snapshot at least this old, so one busy hour is not read as a whole day. */
+/** The short window: the newest snapshot at least this old, so one busy hour is not read as a whole day. */
 const WINDOW_MS = 6 * 3600_000
+/**
+ * The day window. The nightly crons (market-size, job occupations, the search index) each read the job table once, between about 22:00
+ * and 04:00 UTC; six hours that hold them, times four, counted each once-a-night pass four times (the 2026-11-23 04:40 alert said 8.5 GB
+ * a day, ~2.7 of it nightly passes counted four times). The rate is judged over the last day once a day of snapshots exists.
+ */
+const DAY_WINDOW_MS = 24 * 3600_000
+/** Over the short window alone, alert only at this multiple of the line: a real spike, not the nightly batch. */
+const SPIKE_MULTIPLE = 2
 /** Snapshots older than this are deleted (one a run, ~20 KB each). */
 const SNAPSHOT_KEEP_MS = 2 * 24 * 3600_000
 const USAGE_PAGE = 'https://supabase.com/dashboard/org/cpdalvjctomuevzcijtn/usage#egress'
@@ -115,6 +123,17 @@ export function dailyDelta(now: WatchRow[], before: Record<string, { rows: numbe
     .sort((a, b) => b.gb - a.gb)
 }
 
+/**
+ * Whether the data use is over the line. Over the last day when a day of snapshots exists; over six hours only when that rate is a real
+ * spike (SPIKE_MULTIPLE times the line), so the nightly batch is not read as a whole day of it. Before a day of snapshots, six hours decide.
+ */
+export function egressVerdict(i: { dayGb: number | null; shortGb: number; line: number }): { alert: boolean; window: 'day' | 'short' | null } {
+  if (i.dayGb === null) return i.shortGb >= i.line ? { alert: true, window: 'short' } : { alert: false, window: null }
+  if (i.dayGb >= i.line) return { alert: true, window: 'day' }
+  if (i.shortGb >= i.line * SPIKE_MULTIPLE) return { alert: true, window: 'short' }
+  return { alert: false, window: null }
+}
+
 const fmt = (n: number, d = 0) => n.toLocaleString('en-US', { maximumFractionDigits: d })
 
 export async function runEgressWatch(): Promise<{ estimatedGb: number; alerted: boolean; firstRun: boolean } | { skipped: string }> {
@@ -133,24 +152,37 @@ export async function runEgressWatch(): Promise<{ estimatedGb: number; alerted: 
   }
 
   const now = Date.now()
+  type Snap = { properties: unknown; createdAt: Date }
+  const snapAtLeast = (ms: number) =>
+    prisma.analyticsEvent.findFirst({ where: { event: SNAPSHOT_EVENT, createdAt: { lte: new Date(now - ms) } }, orderBy: { createdAt: 'desc' }, select: { properties: true, createdAt: true } })
+  const daySnap: Snap | null = await snapAtLeast(DAY_WINDOW_MS)
   // The newest snapshot at least WINDOW_MS old; in the first hours, the oldest there is (at least an hour old).
-  const last =
-    (await prisma.analyticsEvent.findFirst({ where: { event: SNAPSHOT_EVENT, createdAt: { lte: new Date(now - WINDOW_MS) } }, orderBy: { createdAt: 'desc' }, select: { properties: true, createdAt: true } })) ??
+  const shortSnap: Snap | null =
+    (await snapAtLeast(WINDOW_MS)) ??
     (await prisma.analyticsEvent.findFirst({ where: { event: SNAPSHOT_EVENT, createdAt: { lte: new Date(now - 3600_000) } }, orderBy: { createdAt: 'asc' }, select: { properties: true, createdAt: true } }))
-  const prior = (last?.properties ?? null) as { totals?: Record<string, { rows: number; calls: number }> } | null
-  const before = prior?.totals ?? null
+  const totalsOf = (snap: Snap | null) => ((snap?.properties ?? null) as { totals?: Record<string, { rows: number; calls: number }> } | null)?.totals ?? null
   const totals = Object.fromEntries(rows.map((r) => [r.queryid, { rows: r.rows, calls: r.calls }]))
   await prisma.analyticsEvent.create({ data: { distinctId: 'system', event: SNAPSHOT_EVENT, properties: { totals } } })
   await prisma.analyticsEvent.deleteMany({ where: { event: SNAPSHOT_EVENT, createdAt: { lt: new Date(now - SNAPSHOT_KEEP_MS) } } }).catch(() => undefined)
 
-  const firstRun = before === null || !last
-  if (firstRun) return { estimatedGb: 0, alerted: false, firstRun: true }
-  const hours = Math.max(1, (now - last.createdAt.getTime()) / 3_600_000)
-  const deltas = dailyDelta(rows, before, await columnWidths(rows.map((r) => r.query)))
+  if (!shortSnap || totalsOf(shortSnap) === null) return { estimatedGb: 0, alerted: false, firstRun: true }
+  const widths = await columnWidths(rows.map((r) => r.query))
+  const measure = (snap: Snap) => {
+    const hours = Math.max(1, (now - snap.createdAt.getTime()) / 3_600_000)
+    const deltas = dailyDelta(rows, totalsOf(snap), widths)
+    return { hours, deltas, gbPerDay: (deltas.reduce((s, d) => s + d.gb, 0) * 24) / hours }
+  }
+  const short = measure(shortSnap)
+  const day = daySnap && totalsOf(daySnap) ? measure(daySnap) : null
+  const judged = egressVerdict({ dayGb: day?.gbPerDay ?? null, shortGb: short.gbPerDay, line: EGRESS_ALERT_GB })
+  // The email names the window that crossed: the day when it did (or there is no day yet), else the spike.
+  const shown = judged.window === 'short' || !day ? short : day
+  const { hours, deltas } = shown
   const perDay = (gb: number) => (gb * 24) / hours
-  const estimatedGb = perDay(deltas.reduce((s, d) => s + d.gb, 0))
+  // The figure reported: the day's rate, or the six-hour rate when that is what crossed (a spike) or all there is.
+  const estimatedGb = shown.gbPerDay
   const rounded = Math.round(estimatedGb * 10) / 10
-  if (estimatedGb < EGRESS_ALERT_GB || !process.env.RESEND_API_KEY) return { estimatedGb: rounded, alerted: false, firstRun: false }
+  if (!judged.alert || !process.env.RESEND_API_KEY) return { estimatedGb: rounded, alerted: false, firstRun: false }
   // At most one email a day: the next one only if it is still over a day later.
   const recent = await prisma.analyticsEvent.findFirst({ where: { event: ALERT_EVENT, createdAt: { gte: new Date(now - 24 * 3600_000) } }, select: { id: true } })
   if (recent) return { estimatedGb: rounded, alerted: false, firstRun: false }

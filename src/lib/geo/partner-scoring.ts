@@ -46,7 +46,7 @@ export interface AreaSignal {
   layoffs90d?: number | null
   wcUnemploymentEst?: number | null
 }
-export type PartnerKind = 'WIOA_BOARD' | 'STATE_BOARD' | 'AJC' | 'EDD' | 'STATE_AGENCY' | 'LOCAL_EDO' | 'NONPROFIT_ECON' | 'NONPROFIT_WORKFORCE' | 'CHAMBER'
+export type PartnerKind = 'WIOA_BOARD' | 'STATE_BOARD' | 'AJC' | 'EDD' | 'STATE_AGENCY' | 'LOCAL_EDO' | 'NONPROFIT_ECON' | 'NONPROFIT_WORKFORCE' | 'CHAMBER' | 'COMMUNITY_JOBS'
 export interface PartnerInput {
   kind: PartnerKind
   area: AreaSignal
@@ -77,7 +77,10 @@ const KIND_MISSION: Record<PartnerKind, { v: number; why: string }> = {
   NONPROFIT_ECON: { v: 0.5, why: 'Economic-development non-profit; mission varies' },
   NONPROFIT_WORKFORCE: { v: 0.6, why: 'Workforce non-profit; often youth or low-income focused' },
   CHAMBER: { v: 0.45, why: 'Member employers, little direct worker service' },
+  COMMUNITY_JOBS: { v: 0.55, why: 'Community job program; helps people find work locally, often not professionals' },
 }
+/** A kind added to the data before it is added here scores as a mid-range body instead of failing the whole run. */
+const UNKNOWN_KIND = { v: 0.5, why: 'Kind of organization not yet rated' }
 const LOW_FIT_NAME = /\b(youth|teen|veteran|disab|blind|deaf|homeless|ex-?offender|reentry|refugee|immigrant|farm|migrant|apprentice|trades?|construction|culinary)\b/i
 const HIGH_FIT_NAME = /\b(professional|executive|career transition|dislocated|manag|white.?collar|engineer|technology|tech\b|business)\b/i
 
@@ -89,8 +92,9 @@ export function scorePartner(i: PartnerInput): FitScore {
   const isNonprofit = i.kind.startsWith('NONPROFIT') || i.kind === 'CHAMBER'
   const sizeFrac = isNonprofit ? logScale(i.revenue, 250_000, 100_000_000) : logScale(a.laborForce, 20_000, 3_000_000)
 
-  let mission = KIND_MISSION[i.kind].v
-  let missionNote = KIND_MISSION[i.kind].why
+  const km = KIND_MISSION[i.kind] ?? UNKNOWN_KIND
+  let mission = km.v
+  let missionNote = km.why
   if (i.kind === 'AJC') {
     const t = (i.ajcType ?? '').toLowerCase()
     mission = t.startsWith('comp') ? 1 : t.startsWith('aff') ? 0.7 : 0.45
