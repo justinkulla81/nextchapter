@@ -22,3 +22,6 @@ export async function GET(_request: Request, { params }: { params: Promise<{ tok
     { headers: { 'content-type': 'text/html' } }
   )
 }
+
+/** RFC 8058 one-click unsubscribe: what a mail app's Unsubscribe button posts to (the List-Unsubscribe header). Same opt-out. */
+export const POST = GET

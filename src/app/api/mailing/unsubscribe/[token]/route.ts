@@ -21,6 +21,12 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
   if (parsed.editionId) {
     await prisma.mailingEditionRecipient.updateMany({ where: { editionId: parsed.editionId, email: parsed.email }, data: { unsubscribedAt: new Date() } })
   }
+  // No edition: the button in a website-signup email (welcome, nurture). Those streams read their own opt-out, so it is set too.
+  if (!parsed.editionId) {
+    const at = new Date()
+    await prisma.homepageLead.updateMany({ where: { email: parsed.email, unsubscribedAt: null }, data: { unsubscribedAt: at } })
+    await prisma.newsletterSubscriber.updateMany({ where: { email: parsed.email, unsubscribedAt: null }, data: { unsubscribedAt: at } })
+  }
   captureServerEvent(parsed.email, 'mailing_unsubscribed', { via: 'one_click_header', editionId: parsed.editionId, lists: count })
   return NextResponse.json({ ok: true })
 }
