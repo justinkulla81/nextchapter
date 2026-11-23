@@ -247,6 +247,7 @@ async function sendOne(
   const fromName = edition.lists.length === 1 ? edition.lists[0].list.defaultFromName || settings.fromName : settings.fromName
   return resend.emails.send({
     // Cold recipients send from their own subdomain when one is set (Mailing settings), so a poor reputation there stays there.
+    // Layoff outreach to someone with no warm signal is cold too (owner, 2026-11-23): it sends from the cold subdomain.
     from: `${fromName} <${to.cold && settings.coldFromEmail ? settings.coldFromEmail : settings.fromEmail}>`,
     replyTo: settings.replyTo,
     to: to.email,
@@ -399,7 +400,7 @@ export async function runSendBatch(maxThisRun = 25): Promise<{ sent: number; fai
       if (!isLayoff) budget--
       if (!warmPass) coldBudget--
       try {
-        const { data, error } = await sendOne(resend, edition, { email: next.email, personId: next.personId, recipientId: next.id, cold: !warmPass && !isLayoff }, settings, attachments)
+        const { data, error } = await sendOne(resend, edition, { email: next.email, personId: next.personId, recipientId: next.id, cold: !warmPass }, settings, attachments)
         if (error || !data) throw new Error(error?.message ?? 'no response from Resend')
         await recordSent(edition, next.id, data.id)
         sent++

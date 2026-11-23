@@ -1,5 +1,5 @@
 import { Resend } from 'resend'
-import { isValidElement, type ReactNode } from 'react'
+import { isValidElement, type ReactElement, type ReactNode } from 'react'
 import {
   AudienceTag,
   audienceFromContent,
@@ -9,6 +9,8 @@ import {
   type EmailAudience,
 } from '@/lib/email/audience-tag'
 import { IntakeEmailLayout } from '@/emails/intake-email-layout'
+import { render } from '@react-email/render'
+import { withOneClickUnsubscribe } from '@/lib/email/list-unsubscribe'
 
 // Reserved by RFC 2606 / 6761: these can never receive mail, so a send is a
 // guaranteed hard bounce that costs daily quota and hurts sender reputation.
@@ -81,6 +83,13 @@ export function createResend(apiKey?: string, audience?: EmailAudience): Resend 
     }
     if (declared) payload = { ...payload, headers: { ...payload.headers, 'X-NextChapter-Audience': declared } }
     else if (payload.react) console.warn(`Email "${String(payload.subject).slice(0, 60)}" renders no AudienceTag.`)
+    // One-click unsubscribe (list-unsubscribe.ts): found in the body when the sender set no header.
+    const body =
+      typeof payload.html === 'string' ? payload.html
+      : payload.react ? await render(payload.react as ReactElement).catch(() => null)
+      : typeof payload.text === 'string' ? payload.text : null
+    const headers = withOneClickUnsubscribe(payload.headers as Record<string, string> | undefined, body)
+    if (headers !== payload.headers) payload = { ...payload, headers }
     const original = (Array.isArray(payload.to) ? payload.to : [payload.to]).filter(
       (to): to is string => typeof to === 'string',
     )
