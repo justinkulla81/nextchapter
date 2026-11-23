@@ -112,6 +112,20 @@ Added November 7, 2026 (October edition, versions 1.2 to 1.5). Each monthly edit
 clouds), not political, no claim that AI caused an outcome, no "displacement"/"displaced" in our own wording, month-over-month seasonally adjusted
 (and year-over-year where useful), every "larger than" or "differs from" claim tested against a margin or labeled untested, an early-warning section.
 
+**QCEW wage and employment history by workforce area (added Nov 23, 2026).** `scripts/workforce/build-board-wage-history.py` builds
+private-sector employment and average annual pay by NAICS sector, 2015 to 2025, for 514 of 560 workforce boards from the public BLS QCEW
+annual files (`src/lib/workforce/data/board-wage-history.json`, read through `src/lib/workforce/board-wage-history.ts`; not yet shown on
+any page). Each year, download `<year>_annual_singlefile.zip` and `area_titles.csv` from data.bls.gov/cew, export the boards (id, state,
+statewide, counties) to JSON, and run the script. Checks: Florida statewide matches BLS's state total (8,814,642 jobs, $72,719 average
+pay in 2025). Not included: 16 Massachusetts boards and 10 California city boards (no county list), Connecticut (planning regions
+replaced counties), and a few others; see the script's `.skipped.json`.
+**ADP and other payroll-company data.** ADP's National Employment Report and Pay Insights are public, but ADP's license (in its
+history download) bars commercial reproduction or re-use without written consent, so we do not store, chart or redistribute ADP's
+series. Cite only ADP's published headline figures from its own press release, with attribution and a link, and give BLS's figure next
+to it when they differ (October 2026: ADP private payrolls +86,000, professional and business services -27,000, base pay +3.2%, gross pay
++4.7%; BLS payrolls +165,000, professional and business services +70,000). A consent request to ADP is drafted at
+`data/employment-report/indicators/adp-license-request-draft.md` (not sent).
+
 **Grants, policies, retraining money and initiatives we find go into the CRM, and the owner is told what was added.** Owner rule
 (2026-11-22). Whenever research for a report turns up a grant, policy, retraining program or funding initiative (a company or
 foundation pledge, a state or federal program, a college or union program), do three things: (1) make sure its sponsor or issuer is a
