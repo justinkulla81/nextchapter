@@ -370,7 +370,7 @@ export function MailingComposer({
                         {r.excludedReason === 'already_got_version' && (r.manualSentAt ? `Got another version on ${fmtDate(r.manualSentAt)}` : 'Got another version')}
                         {r.excludedReason === 'unsubscribed' && 'Unsubscribed'}
                         {r.excludedReason === 'suppressed' && 'Address bounced or complained'}
-                        {r.excludedReason === 'risky_address' && 'Not mailed: Hunter can’t confirm this address (catch-all or undecided)'}
+                        {r.excludedReason === 'risky_address' && 'Not mailed: Hunter could not confirm this address is deliverable'}
                         {r.source === 'ADDED_THIS_EDITION' && !locked && (
                           <button type="button" onClick={() => run(async () => { await removeAddedRecipient(edition.id, r.id); setRecipients((rs) => rs.filter((x) => x.id !== r.id)) })} className="ml-2 text-xs text-muted-foreground underline">
                             Remove
