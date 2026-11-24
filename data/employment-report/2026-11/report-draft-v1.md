@@ -145,6 +145,34 @@ Four monthly Census CPS series back to 2010 (new graduates 22 to 27, white-colla
 
 ---
 
+## 8. Major layoffs reported in November (to date, through Nov 24)
+All **[reported]**: announcements as covered by named outlets or aggregators, filed from the owner's layoffs inbox and the layoff-news feed; none is a WARN filing unless marked. A headline is not a measured job loss, and several are global counts. We do not say AI caused any of them. Duplicate rows for the same company are counted once.
+
+| Employer | Jobs cut (reported) | Date | Where | Note |
+|---|---|---|---|---|
+| Cognizant | 15,000 | Nov 11 | Global, mostly India | IT services; reported as "may cut" |
+| BT | 18,000 | Nov 5 | UK | Telecom |
+| TCS | 8,000 | Nov 12 | Global | Reported as cuts alongside plans to hire 8,900 specialized engineers; both cited |
+| Fiserv | 3,000 | Nov 3 | US (Wisconsin filing row) | Fintech; one row is from layoffs.fyi, not a state filing |
+| Amdocs | 3,000 | Nov 12 | US (Missouri row) | From layoffs.fyi, not a state filing |
+| ANZ | 3,000+ | Nov 8 | Australia | Bank |
+| Intuit | 1,800 | Nov 19 | US | Software; headline only |
+| Canva | 1,271 (22% of staff) | Nov 3 | Australia | First redundancy round |
+| Legal & General | 1,000 | Nov 16 | UK | Insurance |
+| Renault | up to 1,000 white-collar | Nov 16 | France | Sources say; EV roles added |
+| FNZ | 1,500 | Nov 20 | Global | Wealth software; headline only |
+| Paramount | 2,000 | Nov 16 | US | The linked story is from Oct 2025; **TO VERIFY** it is a new November round |
+| Intel | 50,000 | Nov 19 | Unknown | **TO VERIFY**: the size looks wrong for a November announcement; the source is an aggregator link we have not read |
+
+Also reported, not white-collar: Jaguar Land Rover (4,000), Schaeffler (3,460), BMW China (1,800 across two rows), KLM (1,000), BAE (1,000), Vodafone Deutschland (2,300), Imperial Brands (2,500).
+Tracker rows for these are on https://launchyournextchapter.com/layoffs . Where the same layoff has two sources with different counts, the smaller headcount is used (owner rule) and both are cited.
+
+## 9. Research sources we now track (owner decision, Nov 24, 2026)
+Checked each month; each finding is filed in the CRM with VERIFIED or TO VERIFY.
+- **Milken Institute** (https://milkeninstitute.org): 2026 Milken Institute / Harris Poll Listening Project on AI and the workforce, released May 4, 2026 **[reported]**: 87% of business leaders rank AI workforce readiness among their top three priorities; 88% say no company can solve it alone; 41% of workers received no employer AI support in the past year; 69% believe AI can create more opportunity than it eliminates. Full report not opened. "Employer Strategies for Human-Centered AI" (Apr 20, 2026, Milken Employer Action Exchange) **[official, partly read]**: a review of 245+ sources; no figures in the readable part.
+- **Aspen Institute** (Future of Work Initiative; Economic Opportunities Program): **could not be read**, the site refuses automated requests (HTTP 403). Search shows a 2026 event series "Work and the Social Contract in the Age of AI" and a monthly Economic Opportunities digest; no findings quoted here **[weak]**.
+- **Whiteboard Advisors** (https://whiteboardadvisors.com): education and workforce policy newsletters; no AI-and-jobs data found. A pointer to policy news (for example the Department of Education's Nov 4, 2026 final accreditation and transfer-credit rules), not a data source **[official, listing only]**.
+
 ## Hypotheses we will track (not findings)
 1. Whether pledged training dollars turn into published completion and placement data, by group.
 2. Open postings for engineers, architects and project managers near new data-center sites.
@@ -152,4 +180,6 @@ Four monthly Census CPS series back to 2010 (new graduates 22 to 27, white-colla
 4. A running count of dollars announced for professional versus trades retraining.
 
 ## CRM: what was filed (standing rule, 2026-11-22)
+On Nov 24 we added 1 organization (Whiteboard Advisors) and 4 notes (Milken Institute x2, Aspen Institute, Whiteboard Advisors). Aspen is TO VERIFY because its site cannot be read automatically.
+
 On Nov 22 we added 2 CRM organizations (Ascend West Virginia, New York AI Jobs Institute), tagged Meta as a funder, and filed 29 notes on 24 existing or new organizations (what, who it targets, dollars and people, source and date, VERIFIED or TO VERIFY). Nine notes are VERIFIED from the sponsor's own page; the rest are TO VERIFY.
