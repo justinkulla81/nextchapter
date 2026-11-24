@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 vi.mock('@prisma/client', () => ({ PrismaClient: class { $extends() { return this } } }))
 vi.mock('@/lib/security/token-crypto-extension', () => ({ tokenCryptoExtension: {} }))
 vi.mock('@/lib/security/token-defaults-extension', () => ({ tokenDefaultsExtension: {} }))
-vi.mock('@/lib/crm/generic-email-extension', () => ({ genericEmailExtension: {} }))
+vi.mock('@/lib/crm/generic-email-extension', () => ({ genericEmailExtension: {}, genericListMemberExtension: {} }))
 
 import { BUILD_POOL_SIZE, RUNTIME_POOL_SIZE, withPoolSettings } from '@/lib/prisma'
 

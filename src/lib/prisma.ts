@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import { tokenCryptoExtension } from '@/lib/security/token-crypto-extension'
 import { tokenDefaultsExtension } from '@/lib/security/token-defaults-extension'
-import { genericEmailExtension } from '@/lib/crm/generic-email-extension'
+import { genericEmailExtension, genericListMemberExtension } from '@/lib/crm/generic-email-extension'
 
 // OAuth token columns are encrypted/decrypted transparently by the extension
 // (see src/lib/security/token-crypto.ts). It is a query-only extension, so the
@@ -34,7 +34,7 @@ export function withPoolSettings(url: string | undefined, building: boolean = is
 
 function createPrismaClient(): PrismaClient {
   const url = withPoolSettings(process.env.DATABASE_URL)
-  return new PrismaClient(url ? { datasourceUrl: url } : undefined).$extends(tokenCryptoExtension).$extends(tokenDefaultsExtension).$extends(genericEmailExtension) as unknown as PrismaClient
+  return new PrismaClient(url ? { datasourceUrl: url } : undefined).$extends(tokenCryptoExtension).$extends(tokenDefaultsExtension).$extends(genericEmailExtension).$extends(genericListMemberExtension) as unknown as PrismaClient
 }
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient }

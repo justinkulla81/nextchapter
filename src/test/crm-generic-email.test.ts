@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cleanPersonData } from '@/lib/crm/generic-email-extension'
+import { cleanMemberWrite, cleanPersonData } from '@/lib/crm/generic-email-extension'
 import { isRoleAddress } from '@/lib/email/generic-address'
 
 describe('CRM never stores a generic mailbox (owner, 2026-11-24)', () => {
@@ -27,5 +27,24 @@ describe('CRM never stores a generic mailbox (owner, 2026-11-24)', () => {
   it('leaves other writes alone', () => {
     expect(cleanPersonData({ fullName: 'X', priority: 'P2' })).toEqual({ fullName: 'X', priority: 'P2' })
     expect(cleanPersonData({ email: null })).toEqual({ email: null })
+  })
+})
+
+describe('a generic mailbox is never ACTIVE on a mailing list (owner, 2026-11-24)', () => {
+  it('stores a new generic row as REMOVED, leaves a person alone', () => {
+    const r = cleanMemberWrite('create', { data: { listId: 'l', email: 'info@acme.org', status: 'ACTIVE', addedVia: 'IMPORT' } }).data as Record<string, unknown>
+    expect(r.status).toBe('REMOVED')
+    const p = cleanMemberWrite('create', { data: { listId: 'l', email: 'pat@acme.org', addedVia: 'IMPORT' } }).data as Record<string, unknown>
+    expect(p.status).toBeUndefined()
+  })
+  it('handles createMany and keeps an unsubscribe as it is', () => {
+    const rows = cleanMemberWrite('createMany', { data: [{ email: 'hr@a.com' }, { email: 'pat@a.com' }, { email: 'jobs@a.com', status: 'UNSUBSCRIBED' }] }).data as Record<string, unknown>[]
+    expect(rows.map((r) => r.status)).toEqual(['REMOVED', undefined, 'UNSUBSCRIBED'])
+  })
+  it('never reactivates a generic address', () => {
+    const d = cleanMemberWrite('update', { where: { listId_email: { listId: 'l', email: 'careers@u.edu' } }, data: { status: 'ACTIVE' } }).data as Record<string, unknown>
+    expect(d.status).toBe('REMOVED')
+    const ok = cleanMemberWrite('update', { where: { listId_email: { listId: 'l', email: 'pat@u.edu' } }, data: { status: 'ACTIVE' } }).data as Record<string, unknown>
+    expect(ok.status).toBe('ACTIVE')
   })
 })
