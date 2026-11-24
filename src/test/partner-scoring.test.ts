@@ -40,3 +40,12 @@ describe('contacts in the CRM', () => {
 describe('scales', () => {
   it('log scale clamps', () => { expect(logScale(1, 1000, 1e6)).toBe(0); expect(logScale(1e9, 1000, 1e6)).toBe(1); expect(logScale(null, 1, 2)).toBeNull() })
 })
+
+describe('scorePartner kinds', () => {
+  it('scores a community job program and does not throw on a kind it does not know', async () => {
+    const { scorePartner } = await import('@/lib/geo/partner-scoring')
+    const base = { area: {}, hasName: false, hasEmail: false, hasPhone: false, hasWebsite: false }
+    expect(scorePartner({ ...base, kind: 'COMMUNITY_JOBS' }).total).toBeGreaterThan(0)
+    expect(() => scorePartner({ ...base, kind: 'SOMETHING_NEW' as never })).not.toThrow()
+  })
+})

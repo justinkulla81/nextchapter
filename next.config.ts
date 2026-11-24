@@ -235,6 +235,16 @@ const nextConfig: NextConfig = {
           .filter(([city]) => !stateSlugs.has(city) && !seen.has(city) && seen.add(city))
           .map(([city, st]) => ({ source: `/layoffs/${city}`, destination: `/layoffs/${st}`, permanent: true }))
       })(),
+      // /cities/houston and the like came in from outside links and 404ed (owner alerts, 2026-11-21). A big city goes to its
+      // page under /places; any other /cities address goes to the places index.
+      ...(() => {
+        const seen = new Set<string>()
+        return [...MAJOR.map(([, st, city]) => [city, st] as [string, string]), ...EXTRA_CITY_STATES]
+          .filter(([city]) => !seen.has(city) && seen.add(city))
+          .map(([city, st]) => ({ source: `/cities/${city}`, destination: `/places/${st}/city/${city}`, permanent: true }))
+      })(),
+      { source: '/cities', destination: '/places', permanent: true },
+      { source: '/cities/:path*', destination: '/places', permanent: true },
       // The year page by its other names (/job-cuts-2026, /layoffs-2026 -> /layoffs/2026). Add the next year when its page exists.
       ...['layoffs', 'layoff', 'job-cuts', 'downsizing', 'rifs', 'mass-layoffs'].map((alias) => ({
         source: `/${alias}-2026`,

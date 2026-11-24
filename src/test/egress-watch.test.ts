@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/prisma', () => ({ prisma: {} }))
 vi.mock('@/lib/email/resend-client', () => ({ createResend: vi.fn() }))
-import { dailyDelta, rowBytes } from '@/lib/perf/egress-watch'
+import { dailyDelta, egressVerdict, rowBytes } from '@/lib/perf/egress-watch'
 
 describe('egress watch', () => {
   it('counts a full posting text read as wide, a clipped one as clipped, others as narrow', () => {
@@ -45,5 +45,18 @@ describe('egress watch', () => {
     expect(d.find((x) => x.queryid === 'b')?.deltaRows).toBe(50)
     expect(d.find((x) => x.queryid === 'c')?.deltaRows).toBe(400)
     expect(d[0].queryid).toBe('a')
+  })
+})
+
+describe('egress verdict', () => {
+  it('judges by the day once a day of snapshots exists, so the nightly batch is not counted four times', () => {
+    // 2026-11-23 04:40: six hours holding the nightly passes read 8.5 GB a day; the day was under the line.
+    expect(egressVerdict({ dayGb: 6.5, shortGb: 8.5, line: 8 })).toEqual({ alert: false, window: null })
+    expect(egressVerdict({ dayGb: 8.2, shortGb: 5, line: 8 })).toEqual({ alert: true, window: 'day' })
+  })
+  it('still alerts at once on a real spike, and on six hours before a day exists', () => {
+    expect(egressVerdict({ dayGb: 6, shortGb: 17, line: 8 })).toEqual({ alert: true, window: 'short' })
+    expect(egressVerdict({ dayGb: null, shortGb: 8.5, line: 8 })).toEqual({ alert: true, window: 'short' })
+    expect(egressVerdict({ dayGb: null, shortGb: 7, line: 8 })).toEqual({ alert: false, window: null })
   })
 })

@@ -4,6 +4,22 @@ Status: draft v0.1, 2026-10-15. Nothing here is built yet.
 
 A monthly report on what employers are posting, a sibling of the White Collar Employment Report. The Employment Report says what people experience (Census, BLS). This report says what employers ask for (public postings). Public data only; no member data.
 
+## Owner decision, 2026-11-24: one national report, local-only jobs report
+
+The national figures from this spec move into the White Collar Employment Report; this report keeps the local (metro and county) editions only. Nothing in this spec was ever published, so there is nothing to retire.
+
+| Chapter | Where it goes |
+|---|---|
+| 2 Postings by industry, function, seniority; weekly and day-of-week postings | National parts into the Employment Report; local counts stay here |
+| 2 Geography, county and metro counts, coverage box; postings versus layoffs in the area | Stay here (local) |
+| 3 Employer concentration in the area; hiring while firing, named employers | Local stays here; the national hiring-while-firing count goes to the Employment Report |
+| 4 Pay, 5 Benefits, 6 Remote/hybrid/on-site | Employment Report (national), local split here |
+| 7 Skills and EQ, 8 Ghost jobs and reposts, 9 AI demand and AI washing, 10 Contract/fractional/gig | Employment Report (national) |
+| 11 Net job growth versus industry growth (CES, BEA, hiring signal) | Employment Report |
+| QCEW wage and employment history | Local: shown on each workforce board page (`/workforce-boards/<state>/<board>`) |
+
+Limit: the postings feed is mostly one aggregator and has no entry-level or hourly rows yet (see the Louisville draft), so the posting-based chapters wait on the crawler work in `docs/jobs-report/crawler-handoff.md` before they can go into the national report.
+
 ## Frames (every figure is labeled with one)
 
 | Frame | Contents | Compared against |
