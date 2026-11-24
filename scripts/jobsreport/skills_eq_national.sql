@@ -31,3 +31,12 @@ from b group by grouping sets ((aim,lv),(aim),(lv),());
 with b as (select "aiMention" aim, "skills" sk from "ExclusiveJobPosting" where "archivedAt" is null and "socCode" ~ '^(1[1-9]|2[0-9])-' and cardinality("skills")>0 and "aiMention" is not null),
  t as (select aim, count(*) tot from b group by aim), s as (select aim, lower(x) sk, count(*) n from b, unnest(sk) x group by 1,2)
 select s.aim, s.sk, s.n, round(100.0*s.n/t.tot,1) pct, t.tot from s join t using(aim) where s.n>=2000 order by s.aim, s.n desc;
+
+-- 4. AI-washing risk: postings that mention AI but name no AI skill, tool or skill group (white-collar frame, live postings)
+-- Run 2026-11-24. One pass over narrow columns, under 20 rows out. "Boilerplate-only" is a classification, not proof of washing.
+with b as (select case when "level" in ('ENTRY_IC','EARLY_IC') then 'entry' when "level" in ('MID_IC','SENIOR_IC','PRINCIPAL') then 'ic' else 'mgr' end lv, coalesce("industry",'(none)') ind,
+ (cardinality(coalesce("aiSkillItems",'{}'))=0 and cardinality(coalesce("aiToolsNamed",'{}'))=0 and cardinality(coalesce("aiSkillGroups",'{}'))=0) boiler,
+ (cardinality(coalesce("aiToolsNamed",'{}'))>0) tools
+ from "ExclusiveJobPosting" where "archivedAt" is null and "socCode" ~ '^(1[1-9]|2[0-9])-' and "aiMention" is true)
+select coalesce(lv,'all') lv, case when grouping(ind)=1 then 'all' else ind end ind, count(*) n, count(*) filter (where boiler) boiler, count(*) filter (where tools) tools
+from b group by grouping sets ((lv),(ind),()) having count(*)>=1500 or (lv is not null);
