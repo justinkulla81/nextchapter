@@ -18,6 +18,7 @@ import { OnetAttribution } from '@/components/OnetAttribution'
 import { saveDraft } from '@/app/dashboard/resume/studio/actions'
 import { Field, TextAreaField, ReorderControls, moveItem, removeAt, replaceAt, splitList } from '@/components/dashboard/resume-studio/EditorParts'
 import { ExperienceEditor } from '@/components/dashboard/resume-studio/ExperienceEditor'
+import { PolishPanel } from '@/components/dashboard/resume-studio/PolishPanel'
 import { SectionsEditor } from '@/components/dashboard/resume-studio/SectionsEditor'
 import { VersionPanel, ImportReportPanel, type ImportReportView } from '@/components/dashboard/resume-studio/VersionPanel'
 import { isDraftKind, type DraftKind } from '@/lib/resume/studio/versions'
@@ -155,7 +156,7 @@ export function ResumeEditor({
           </Card>
         </section>
 
-        <ExperienceEditor roles={doc.workHistory} onChange={(workHistory) => setDoc((d) => ({ ...d, workHistory }))} />
+        <ExperienceEditor draftId={draftId} roles={doc.workHistory} onChange={(workHistory) => setDoc((d) => ({ ...d, workHistory }))} />
 
         <section className="space-y-3" aria-labelledby="studio-education">
           <h2 id="studio-education" className="text-lg font-semibold tracking-tight">
@@ -247,18 +248,15 @@ export function ResumeEditor({
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="space-y-2 pt-6 text-sm">
-            <p className="font-medium text-foreground">Writing checks</p>
-            <p className="text-muted-foreground">
-              {summary.bulletCount === 0
-                ? 'Add bullets to see checks.'
-                : `${summary.quantifiedCount} of ${summary.bulletCount} bullets have a number in them. ${summary.notedBullets} ${summary.notedBullets === 1 ? 'has' : 'have'} a suggestion.`}
-            </p>
-            {summary.rolesWithoutBullets.length > 0 && <p className="text-muted-foreground">No bullets yet for: {summary.rolesWithoutBullets.join('; ')}.</p>}
-            <p className="text-xs text-muted-foreground">These look at how a line is written, not whether it is true. Nothing here stops you saving or downloading.</p>
-          </CardContent>
-        </Card>
+        <PolishPanel
+          draftId={draftId}
+          doc={current}
+          summary={summary}
+          onApply={(next) => {
+            setDoc(next)
+            setSkillsText(next.skills.join(', '))
+          }}
+        />
 
         <Card>
           <CardContent className="space-y-3 pt-6">

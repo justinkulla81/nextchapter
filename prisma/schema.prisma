@@ -16875,6 +16875,18 @@ model ResumeDraft {
   @@index([candidateId, sourceResumeId])
 }
 
+// One row per model call made by the resume studio's spelling, grammar and stronger-bullet helpers: the
+// daily cap per person counts these, and spend can be reported from them. No resume text is stored here.
+model ResumePolishRun {
+  id          String   @id @default(cuid())
+  candidateId String
+  kind        String // FIXES, QUESTIONS, BULLET
+  inputChars  Int
+  createdAt   DateTime @default(now())
+
+  @@index([candidateId, createdAt])
+}
+
 // ── REQUESTED DOCUMENTS ──────────────────────────────────────────────────────
 // Someone with a reason to ask (today a coach, for their client) requests a
 // document; the candidate uploads it; the requester accepts it or asks for

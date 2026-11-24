@@ -6,11 +6,12 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import type { ResumeDocumentData, ResumeWorkHistoryItem } from '@/lib/resume/export/document-data'
 import { checkBullet } from '@/lib/resume/studio/writing-checks'
+import { BulletStrengthener } from '@/components/dashboard/resume-studio/BulletStrengthener'
 import { Field, ReorderControls, moveItem, removeAt, replaceAt } from '@/components/dashboard/resume-studio/EditorParts'
 
 type Roles = ResumeDocumentData['workHistory']
 
-export function ExperienceEditor({ roles, onChange }: { roles: Roles; onChange: (roles: Roles) => void }) {
+export function ExperienceEditor({ draftId, roles, onChange }: { draftId: string; roles: Roles; onChange: (roles: Roles) => void }) {
   const setRole = (i: number, role: ResumeWorkHistoryItem) => onChange(replaceAt(roles, i, role))
 
   return (
@@ -84,9 +85,28 @@ export function ExperienceEditor({ roles, onChange }: { roles: Roles; onChange: 
                         ))}
                       </ul>
                     )}
+                    {bullet.trim().length > 0 && (
+                      <BulletStrengthener
+                        draftId={draftId}
+                        role={role}
+                        bullet={bullet}
+                        otherBullets={role.bullets.filter((_, j) => j !== b)}
+                        onUse={(text) => setRole(i, { ...role, bullets: replaceAt(role.bullets, b, text) })}
+                      />
+                    )}
                   </div>
                 )
               })}
+              {role.bullets.length < 15 && (
+                <BulletStrengthener
+                  draftId={draftId}
+                  role={role}
+                  bullet={null}
+                  otherBullets={role.bullets}
+                  openLabel={role.bullets.filter((x) => x.trim()).length <= 1 ? 'Add evidence: a bullet with help' : 'Add a bullet with help'}
+                  onUse={(text) => setRole(i, { ...role, bullets: [...role.bullets.filter((x) => x.trim()), text] })}
+                />
+              )}
               <Button type="button" size="sm" variant="outline" disabled={role.bullets.length >= 15} onClick={() => setRole(i, { ...role, bullets: [...role.bullets, ''] })}>
                 Add a bullet
               </Button>
