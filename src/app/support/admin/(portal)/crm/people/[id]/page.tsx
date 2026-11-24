@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { CrmEmailRiskFlag, isUnsendable } from '@/components/admin/CrmEmailRiskFlag'
 import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
@@ -243,7 +244,7 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
           <h1 className="text-2xl font-semibold">{person.fullName}</h1>
           {person.location && <p className="mt-0.5 text-sm text-muted-foreground">{person.location}</p>}
           <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-            {person.email && <a href={`mailto:${person.email}`} className="underline">{person.email}</a>}
+            {person.email && <span><a href={`mailto:${person.email}`} className="underline">{person.email}</a><CrmEmailRiskFlag status={person.emailVerifiedStatus} /></span>}
             {!person.email && person.guessedEmail && (
               <span title={`Guessed from the format others there use: ${person.guessedEmailBasis ?? ''}. Not confirmed.`}>
                 <a href={`mailto:${person.guessedEmail}`} className="underline">{person.guessedEmail}</a>
@@ -298,7 +299,7 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
               label={`Priority for ${person.fullName}`}
               options={[{ value: '', label: 'No priority' }, ...PRIORITY_TIERS.map((t) => ({ value: t, label: `${t} — ${PRIORITY_TIER_LABELS[t]}` }))]}
             />
-            {person.email && <a href={`mailto:${person.email}`} className="underline">{person.email}</a>}
+            {person.email && <span><a href={`mailto:${person.email}`} className="underline">{person.email}</a><CrmEmailRiskFlag status={person.emailVerifiedStatus} /></span>}
             {!person.email && person.guessedEmail && (
               <span title={`Guessed from the format others there use: ${person.guessedEmailBasis ?? ''}. Not confirmed.`}>
                 <a href={`mailto:${person.guessedEmail}`} className="underline">{person.guessedEmail}</a>
@@ -374,7 +375,7 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
 
       <section className="space-y-3">
         <GroupHeading tone="history">Conversation</GroupHeading>
-        <Collapsible title="Send outreach" hint={person.email ? `to ${person.email}` : 'no email on file'}>
+        <Collapsible title="Send outreach" hint={!person.email ? 'no email on file' : isUnsendable(person.emailVerifiedStatus) ? `not emailed: ${person.email} is risky` : `to ${person.email}`}>
           <CrmOutreachCompose personId={person.id} personEmail={person.email} personName={person.fullName} />
         </Collapsible>
         {!person.candidateId && (
