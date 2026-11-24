@@ -40,3 +40,11 @@ with b as (select case when "level" in ('ENTRY_IC','EARLY_IC') then 'entry' when
  from "ExclusiveJobPosting" where "archivedAt" is null and "socCode" ~ '^(1[1-9]|2[0-9])-' and "aiMention" is true)
 select coalesce(lv,'all') lv, case when grouping(ind)=1 then 'all' else ind end ind, count(*) n, count(*) filter (where boiler) boiler, count(*) filter (where tools) tools
 from b group by grouping sets ((lv),(ind),()) having count(*)>=1500 or (lv is not null);
+
+-- 5. Pay and benefits by employer industry (white-collar frame, live postings). Run 2026-11-24; one pass, narrow columns, ~20 rows out.
+with b as (select coalesce("industry",'(none)') ind, ("salaryMin" is not null) pay, case when "payPeriod"='year' and "salaryMin" between 20000 and 1000000 then ("salaryMin"+coalesce("salaryMax","salaryMin"))/2.0 end mid,
+ (jsonb_typeof("benefits")='object' and "benefits"<>'{}'::jsonb) ben, ("benefits"->>'strong')='true' strong, ("benefits"->>'health')='true' health, ("benefits"->>'k401')='true' k401, ("benefits"->>'pto')='true' pto, ("benefits"->>'parental_leave')='true' parl, ("benefits"->>'tuition')='true' tui, ("benefits"->>'equity')='true' eq
+ from "ExclusiveJobPosting" where "archivedAt" is null and "socCode" ~ '^(1[1-9]|2[0-9])-')
+select case when grouping(ind)=1 then 'all' else ind end ind, count(*) n, count(*) filter (where pay) pay, count(mid) annual, round(percentile_cont(0.5) within group (order by mid)::numeric) med,
+ count(*) filter (where ben) ben, count(*) filter (where strong) strong, count(*) filter (where health) health, count(*) filter (where k401) k401, count(*) filter (where pto) pto, count(*) filter (where parl) parl, count(*) filter (where tui) tui, count(*) filter (where eq) eq
+from b group by rollup(ind) order by 2 desc;

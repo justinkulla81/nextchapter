@@ -276,6 +276,32 @@ What it shows: about half of the white-collar postings that mention AI ask nothi
 
 **Not run:** the other sense of AI washing, employers attributing layoffs to AI. That needs each announcement read (our November layoffs table, section 8, does not record a stated reason), so it is left for the report's layoffs chapter.
 
+## 14. Pay and benefits by industry (national, postings)
+Same frame as section 10, recounted Nov 24, 2026 (374,873 white-collar postings; the count moves as postings open and close). **Industry is the employer's sector, not the job's function.** **[our calculation]**; query 5 in `scripts/jobsreport/skills_eq_national.sql`. Pay is the midpoint of the stated annual range, so it covers only postings that state annual pay, and medians below are **not** pay gaps between industries: level, location and job function differ across them. Benefits are "mentioned in the posting", extracted from the text, not "offered by the employer"; postings with short text (many aggregator copies) show fewer.
+
+| Employer industry | Postings | State pay | Median stated annual pay (postings) | Benefits mentioned | "Strong" benefits | Equity | Parental leave |
+|---|---|---|---|---|---|---|---|
+| **All white-collar** | 374,873 | 20.6% | $141,000 (72,521) | 38.3% | 18.0% | 10.7% | 13.2% |
+| Technology | 81,335 | 28.8% | $181,750 (22,569) | 44.6% | 23.4% | 22.4% | 20.6% |
+| Industrial | 48,470 | 12.7% | $126,075 (5,902) | 43.1% | 20.8% | 8.0% | 13.9% |
+| Healthcare | 34,162 | 18.6% | $127,155 (5,894) | 39.1% | 16.4% | 3.9% | 9.9% |
+| Financial services | 33,504 | 16.2% | $152,000 (5,177) | 41.7% | 18.7% | 8.6% | 11.9% |
+| Consumer | 20,992 | 14.3% | $115,000 (2,818) | 45.4% | 19.6% | 7.1% | 12.1% |
+| Aerospace and defense | 20,884 | 13.7% | $146,486 (2,684) | 56.7% | 30.3% | 30.1% | 27.1% |
+| Professional services | 17,337 | 19.6% | $131,300 (2,864) | 36.8% | 14.4% | 3.9% | 9.4% |
+| Education | 13,642 | 11.9% | $97,463 (1,482) | 28.2% | 9.8% | 0.7% | 4.7% |
+| Life sciences | 12,927 | 17.4% | $157,150 (2,142) | 44.2% | 19.7% | 15.3% | 9.9% |
+| Government | 12,618 | 38.8% | $107,238 (4,669) | 25.8% | 7.7% | 1.3% | 5.1% |
+| Energy | 10,327 | 22.8% | $135,850 (2,272) | 38.7% | 20.6% | 7.0% | 15.7% |
+| Logistics | 7,085 | 16.2% | $115,880 (1,081) | 30.4% | 11.8% | 3.8% | 8.5% |
+| Media | 6,914 | 20.4% | $135,600 (1,277) | 49.3% | 25.9% | 10.2% | 14.9% |
+| Nonprofit | 6,611 | 17.5% | $115,524 (1,091) | 38.1% | 15.6% | 2.6% | 10.6% |
+| Real estate | 5,940 | 18.6% | $115,000 (1,044) | 43.5% | 22.7% | 7.6% | 19.1% |
+
+Left out: 39,051 postings with no industry label (25.3% state pay, median $110,000, 6.7% mention benefits, mostly short-text copies, so not comparable), and agriculture (2,060) and telecom (1,014), too few to read. Equity means stock or equity pay mentioned; "strong" is our benefits score threshold (`benefitsStrong`).
+
+What it shows: stating pay is least common in education (11.9%) and industrial (12.7%) and most common in government (38.8%), where public postings generally must list a range; government postings mention benefits least (25.8%), likely because they link out to a benefits page. Technology states pay most among private sectors (28.8%) and has the highest median stated pay ($181,750) and the highest equity mention (22.4%) after aerospace and defense (30.1%), whose postings also have the highest benefits mention (56.7%) and parental leave (27.1%). Education has the lowest stated pay and benefits mentions. We say nothing about why, and do not say AI caused any pay or benefits outcome.
+
 ## Hypotheses we will track (not findings)
 1. Whether pledged training dollars turn into published completion and placement data, by group.
 2. Open postings for engineers, architects and project managers near new data-center sites.
