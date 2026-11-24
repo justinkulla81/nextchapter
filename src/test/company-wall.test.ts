@@ -192,6 +192,8 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/lib/warn/layoff-primary-run.ts': 'admin WARN tooling: imported only by the warn-sync and layoff-news crons',
     'src/lib/warn/news-check.ts': 'admin WARN tooling: imported only by the warn-sync and layoff-news crons',
     'src/lib/warn/sync.ts': 'admin WARN tooling',
+    'src/lib/bid-evaluator/context.ts': "admin-only RFP and grant evaluator (imported only by the pages under support/admin/crm/funding): counts warm CRM contacts at an organization and lists partner organizations (name, id, types) for one grant; returns nothing to a candidate",
+    'src/lib/bid-evaluator/store.ts': "admin-only RFP and grant evaluator (imported only by the pages under support/admin/crm/funding): lists open grant opportunities from the CRM grants pipeline for the owner to evaluate; returns nothing to a candidate",
     'src/lib/bids/crm-filing.ts': 'admin bid-finder tooling: imported only by the board-bids and competitor-awards crons; files bids and competitor wins on CRM organizations',
     'src/lib/vision/competitor-sync.ts': 'admin competitor tooling: imported only by the admin Competitors actions, the competitor-watch cron and the bid-finder filing',
     'src/lib/workforce/college-crm.ts': 'admin workforce tooling',
