@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { canAddToList, ADD_BLOCKED_MESSAGE, normalizeListEmail, type SuppressionReason } from './rules'
 import { suggestListKeys } from './suggest'
+import { isRoleAddress } from '@/lib/email/generic-address'
 
 export const SETTINGS_DEFAULTS = {
   fromName: 'Justin Kulla',
@@ -51,6 +52,11 @@ export async function addToLists(input: {
   const lists = await prisma.mailingList.findMany({ where: { id: { in: input.listIds } } })
   if (!email) {
     for (const l of lists) result.blocked.push({ listId: l.id, listName: l.name, reason: 'no valid email address' })
+    return result
+  }
+  // Owner, 2026-11-24: a shared mailbox (info@, careers@, hr@) is never on a list.
+  if (isRoleAddress(email)) {
+    for (const l of lists) result.blocked.push({ listId: l.id, listName: l.name, reason: 'a shared mailbox (info@, hr@ and the like), not a person, so never on a list' })
     return result
   }
   const [existing, suppression] = await Promise.all([
@@ -300,7 +306,7 @@ export async function addManyToLists(input: {
 }): Promise<{ added: number; alreadyOn: number; blocked: number }> {
   const people = input.people
     .map((p) => ({ personId: p.personId, email: normalizeListEmail(p.email) }))
-    .filter((p): p is { personId: string; email: string } => !!p.email)
+    .filter((p): p is { personId: string; email: string } => !!p.email && !isRoleAddress(p.email))
   const emails = [...new Set(people.map((p) => p.email))]
   const [existing, suppressed] = await Promise.all([
     prisma.mailingListMember.findMany({ where: { listId: { in: input.listIds }, email: { in: emails } }, select: { listId: true, email: true, status: true } }),

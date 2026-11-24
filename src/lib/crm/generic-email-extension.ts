@@ -65,3 +65,46 @@ export const genericEmailExtension = Prisma.defineExtension({
     },
   },
 })
+
+// Owner, 2026-11-24: a generic mailbox is never ACTIVE on a mailing list either. addToLists refuses one with a reason; this is the
+// backstop for every other way a row is written (website signups, member syncs, auto-assign, scripts). The row is kept as REMOVED, so
+// the never-re-add rule still holds and callers that expect a row get one.
+type Row = Record<string, unknown>
+const memberEmail = (where: unknown): unknown => {
+  if (!where || typeof where !== 'object') return undefined
+  const w = where as Row
+  return (w.listId_email as Row | undefined)?.email ?? w.email
+}
+function deactivate(data: unknown, email: unknown): unknown {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return data
+  const row = data as Row
+  const status = row.status && typeof row.status === 'object' ? (row.status as Row).set : row.status
+  if (!isGeneric(email ?? row.email)) return data
+  if (status === undefined || status === 'ACTIVE') return { ...row, status: 'REMOVED', statusAt: new Date() }
+  return data
+}
+export function cleanMemberWrite(operation: string, args: Row): Row {
+  const a = { ...args }
+  if (operation === 'create') a.data = deactivate(a.data, undefined)
+  else if (operation === 'createMany' || operation === 'createManyAndReturn') {
+    a.data = Array.isArray(a.data) ? a.data.map((r) => deactivate(r, undefined)) : deactivate(a.data, undefined)
+  } else if (operation === 'upsert') {
+    a.create = deactivate(a.create, memberEmail(a.where))
+    a.update = (a.update as Row | undefined)?.status === 'ACTIVE' ? deactivate(a.update, memberEmail(a.where)) : a.update
+  } else if (operation === 'update' || operation === 'updateMany' || operation === 'updateManyAndReturn') {
+    const d = a.data as Row | undefined
+    if (d && (d.status === 'ACTIVE' || (d.status as Row | undefined)?.set === 'ACTIVE')) a.data = deactivate(d, memberEmail(a.where))
+  }
+  return a
+}
+
+export const genericListMemberExtension = Prisma.defineExtension({
+  name: 'mailing-no-generic-email',
+  query: {
+    mailingListMember: {
+      async $allOperations({ operation, args, query }) {
+        return query(cleanMemberWrite(operation, args as Row) as typeof args)
+      },
+    },
+  },
+})
