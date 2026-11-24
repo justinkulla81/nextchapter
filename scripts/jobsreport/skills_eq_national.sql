@@ -61,3 +61,31 @@ g as (select *, case when prior>=2 then 'likely' when age>90 then (case when not
 select case when grouping(lv)=0 then 'level' when grouping(ind)=0 then 'industry' when grouping(dl)=0 then 'direct' when grouping(ab)=0 then 'ageband' when grouping(prior)=0 then 'prior' when grouping(gl)=0 then 'overall' else 'total' end dim,
  coalesce(lv,ind,dl::text,ab,prior::text,gl,'') val, count(*) n, count(*) filter (where gl='likely') likely, count(*) filter (where gl='watch') watch, round(percentile_cont(0.5) within group (order by age)::numeric) med_age
 from g group by grouping sets ((lv),(ind),(dl),(ab),(prior),(gl),()) order by 1,2;
+
+-- 7. Contract, interim, fractional, temporary and gig work (white-collar frame, live postings). Run 2026-11-24.
+-- 7a: one pass over narrow columns (type by source, level, industry; title words), ~100 rows out.
+with b as (select coalesce("employmentType",'(not stated)') et, case when "sourceCategory" in ('employer','government','education','nonprofit') then 'employer' when "sourceCategory" in ('aggregator') then 'aggregator' when "sourceCategory" = 'search_firm' then 'search firm' when "sourceCategory"='interim' then 'interim board' else 'venture, startup and other' end sc,
+ case when "level" in ('ENTRY_IC','EARLY_IC') then 'entry' when "level" in ('MID_IC','SENIOR_IC','PRINCIPAL') then 'ic' else 'mgr' end lv, coalesce("industry",'(none)') ind, lower("title") t,
+ ("salaryMin" is not null and "payPeriod"='hour') hourly
+ from "ExclusiveJobPosting" where "archivedAt" is null and "socCode" ~ '^(1[1-9]|2[0-9])-')
+select 'type' dim, et val, count(*) n, count(*) filter (where hourly) hourly from b group by 2
+union all select 'type_by_source', sc||' | '||et, count(*), 0 from b where et in ('contract','interim','fractional','temporary','per_diem','part_time') group by 2
+union all select 'source_total', sc, count(*), 0 from b group by 2
+union all select 'type_by_level', lv||' | '||et, count(*), 0 from b where et in ('contract','interim','fractional','temporary') group by 2
+union all select 'level_total', lv, count(*), 0 from b group by 2
+union all select 'industry_contract', ind, count(*) filter (where et in ('contract','interim','fractional','temporary','per_diem')), count(*) from b group by 2
+union all select 'title', k, count(*), 0 from (select unnest(array_remove(array[case when t ~ '\m(contract|contractor)\M' then 'contract' end, case when t ~ '\mfreelanc' then 'freelance' end, case when t ~ '\mfractional\M' then 'fractional' end, case when t ~ '\minterim\M' then 'interim' end, case when t ~ '\m(temp|temporary)\M' then 'temporary' end, case when t ~ '\m(part[- ]time)\M' then 'part-time' end, case when t ~ '\m(consultant)\M' then 'consultant' end], null)) k from b) x group by 2
+order by 1,3 desc;
+
+-- 7b: engagement language in posting text, 4% block sample (~15k white-collar postings, text read inside the database, aggregates out). Do not widen or loop.
+with b as (select coalesce("employmentType",'(not stated)') et, lower("description") d from "ExclusiveJobPosting" tablesample system (4) where "archivedAt" is null and "socCode" ~ '^(1[1-9]|2[0-9])-')
+select case when grouping(et)=1 then 'all' else et end et, count(*) n,
+ count(*) filter (where d ~ '(1099|1-099|independent contractor)') c1099,
+ count(*) filter (where d ~ 'freelanc') freelance,
+ count(*) filter (where d ~ '(contract-to-hire|contract to hire|\mc2h\M|temp-to-hire|temp to hire|contract-to-perm|contract to perm)') c2h,
+ count(*) filter (where d ~ '(this is a contract (position|role)|contract position|contract role|contract assignment|w-?2 contract|contract duration|\mcontract for \d+|\d+[- ]month contract|\d+[- ]months? contract)') contract_role,
+ count(*) filter (where d ~ '(gig work|gig economy|project[- ]based|on a project basis|per project)') gig,
+ count(*) filter (where d ~ '(fractional)') frac,
+ count(*) filter (where d ~ '\minterim\M') interim,
+ count(*) filter (where d ~ '(1099|independent contractor|freelanc|contract-to-hire|contract to hire|\mc2h\M|temp-to-hire|contract position|contract role|contract assignment|w-?2 contract|gig work|project[- ]based|fractional|\minterim\M)') anyalt
+from b group by rollup(et) order by 2 desc;
