@@ -170,8 +170,47 @@ Tracker rows for these are on https://launchyournextchapter.com/layoffs . Where 
 ## 9. Research sources we now track (owner decision, Nov 24, 2026)
 Checked each month; each finding is filed in the CRM with VERIFIED or TO VERIFY.
 - **Milken Institute** (https://milkeninstitute.org): 2026 Milken Institute / Harris Poll Listening Project on AI and the workforce, released May 4, 2026 **[reported]**: 87% of business leaders rank AI workforce readiness among their top three priorities; 88% say no company can solve it alone; 41% of workers received no employer AI support in the past year; 69% believe AI can create more opportunity than it eliminates. Full report not opened. "Employer Strategies for Human-Centered AI" (Apr 20, 2026, Milken Employer Action Exchange) **[official, partly read]**: a review of 245+ sources; no figures in the readable part.
-- **Aspen Institute** (Future of Work Initiative; Economic Opportunities Program): **could not be read**, the site refuses automated requests (HTTP 403). Search shows a 2026 event series "Work and the Social Contract in the Age of AI" and a monthly Economic Opportunities digest; no findings quoted here **[weak]**.
+- **Aspen Institute**: dropped at the owner's decision (Nov 24); its site cannot be read automatically. The CRM note stays TO VERIFY.
 - **Whiteboard Advisors** (https://whiteboardadvisors.com): education and workforce policy newsletters; no AI-and-jobs data found. A pointer to policy news (for example the Department of Education's Nov 4, 2026 final accreditation and transfer-credit rules), not a data source **[official, listing only]**.
+- **National Association of Workforce Development Professionals (NAWDP)** (https://www.nawdp.org), added Nov 24, 2026 at the owner's request. Pages read Nov 24 **[official, listing level]**: NAWDP publishes news, a podcast and legislative tracking, **not** surveys or datasets (none found on the pages read; the blog, podcast and priorities pages were not opened). Its value is what workforce staff are being told: DOL's AI Literacy Framework and Training and Employment Notice 07-25 (summarized Mar 18, 2026); Training and Employment Guidance Letter 04-26 on using WIOA Governor's Reserve funds for AI literacy, apprenticeship and performance; the House bill A Stronger Workforce for America Act of 2026 (H.R. 8210) to reauthorize WIOA, reported approved at committee markup (date and vote not on the page; **TO VERIFY** at congress.gov); the Employer Directed Skills Act and Workforce Development Modernization Act (virtual one-stops). A Nov 4, 2025 NAWDP post says AI is reducing entry-level roles (**[weak]**, one post, no data). Podcast: "AI and the Future of Workforce Learning" (Nov 19, 2026), "Workforce in the Age of AI" (Mar 26, 2026).
+
+## 10. What employers are posting: pay, benefits, remote work, reposts, AI and contract work (national)
+**Frame and source.** Counted Nov 24, 2026 in our live postings index (postings not archived): 680,323 postings. The **white-collar frame** is the 375,045 postings whose occupation code (SOC) is in major groups 11 to 29, the closest match to the Census groups 1 and 2 the Employment Report uses; 258,060 postings (38%) carry no occupation code and are in neither frame. Another 47,218 coded postings are outside those groups and are shown only as labeled context. The index leans to professional jobs (89% of coded postings are white-collar) and 63% are direct employer listings, so these shares describe **jobs in our index, not the whole job market**. Entry-level is included: 102,122 white-collar postings (27%) are entry or early-career. **[our calculation]**, one pass over the live table; the share with a stated value is given each time because many fields are blank.
+
+| Measure (white-collar frame, 375,045 postings) | Result | Basis |
+|---|---|---|
+| Pay stated in the posting | 20.6% (77,077) | of all white-collar postings |
+| Median stated annual pay, entry and early-career | $95,680 | 18,666 postings with annual pay |
+| Median stated annual pay, mid-level and senior individual contributors | $153,500 | 31,429 postings |
+| Median stated annual pay, manager and above | $162,500 | 22,455 postings |
+| Benefits mentioned | 38.3% (143,659) | of all; "mentioned in the posting", not "offered by" the employer |
+| Work arrangement stated | 30.0% (112,541) | of all |
+| ...of those: remote / hybrid / on-site | 30.5% / 33.4% / 36.1% | of the 112,541 that state one; other coded postings: 40.3% / 29.3% / 30.4% |
+| Employment type stated | 41.5% (155,477) | of all |
+| ...of those: full-time / contract / part-time | 96.3% / 2.1% / 0.9% | temporary 0.3%, interim 0.3%, fractional 0.1% |
+| Posting shows a repost history | 16.1% (60,514) | repost count above zero; other coded postings 17.0% |
+| Mentions AI | 23.9% (89,782) | of 375,028 evaluated; other coded postings 19.0% |
+| AI exposure level assigned | 33% of postings: high 9.0%, medium 34.5%, low 56.4% | exposure of the occupation, not a forecast of job loss |
+
+What we do **not** say: the stated-pay figures cover one posting in five, so they describe employers that publish pay (many in states with pay-transparency laws). Contract is a posting label; we cannot tell 1099 from W-2 contract work, so the W-2 and 1099 split the spec calls for is **not yet possible**. A repost history is not proof of a ghost job; the ghost-risk rule (`src/lib/jobs/ghost-risk.ts`) is a separate classification, not run for this table. Postings that mention AI state higher pay (entry and early-career $140,375 vs $88,000; mid-level and senior $190,000 vs $130,360; manager and above $210,000 vs $145,450), but that gap mixes function, location and employer type and is **not** an AI pay premium; we do not say AI caused any pay outcome.
+
+**Still to compute for this chapter (not in this draft):** skills and emotional-intelligence language (the skills field exists; no EQ classification has been run), AI-washing language, hiring-while-firing by named employer, a monthly trend (this is one snapshot; month-over-month needs a second snapshot).
+
+## 11. Net job growth against industry growth (national, white-collar sectors)
+**[our calculation]** from BLS Quarterly Census of Employment and Wages annual averages, private sector, whole US (the same files behind the new board pages). Total wages is a payroll measure, **not** industry output; BEA value added by industry (needs a BEA API key we do not have in this session) and the BLS monthly industry payroll series (the BLS API refused our request today and the BLS download files block automated requests) are **pending**, so this chapter stays provisional.
+
+| Sector | Jobs 2025 | Jobs 2024 to 2025 | Jobs 2019 to 2025 | Average pay 2025 | Pay 2019 to 2025 | Total wages 2024 to 2025 |
+|---|---|---|---|---|---|---|
+| All private | 133.2 million | +0.4% | +5.4% | $79,094 | +33.6% | +4.7% |
+| Information | 2.85 million | -1.9% | +0.1% | $190,981 | +59.7% | +7.4% |
+| Finance and insurance | 6.32 million | +0.4% | +4.8% | $153,041 | +35.8% | +7.4% |
+| Professional, scientific and technical | 10.75 million | -0.3% | +12.7% | $135,280 | +34.3% | +5.3% |
+| Management of companies | 2.61 million | -0.2% | +8.3% | $166,048 | +31.5% | +2.8% |
+| Health care and social assistance | 23.0 million | +3.5% | +13.9% | $66,522 | +28.4% | +6.5% |
+| Construction (blue-collar comparison) | 8.25 million | +1.4% | +10.7% | $84,826 | +30.9% | +6.1% |
+| Manufacturing (blue-collar comparison) | 12.58 million | -1.2% | -1.5% | $89,471 | +28.0% | +3.4% |
+
+What it shows: in 2025 total payroll grew 7.4% in information and in finance while jobs fell 1.9% in information and rose 0.4% in finance; wages per job rose faster than headcount. Professional, scientific and technical services and management of companies lost a few jobs (-0.3%, -0.2%) while paying more per job. Pay is not adjusted for inflation. We do not say AI caused any of this. Local versions of this table for each workforce board are on the board pages, `https://launchyournextchapter.com/workforce-boards`.
 
 ## Hypotheses we will track (not findings)
 1. Whether pledged training dollars turn into published completion and placement data, by group.
@@ -180,6 +219,6 @@ Checked each month; each finding is filed in the CRM with VERIFIED or TO VERIFY.
 4. A running count of dollars announced for professional versus trades retraining.
 
 ## CRM: what was filed (standing rule, 2026-11-22)
-On Nov 24 we added 1 organization (Whiteboard Advisors) and 4 notes (Milken Institute x2, Aspen Institute, Whiteboard Advisors). Aspen is TO VERIFY because its site cannot be read automatically.
+On Nov 24 we added 1 organization (Whiteboard Advisors; NAWDP was already in the CRM) and 5 notes (Milken Institute x2, Aspen Institute, Whiteboard Advisors, NAWDP). Aspen is dropped from the report at the owner's decision (its site cannot be read automatically).
 
 On Nov 22 we added 2 CRM organizations (Ascend West Virginia, New York AI Jobs Institute), tagged Meta as a funder, and filed 29 notes on 24 existing or new organizations (what, who it targets, dollars and people, source and date, VERIFIED or TO VERIFY). Nine notes are VERIFIED from the sponsor's own page; the rest are TO VERIFY.
