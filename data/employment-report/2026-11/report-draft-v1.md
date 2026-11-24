@@ -341,6 +341,41 @@ Almost all "likely" postings (13,207 of 13,427) are likely because of repeated r
 
 What it shows: about 1 in 28 white-collar postings is likely a ghost or evergreen listing and about 1 in 8 is worth watching; the gap between direct employer listings (1.7% likely) and aggregator copies (6.8%) is four to one, and entry-level postings carry the highest share (4.8%). **Limits:** the repost count is a count of times the same company, title and place came back, and an aggregator re-listing the same job can raise it without the employer reposting, so the aggregator figures run high; age is counted from the day our crawler first saw the posting, not the employer's posted date; and the live index holds almost nothing older than 90 days, so long-open postings are under-counted. This is one snapshot with no trend, and we do not say AI caused any change.
 
+## 16. Contract, interim, fractional and gig work (national, postings)
+Same frame as section 10 (374,873 white-collar postings, live index, Nov 24, 2026). **[our calculation]**; query 7 in `scripts/jobsreport/skills_eq_national.sql`. Two measures, never added together: the **employment type** the posting states (a field), and **words in the posting text** (a 4% block sample of 14,976 postings, so counts are small and directional only).
+
+**A. Stated employment type (about 155,000 postings, 41%, state one).**
+| Type | Postings | Share of all | Share of those that state a type |
+|---|---|---|---|
+| Full-time | 149,621 | 39.9% | 96.3% |
+| Contract | 3,319 | 0.9% | 2.1% |
+| Part-time | 1,360 | 0.4% | 0.9% |
+| Temporary | 439 | 0.1% | 0.3% |
+| Interim | 404 | 0.1% | 0.3% |
+| Fractional | 171 | 0.05% | 0.1% |
+| Contract, temporary, interim, fractional and per diem together | 4,362 | 1.2% | 2.8% |
+| Not stated | 219,481 | 58.5% | |
+
+Who posts them (stated type by source of the posting):
+| | Postings | Contract | Share of that source's postings |
+|---|---|---|---|
+| Search firms | 21,187 | 1,417 | 6.7% |
+| Aggregators | 110,816 | 748 | 0.7% |
+| Employers (including government, education, nonprofit) | 197,756 | 883 | 0.4% |
+| Venture, startup and other boards | 45,038 | 271 | 0.6% |
+
+Search firms supply 43% of contract postings from 6% of postings. Most interim (263 of 404) and fractional (129 of 171, plus 25 from the dedicated interim board) postings come through aggregators; 72% of part-time postings (973 of 1,360) come from employers.
+
+By level: contract is 1.2% of entry and early-career postings (1,220), 1.1% of mid-level and senior individual contributors (1,687) and 0.3% of manager-and-above postings (412). Interim and fractional are senior work: 87% of interim (352 of 404) and 94% of fractional (160 of 171) are manager and above.
+
+By employer industry, contract, temporary, interim, fractional and per diem together as a share of all that industry's postings: professional services 2.6%, government 1.8%, media 1.8%, nonprofit 1.5%, healthcare 1.3%, technology 1.2%, life sciences 1.0%, education 0.9%, logistics 0.9%, energy 0.8%, financial services 0.7%, consumer 0.6%, real estate 0.6%, industrial 0.4%, aerospace and defense 0.2% (the 39,049 unlabeled postings: 2.4%).
+
+**B. Title words (all 374,873).** "Contract" or "contractor" 1,756 (0.5%); consultant 2,948 (0.8%, an employee title as often as a contractor one, so not counted as contract work); part-time 496; interim 404; temporary 215; fractional 173; freelance 91.
+
+**C. Alternative-engagement language in the text (sample of 14,976).** 1099 or independent contractor 0.3% (46 postings); freelance 0.3% (44); contract-to-hire or temp-to-hire 0.25% (37); a "contract position", "contract role" or similar phrase 0.4% (58); gig or project-based work 0.4% (57); fractional 0.1% (16); the word interim 0.5% (68, includes other uses such as an interim director). Any of these: 1.8% (269 postings). Of the 46 postings that mention 1099 or independent contractor, only 6 carry the stated type "contract"; 20 are typed full-time and 20 state no type, so **the stated type undercounts contract-style work**: 2.1% of full-time-typed postings use such language, as do 1.1% of those with no type stated.
+
+What it shows: contract, temporary, interim and fractional work is a small slice of white-collar postings in our index, about 1 in 85 by stated type and about 1 in 55 counting text, concentrated at search firms and aggregators, in professional services and government, and (interim and fractional) in manager-and-above roles. **The W-2 versus 1099 split the spec asks for cannot be reported from this data**: the stated type does not distinguish them, and a 1099 or independent-contractor phrase appears in too few postings (0.3% of the sample) to measure a split; we report that language as mentions, not as 1099 jobs. The marketplaces where much fractional, expert-network and AI-training gig work is posted (`InterimListing`, 27 sites) are not crawled, so this understates gig work. Pay by engagement type was not run. This is one snapshot with no trend, and we do not say AI caused any change.
+
 ## Hypotheses we will track (not findings)
 1. Whether pledged training dollars turn into published completion and placement data, by group.
 2. Open postings for engineers, architects and project managers near new data-center sites.
