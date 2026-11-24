@@ -194,7 +194,7 @@ Checked each month; each finding is filed in the CRM with VERIFIED or TO VERIFY.
 
 What we do **not** say: the stated-pay figures cover one posting in five, so they describe employers that publish pay (many in states with pay-transparency laws). Contract is a posting label; we cannot tell 1099 from W-2 contract work, so the W-2 and 1099 split the spec calls for is **not yet possible**. A repost history is not proof of a ghost job; the ghost-risk rule (`src/lib/jobs/ghost-risk.ts`) is a separate classification, not run for this table. Postings that mention AI state higher pay (entry and early-career $140,375 vs $88,000; mid-level and senior $190,000 vs $130,360; manager and above $210,000 vs $145,450), but that gap mixes function, location and employer type and is **not** an AI pay premium; we do not say AI caused any pay outcome.
 
-**Still to compute for this chapter (not in this draft):** skills and emotional-intelligence language (the skills field exists; no EQ classification has been run), AI-washing language, hiring-while-firing by named employer, a monthly trend (this is one snapshot; month-over-month needs a second snapshot).
+**Still to compute for this chapter (not in this draft):** AI-washing language (skills and EQ are in section 12), hiring-while-firing by named employer, a monthly trend (this is one snapshot; month-over-month needs a second snapshot).
 
 ## 11. Net job growth against industry growth (national, white-collar sectors)
 **[our calculation]** from BLS Quarterly Census of Employment and Wages annual averages, private sector, whole US (the same files behind the new board pages). Total wages is a payroll measure, **not** industry output; BEA value added by industry (needs a BEA API key we do not have in this session) and the BLS monthly industry payroll series (the BLS API refused our request today and the BLS download files block automated requests) are **pending**, so this chapter stays provisional.
@@ -211,6 +211,39 @@ What we do **not** say: the stated-pay figures cover one posting in five, so the
 | Manufacturing (blue-collar comparison) | 12.58 million | -1.2% | -1.5% | $89,471 | +28.0% | +3.4% |
 
 What it shows: in 2025 total payroll grew 7.4% in information and in finance while jobs fell 1.9% in information and rose 0.4% in finance; wages per job rose faster than headcount. Professional, scientific and technical services and management of companies lost a few jobs (-0.3%, -0.2%) while paying more per job. Pay is not adjusted for inflation. We do not say AI caused any of this. Local versions of this table for each workforce board are on the board pages, `https://launchyournextchapter.com/workforce-boards`.
+
+## 12. Skills and emotional intelligence (EQ) in postings (national)
+Same frame as section 10: white-collar postings (SOC 11 to 29) in our live index, counted Nov 24, 2026. **[our calculation]**; queries in `scripts/jobsreport/skills_eq_national.sql`. Three separate measures, never combined:
+
+**A. Named skills (tagged vocabulary, all 375,045 postings).** A skills list exists on 50.5% of postings that do not mention AI and 81.9% of those that do; postings with a list carry 3.3 skills on average without an AI mention and 4.9 with one. The vocabulary is mostly hard and technical skills, so it says little about EQ.
+| Most common skills, postings without an AI mention (n 144,030) | Share | Postings that mention AI (n 73,538) | Share |
+|---|---|---|---|
+| Excel | 20.2% | Python | 28.1% |
+| Project management | 17.8% | AWS | 17.0% |
+| Supply chain | 11.2% | Machine learning | 15.5% |
+| Onboarding | 11.0% | Onboarding | 14.4% |
+| Procurement | 10.5% | SQL | 13.9% |
+| Audit | 9.1% | CI/CD | 12.0% |
+| Logistics, risk management | 8.6%, 8.0% | Excel | 11.2% |
+
+**B. EQ and soft-skill words in posting text (a block sample of 15,044 white-collar postings).** Keyword matches in the description, so a posting that says "excellent communication skills" counts. The sample is whole database blocks, not a strict random draw, and AI-mentioning postings (3,610) have longer text, which raises any keyword's hit rate.
+| Language | All | No AI mention (11,434) | Mentions AI (3,610) |
+|---|---|---|---|
+| "Emotional intelligence" or "EQ" named | 0.6% | 0.5% | 0.6% |
+| Empathy | 1.8% | 1.3% | 3.4% |
+| Self-aware | 0.4% | 0.5% | 0.2% |
+| Any of empathy, EQ, self-aware, active listening, interpersonal | 10.1% | 10.3% | 9.7% |
+| Communication | 46.4% | 41.8% | 61.1% |
+| Collaboration or teamwork | 41.1% | 36.3% | 56.3% |
+| Adaptability, resilience or agility | 7.4% | 5.9% | 12.4% |
+| Problem solving | 13.8% | 12.8% | 17.0% |
+By level, any EQ language: entry and early-career 10.3%, mid-level and senior individual contributors 9.5%, manager and above 10.9%.
+
+**C. Postings that ask for EQ as a trait of the hire (our "values EQ" signal, all 375,045).** 0.56% of postings without an AI mention (1,590 of 285,218) and 0.99% of those that mention AI (889 of 89,767). A narrow, strict signal; it counts far fewer postings than the keyword match in B.
+
+What it shows: EQ is named outright in about 1 white-collar posting in 200 and some interpersonal language appears in about 1 in 10, while communication and collaboration appear in roughly 4 in 10. Postings that mention AI ask more often for communication, collaboration and adaptability, and name empathy about 2.6 times as often, but they are also longer and more technical, so we do not read that as employers pairing AI with human skills on purpose. We say nothing about whether AI caused any change in what employers ask for.
+
+**Not run yet:** a skills pivot map (skills moving from shrinking to growing roles) and "skills moving with AI" over time need a second monthly snapshot of the same measures; the value of EQ language (pay with and without it) was not run; AI-washing language was not run.
 
 ## Hypotheses we will track (not findings)
 1. Whether pledged training dollars turn into published completion and placement data, by group.
