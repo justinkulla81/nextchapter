@@ -1,5 +1,6 @@
 'use server'
 
+import { addressVerdict } from '@/lib/mailing/address-check'
 import { isRoleAddress } from '@/lib/email/generic-address'
 import { FOLLOW_UP_FLOOR, KEEP_IN_TOUCH_FLOOR, orgDealFloor, raisePriorityTo } from '@/lib/crm/status-priority'
 import { revalidatePath } from 'next/cache'
@@ -2214,6 +2215,11 @@ export async function sendOutreachEmail(personId: string, subject: string, body:
   // The same stop list cold outreach and the mailing lists honor: a bounce, spam complaint or do-not-email marking blocks a one-off send too.
   const stopped = await prisma.mailingSuppression.findUnique({ where: { email: person.email.toLowerCase() }, select: { reason: true } })
   if (stopped || person.emailVerifiedStatus === 'invalid') return { sent: false, message: `Not sent: ${person.email} is on the stop list (it bounced, was marked spam, or asked not to be emailed).` }
+  // Owner, 2026-11-24: an address Hunter could not confirm (risky, accept-all, unknown) is kept on the record but never emailed.
+  if (addressVerdict(person.emailVerifiedStatus, false) === 'skip') {
+    captureServerEvent(admin.email ?? 'admin', 'crm_outreach_blocked_unverified', { personId, status: person.emailVerifiedStatus })
+    return { sent: false, message: `Not sent: Hunter couldn’t confirm ${person.email} (${person.emailVerifiedStatus}), and we don’t email unconfirmed addresses. Add a direct address that Hunter calls deliverable.` }
+  }
 
   const token = await getValidSendAccessToken()
   if (!token) return { sent: false, message: 'Google isn’t connected — connect it from Activity sync first.' }
