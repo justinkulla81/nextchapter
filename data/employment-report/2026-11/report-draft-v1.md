@@ -194,7 +194,7 @@ Checked each month; each finding is filed in the CRM with VERIFIED or TO VERIFY.
 
 What we do **not** say: the stated-pay figures cover one posting in five, so they describe employers that publish pay (many in states with pay-transparency laws). Contract is a posting label; we cannot tell 1099 from W-2 contract work, so the W-2 and 1099 split the spec calls for is **not yet possible**. A repost history is not proof of a ghost job; the ghost-risk rule (`src/lib/jobs/ghost-risk.ts`) is a separate classification, not run for this table. Postings that mention AI state higher pay (entry and early-career $140,375 vs $88,000; mid-level and senior $190,000 vs $130,360; manager and above $210,000 vs $145,450), but that gap mixes function, location and employer type and is **not** an AI pay premium; we do not say AI caused any pay outcome.
 
-**Still to compute for this chapter (not in this draft):** AI-washing language (skills and EQ are in section 12), hiring-while-firing by named employer, a monthly trend (this is one snapshot; month-over-month needs a second snapshot).
+**Still to compute for this chapter (not in this draft):** (skills and EQ are in section 12, AI washing in section 13) hiring-while-firing by named employer, a monthly trend (this is one snapshot; month-over-month needs a second snapshot).
 
 ## 11. Net job growth against industry growth (national, white-collar sectors)
 **[our calculation]** from BLS Quarterly Census of Employment and Wages annual averages, private sector, whole US (the same files behind the new board pages). Total wages is a payroll measure, **not** industry output; BEA value added by industry (needs a BEA API key we do not have in this session) and the BLS monthly industry payroll series (the BLS API refused our request today and the BLS download files block automated requests) are **pending**, so this chapter stays provisional.
@@ -244,6 +244,37 @@ By level, any EQ language: entry and early-career 10.3%, mid-level and senior in
 What it shows: EQ is named outright in about 1 white-collar posting in 200 and some interpersonal language appears in about 1 in 10, while communication and collaboration appear in roughly 4 in 10. Postings that mention AI ask more often for communication, collaboration and adaptability, and name empathy about 2.6 times as often, but they are also longer and more technical, so we do not read that as employers pairing AI with human skills on purpose. We say nothing about whether AI caused any change in what employers ask for.
 
 **Not run yet:** a skills pivot map (skills moving from shrinking to growing roles) and "skills moving with AI" over time need a second monthly snapshot of the same measures; the value of EQ language (pay with and without it) was not run; AI-washing language was not run.
+
+## 13. AI mentions without AI substance: the AI-washing check (national, postings)
+**Definition (ours, a classification, not a finding about any employer).** Of white-collar postings that mention AI, a posting is **boilerplate-only** when we extract no AI skill, no named AI tool and no AI skill group from it: AI appears (for example "we are an AI-powered company" or "uses AI") but the role is not asked to do anything with it that we can detect. It is a risk indicator of AI washing, not proof; our extractor can miss real AI work, and we name no employer. Same frame and date as section 10 (white-collar postings, SOC 11 to 29, live index, Nov 24, 2026). **[our calculation]**; query 4 in `scripts/jobsreport/skills_eq_national.sql`.
+
+| | Postings | Share |
+|---|---|---|
+| White-collar postings that mention AI | 89,734 | 23.9% of the frame |
+| ...with an AI skill, tool or skill group named in the role | 46,667 | 52.0% of AI mentions (12.4% of the frame) |
+| ...**boilerplate-only** | 43,067 | **48.0%** of AI mentions (11.5% of the frame) |
+| ...name a specific AI tool | 15,523 | 17.3% of AI mentions |
+
+Robustness: counting only postings where we read the full text (74,943 AI-mentioning postings), 46.6% are boilerplate-only; the rest were judged from an excerpt or a duplicate posting and are weaker.
+
+| Boilerplate-only share of AI mentions | Share | AI-mentioning postings |
+|---|---|---|
+| Entry and early-career | 54.3% | 16,209 |
+| Mid-level and senior individual contributors | 43.5% | 49,810 |
+| Manager and above | 53.1% | 23,715 |
+| Industrial employers | 61.6% | 6,122 |
+| Aerospace and defense | 61.3% | 4,004 |
+| Life sciences | 52.6% | 2,015 |
+| Professional services | 49.6% | 3,587 |
+| Healthcare | 48.2% | 5,643 |
+| Technology | 45.3% | 44,123 |
+| Consumer | 44.1% | 2,746 |
+| Financial services | 40.3% | 8,369 |
+| Media | 40.2% | 2,525 |
+
+What it shows: about half of the white-collar postings that mention AI ask nothing specific about it, and that share is higher for entry-level and manager-and-above roles and for industrial and defense employers than for technology and finance, where the mentions more often come with a named tool or skill. Technology employers account for 49% of all AI mentions. Industry is the employer's sector, not the job's function. This is one snapshot: we cannot say whether the share is rising or falling, and we do not say AI caused any hiring, pay or layoff outcome.
+
+**Not run:** the other sense of AI washing, employers attributing layoffs to AI. That needs each announcement read (our November layoffs table, section 8, does not record a stated reason), so it is left for the report's layoffs chapter.
 
 ## Hypotheses we will track (not findings)
 1. Whether pledged training dollars turn into published completion and placement data, by group.
