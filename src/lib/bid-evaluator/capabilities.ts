@@ -14,7 +14,7 @@ export const SERVICE_LINES: { key: ServiceLine; label: string; what: string }[] 
   {
     key: 'software',
     label: 'Software',
-    what: 'A layoff-response and career-transition platform: a program workspace for a board or college, a public sign-up page, participant seats, job matching to local openings, labor-market data, outcome counts.',
+    what: 'A layoff-response and job transition platform: a program workspace for a board or college, a public sign-up page, participant seats, job matching to local openings, labor-market data, outcome counts.',
   },
   {
     key: 'coaching',
