@@ -1,5 +1,6 @@
 'use server'
 
+import { isRoleAddress } from '@/lib/email/generic-address'
 import { FOLLOW_UP_FLOOR, KEEP_IN_TOUCH_FLOOR, orgDealFloor, raisePriorityTo } from '@/lib/crm/status-priority'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
@@ -880,6 +881,10 @@ export async function setPersonEmail(personId: string, rawEmail: string): Promis
   const admin = await requireAdmin()
   const email = normalizeEmail(rawEmail)
   if (!email) return { ok: false, message: 'That doesn’t look like a real email address.' }
+  if (isRoleAddress(email)) {
+    captureServerEvent(admin.email ?? 'admin', 'crm_generic_email_blocked', { personId, via: 'add_email' })
+    return { ok: false, message: `${email} is a shared mailbox, not this person’s own address. Add their direct email instead.` }
+  }
 
   // One address, one person. Checked against live records only — a removed
   // person's old address is free to be given to someone real.
