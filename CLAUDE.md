@@ -199,6 +199,11 @@ journalists, funders or researchers). Applies to list email sent from the mailin
 - One finding up front and the report behind a descriptive link, not seven findings in the body and a raw URL.
 - A reply that asks to be taken off the list is an unsubscribe, not a reply of interest: add the address to `MailingSuppression`
   (`DO_NOT_EMAIL`) and count it as an unsubscribe. October had 0 replies of interest.
+- **Never email a risky address** (owner, 2026-11-24): an address Hunter did not call deliverable (risky, accept-all, unknown, invalid)
+  is kept on the contact and flagged "not emailed" on the person page, never removed, and never emailed: not by list email, layoff
+  outreach, a one-to-one send or a script. Do not spend Hunter credits re-finding these: on an accept-all domain the finder returns the
+  same address, still unconfirmed. Generic mailboxes (info@, careers@, hr@) are never stored on a contact at all
+  (`src/lib/crm/generic-email-extension.ts`).
 - Judge a send by replies of interest and human clicks. Opens within 10 seconds of sending are scanners, and `MailingClickEvent.bot` clicks
   are not people.
 
