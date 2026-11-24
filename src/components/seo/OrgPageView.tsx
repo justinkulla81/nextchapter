@@ -17,6 +17,8 @@ import { placeUrl } from '@/lib/places/places'
 import { periodLabel, rateText } from '@/lib/seo/workforce-pages'
 import type { AreaJob, HiringEmployer, OrgPage } from '@/lib/seo/org-pages'
 import { AreaNotices } from '@/components/seo/AreaNotices'
+import { BoardWageHistory } from '@/components/seo/BoardWageHistory'
+import type { BoardWageHistory as WageHistory } from '@/lib/workforce/board-wage-history'
 import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
 import { OrgOwnSection } from '@/components/public-page/OrgOwnSection'
 import type { PublicPageContentData } from '@/lib/public-page/content'
@@ -34,7 +36,9 @@ function addressLine(row: { street: string | null; city: string | null; state: s
 const ROOT_NAME = { JOB_CENTER: 'American Job Centers', ECON_DEV: 'Economic development', WORKFORCE_BOARD: 'Workforce boards' } as const
 
 /** The page for an American Job Center or an economic development organization. */
-export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events, brand = null, peopleCount = null, own = null }: {
+export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events, brand = null, peopleCount = null, own = null, wageHistory = null }: {
+  /** BLS QCEW jobs and pay history for the area (workforce boards only). */
+  wageHistory?: WageHistory | null
   h1?: string
   /** What the organization wrote on its own page (paid plan, src/lib/public-page). */
   own?: PublicPageContentData | null
@@ -104,6 +108,8 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
         </ul>
         <p className="mt-3 max-w-3xl text-sm text-muted-foreground">Counts are live postings from employers’ own career sites in the area’s cities, checked daily.</p>
       </section>
+
+      {row.kind === 'WORKFORCE_BOARD' && <BoardWageHistory history={wageHistory} areaName={area.statewide ? st : where} />}
 
       {hiring.employers.length > 0 && (
         <section aria-labelledby="hiring" className="mt-12">
