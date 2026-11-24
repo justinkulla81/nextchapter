@@ -119,6 +119,12 @@ any page). Each year, download `<year>_annual_singlefile.zip` and `area_titles.c
 statewide, counties) to JSON, and run the script. Checks: Florida statewide matches BLS's state total (8,814,642 jobs, $72,719 average
 pay in 2025). Not included: 16 Massachusetts boards and 10 California city boards (no county list), Connecticut (planning regions
 replaced counties), and a few others; see the script's `.skipped.json`.
+**CareerOneStop approved-training-provider list (loaded Nov 24, 2026).** `scripts/careers/load-careeronestop-etpl.ts` loads the nationwide
+WIOA Eligible Training Provider List from the CareerOneStop Web API into `TrainingProgram` (provider, program, credential, delivery,
+state; `fundingSource` WIOA_ETPL). It needs the free API user id and token in the environment (`CAREERONESTOP_USER_ID`,
+`CAREERONESTOP_TOKEN`), never in a file. Texas is skipped: it keeps its own TWC list (occupation codes), and the loader only inserts new rows, never changes existing ones. Rows from this load carry no SOC
+codes, cost or duration, so they do not feed `programsForOccupation`; filling `socCodes` means querying the API per occupation
+(`keyword` = O*NET code, `filterBySource` = Y) and is a follow-up.
 **ADP and other payroll-company data.** ADP's National Employment Report and Pay Insights are public, but ADP's license (in its
 history download) bars commercial reproduction or re-use without written consent, so we do not store, chart or redistribute ADP's
 series. Cite only ADP's published headline figures from its own press release, with attribution and a link, and give BLS's figure next
