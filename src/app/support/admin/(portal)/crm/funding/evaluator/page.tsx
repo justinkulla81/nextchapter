@@ -62,7 +62,7 @@ export default async function EvaluatorPage({ searchParams }: { searchParams: Pr
 
       <form action={evaluateNextAction}>
         <SubmitButton pendingLabel="Reading documents (about a minute each)…" savedLabel="Done" disabled={queue.length === 0}>
-          Read the next 3 (soonest due)
+          Read the next 2 (soonest due)
         </SubmitButton>
         {queue.length === 0 && <span className="ml-3 text-sm text-muted-foreground">Everything open has been read.</span>}
       </form>

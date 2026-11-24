@@ -177,7 +177,7 @@ Claude calls: one read per new document (a few dozen a day at most) and one draf
   each group with its source sentence), `context.ts` (past winners from `CompetitorAward` and the document, competitors named
   in the text, possible primes and partners from the CRM and the board directory, warm contacts at the issuer), `draft.ts`
   (the completer), `run.ts`, `store.ts`.
-- Pages: `/support/admin/crm/funding/evaluator` (queue, verdicts, "Read the next 3"), `/support/admin/crm/funding/evaluator/<id>`
+- Pages: `/support/admin/crm/funding/evaluator` (queue, verdicts, "Read the next 2"), `/support/admin/crm/funding/evaluator/<id>`
   (answers, gates, past winners, partners, fit, "Draft the response", Markdown download), `/support/admin/crm/funding/company-facts`.
 - Tables: `BidCompanyFact`, `BidContentBlock`, `BidEvaluation` (`prisma/manual/2026-11-24-bid-evaluator.sql`, applied).
 - Every evaluation answers the same questions: must we be on a training list (and how to get on it); can we subcontract and

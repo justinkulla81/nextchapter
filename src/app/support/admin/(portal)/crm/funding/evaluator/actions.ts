@@ -34,11 +34,11 @@ export async function evaluateOneAction(form: FormData) {
   redirect(target)
 }
 
-/** Evaluate the next few unread opportunities, soonest due first. Three per click keeps one request under the time limit. */
+/** Evaluate the next few unread opportunities, soonest due first. Two per click keeps one request under the 300-second limit. */
 export async function evaluateNextAction() {
   const user = await requireAdmin()
   const [cands, done] = await Promise.all([loadCandidates(), evaluatedKeys()])
-  const next = cands.filter((c) => !done.has(`${c.sourceKind}:${c.sourceId}`)).slice(0, 3)
+  const next = cands.filter((c) => !done.has(`${c.sourceKind}:${c.sourceId}`)).slice(0, 2)
   const results: string[] = []
   for (const c of next) {
     try {
@@ -79,7 +79,7 @@ export async function saveFactsAction(form: FormData) {
   for (const d of FACT_DEFS) values[d.key] = String(form.get(d.key) ?? '')
   const changed = await saveFacts(values, user.email ?? user.id)
   if (changed.length) {
-    const rows = await prisma.bidEvaluation.findMany({ where: { profile: { not: undefined }, verdict: { notIn: ['UNREAD'] } }, select: { id: true }, take: 500 })
+    const rows = await prisma.bidEvaluation.findMany({ where: { verdict: { notIn: ['UNREAD'] } }, select: { id: true }, take: 500 })
     for (const r of rows) await rescore(r.id).catch(() => null)
   }
   captureServerEvent(user.id, 'bid_company_facts_saved', { changedKeys: changed })

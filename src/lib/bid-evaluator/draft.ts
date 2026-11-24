@@ -48,10 +48,10 @@ export async function draftResponse(args: { profile: Profile; result: EvalResult
   const libLines = LIBRARY_DEFS.map((d) => `### ${d.label}\n${library[d.key]?.trim() || '(not written yet)'}`).join('\n\n')
   const client = getAnthropicClient()
   const stream = client.messages.stream({
-    model: 'claude-opus-5-5',
-    max_tokens: 32000,
+    model: 'claude-sonnet-5-5',
+    max_tokens: 24000,
     thinking: { type: 'adaptive' },
-    output_config: { format: zodOutputFormat(draftSchema), effort: 'high' },
+    output_config: { format: zodOutputFormat(draftSchema), effort: 'medium' },
     messages: [{
       role: 'user',
       content: [
