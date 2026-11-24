@@ -48,3 +48,16 @@ with b as (select coalesce("industry",'(none)') ind, ("salaryMin" is not null) p
 select case when grouping(ind)=1 then 'all' else ind end ind, count(*) n, count(*) filter (where pay) pay, count(mid) annual, round(percentile_cont(0.5) within group (order by mid)::numeric) med,
  count(*) filter (where ben) ben, count(*) filter (where strong) strong, count(*) filter (where health) health, count(*) filter (where k401) k401, count(*) filter (where pto) pto, count(*) filter (where parl) parl, count(*) filter (where tui) tui, count(*) filter (where eq) eq
 from b group by rollup(ind) order by 2 desc;
+
+-- 6. Ghost risk and reposts (white-collar frame, live postings). Run 2026-11-24; one pass, narrow columns, ~50 rows out.
+-- Mirrors ghostRisk() in src/lib/jobs/ghost-risk.ts without member flags: prior closures = greatest(repostCount, reopenCount),
+-- age = days since createdAt, still listed = direct listing verified within 8 days. Keep in step with that file.
+with r as (select case when "level" in ('ENTRY_IC','EARLY_IC') then 'entry' when "level" in ('MID_IC','SENIOR_IC','PRINCIPAL') then 'ic' else 'mgr' end lv, coalesce("industry",'(none)') ind, coalesce("directListing",false) dl,
+ greatest(coalesce("repostCount",0),coalesce("reopenCount",0)) prior, extract(epoch from (now()-"createdAt"))/86400 age,
+ (coalesce("directListing",false) and "lastVerifiedAt" >= now()-interval '8 days') still
+ from "ExclusiveJobPosting" where "archivedAt" is null and "socCode" ~ '^(1[1-9]|2[0-9])-'),
+g as (select *, case when prior>=2 then 'likely' when age>90 then (case when not still then 'likely' when prior=1 then 'likely' else 'watch' end) when prior=1 then 'watch' when age>60 then 'watch' else 'none' end gl,
+ case when age<=30 then '0-30' when age<=60 then '31-60' when age<=90 then '61-90' when age<=180 then '91-180' else '181+' end ab from r)
+select case when grouping(lv)=0 then 'level' when grouping(ind)=0 then 'industry' when grouping(dl)=0 then 'direct' when grouping(ab)=0 then 'ageband' when grouping(prior)=0 then 'prior' when grouping(gl)=0 then 'overall' else 'total' end dim,
+ coalesce(lv,ind,dl::text,ab,prior::text,gl,'') val, count(*) n, count(*) filter (where gl='likely') likely, count(*) filter (where gl='watch') watch, round(percentile_cont(0.5) within group (order by age)::numeric) med_age
+from g group by grouping sets ((lv),(ind),(dl),(ab),(prior),(gl),()) order by 1,2;

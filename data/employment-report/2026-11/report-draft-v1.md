@@ -302,6 +302,45 @@ Left out: 39,051 postings with no industry label (25.3% state pay, median $110,0
 
 What it shows: stating pay is least common in education (11.9%) and industrial (12.7%) and most common in government (38.8%), where public postings generally must list a range; government postings mention benefits least (25.8%), likely because they link out to a benefits page. Technology states pay most among private sectors (28.8%) and has the highest median stated pay ($181,750) and the highest equity mention (22.4%) after aerospace and defense (30.1%), whose postings also have the highest benefits mention (56.7%) and parental leave (27.1%). Education has the lowest stated pay and benefits mentions. We say nothing about why, and do not say AI caused any pay or benefits outcome.
 
+## 15. Ghost jobs and reposts (national, postings)
+Same frame as section 10 (374,873 white-collar postings, live index, Nov 24, 2026). **[our calculation]**; query 6 in `scripts/jobsreport/skills_eq_national.sql`. We say **ghost risk**, never "fake": we cannot see an employer's intent. The rule is our published one (`src/lib/jobs/ghost-risk.ts`): **likely** = the same role at the same place was posted and closed two or more times before, or the posting has been open over 90 days without a recent employer confirmation (or with one prior repost); **watch** = one prior repost, or open 61 to 90 days (or over 90 days but still confirmed by the employer). Member flags are not counted here.
+
+| | Postings | Share |
+|---|---|---|
+| Ghost risk **likely** | 13,427 | 3.6% |
+| Ghost risk **watch** | 48,386 | 12.9% |
+| No signal | 313,060 | 83.5% |
+| Never reposted | 314,371 | 83.9% |
+| Reposted once | 47,295 | 12.6% |
+| Reposted two or more times | 13,207 | 3.5% |
+| Open 0 to 30 days / 31 to 60 / 61 to 90 / over 90 | 62.1% / 37.4% / 0.2% / 0.3% | median age 20 days |
+
+Almost all "likely" postings (13,207 of 13,427) are likely because of repeated reposts, not age: only 1,638 postings in the live index are over 60 days old, so the age rule rarely fires.
+
+| Group | Postings | Likely | Watch |
+|---|---|---|---|
+| Direct employer listings | 236,531 | 1.7% | 8.6% |
+| Other sources (aggregators and boards) | 138,342 | 6.8% | 20.2% |
+| Entry and early-career | 102,083 | 4.8% | 14.2% |
+| Mid-level and senior individual contributors | 152,323 | 2.7% | 12.1% |
+| Manager and above | 120,467 | 3.7% | 12.8% |
+| Logistics employers | 7,085 | 5.3% | 18.3% |
+| Professional services | 17,337 | 3.9% | 12.1% |
+| Nonprofit | 6,611 | 3.6% | 10.7% |
+| Technology | 81,335 | 3.5% | 12.8% |
+| Government | 12,618 | 3.4% | 16.3% |
+| Real estate | 5,940 | 3.4% | 12.6% |
+| Healthcare, consumer, life sciences | 3.2% each | | 11.2%, 12.0%, 10.5% |
+| Financial services | 33,504 | 3.1% | 12.2% |
+| Energy | 10,327 | 3.0% | 11.8% |
+| Media | 6,914 | 2.8% | 10.5% |
+| Industrial | 48,470 | 2.7% | 12.0% |
+| Aerospace and defense, education | 2.5% each | | 10.0%, 9.8% |
+
+(The 39,051 postings with no industry label have 7.0% likely, mostly aggregator copies, and are not compared.) Industry is the employer's sector, not the job's function.
+
+What it shows: about 1 in 28 white-collar postings is likely a ghost or evergreen listing and about 1 in 8 is worth watching; the gap between direct employer listings (1.7% likely) and aggregator copies (6.8%) is four to one, and entry-level postings carry the highest share (4.8%). **Limits:** the repost count is a count of times the same company, title and place came back, and an aggregator re-listing the same job can raise it without the employer reposting, so the aggregator figures run high; age is counted from the day our crawler first saw the posting, not the employer's posted date; and the live index holds almost nothing older than 90 days, so long-open postings are under-counted. This is one snapshot with no trend, and we do not say AI caused any change.
+
 ## Hypotheses we will track (not findings)
 1. Whether pledged training dollars turn into published completion and placement data, by group.
 2. Open postings for engineers, architects and project managers near new data-center sites.
