@@ -104,6 +104,14 @@ describe('demo personas', () => {
     expect(demoPersonasFor('college', 'INSTITUTION').map((p) => p.key)).toContain('EXEC_ED')
     expect(demoPersonasFor('college', 'INSTITUTION').map((p) => p.key)).not.toContain('EMPLOYER:hiring')
   })
+  it('a college with the Workforce board off has no Workforce board persona, and roles use its office names', () => {
+    const personas = demoPersonasFor('college', 'INSTITUTION', { wioa: false }, { development: 'Office of Development', execed: 'Graduate and Continuing Studies' })
+    expect(personas.map((p) => p.key)).not.toContain('WORKFORCE_PARTNER')
+    expect(personas.find((p) => p.key === 'DEVELOPMENT')?.label).toBe('Office of Development')
+    expect(personas.find((p) => p.key === 'EXEC_ED')?.label).toBe('Graduate and Continuing Studies')
+    expect(personas.find((p) => p.key === 'FACULTY')?.label).toBe('Faculty')
+    expect(demoPersonasFor('college', 'INSTITUTION', { wioa: true }).map((p) => p.key)).toContain('WORKFORCE_PARTNER')
+  })
   it('a member company contact sees only the tabs for their role', () => {
     const tabs = (t: AccessToken[]) => tabsFor(new Set<AccessToken>(t), 'employer', undefined, 'workforce').map((x) => x.key)
     expect(tabs(['EMPLOYER'])).toEqual(['overview', 'home', 'page', 'support', 'training', 'grants', 'workforce', 'colleges'])

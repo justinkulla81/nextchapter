@@ -670,9 +670,27 @@ export const staffRoleLabel = (role: InstitutionUserRole, kind: OrgKind): string
 // The personas that open at least one workspace for this kind of org, with
 // workforce wording (a member there is a participant, not an alum). `group`
 // splits staff roles from the outside views (the people and companies served).
-export function demoPersonasFor(kind: OrgKind, tier: InstitutionTier): { key: string; label: string; group: 'all' | 'staff' | 'outside' }[] {
+// A college role's office, so "Preview as" reads in the college's own office names (Washington & Jefferson's
+// "Office of Development", not "Development").
+const ROLE_OFFICE: Partial<Record<string, string>> = {
+  ALUMNI_RELATIONS: 'alumni',
+  DEVELOPMENT: 'development',
+  CAREER_SERVICES: 'career',
+  EXEC_ED: 'execed',
+  WORKFORCE_PARTNER: 'workforce',
+}
+
+// features: the college's switched-on workspaces, so a college with the Workforce board off (a college sales demo) gets no
+// "Workforce board" persona. names: its office names (officeNamesOf). Both optional: without them, every persona and the
+// default labels.
+export function demoPersonasFor(kind: OrgKind, tier: InstitutionTier, features: WorkspaceFeatures = { wioa: true }, names: Record<string, string> = {}): { key: string; label: string; group: 'all' | 'staff' | 'outside' }[] {
   const workforceKeys: string[] = ['all', ...WORKFORCE_STAFF_ROLES, 'MEMBER', 'EMPLOYER', 'EMPLOYER:hiring', 'EMPLOYER:outplacement', 'EMPLOYER:learning', 'EMPLOYER:grants', 'EMPLOYER:workforce', 'EMPLOYER:colleges']
-  return DEMO_PERSONAS.filter((p) => (kind === 'workforce' ? workforceKeys.includes(p.key) : !p.key.startsWith('EMPLOYER:')) && workspacesFor(new Set<AccessToken>(p.tokens), tier, { wioa: true }, kind).length > 0).map((p) => ({
+  const wf = kind === 'workforce' ? { ...features, wioa: true } : features
+  return DEMO_PERSONAS.filter(
+    (p) =>
+      (kind === 'workforce' ? workforceKeys.includes(p.key) : !p.key.startsWith('EMPLOYER:') && (p.key !== 'WORKFORCE_PARTNER' || features.wioa)) &&
+      workspacesFor(new Set<AccessToken>(p.tokens), tier, wf, kind).length > 0,
+  ).map((p) => ({
     key: p.key,
     group: p.key === 'all' ? 'all' : p.key === 'MEMBER' || p.key.startsWith('EMPLOYER') ? 'outside' : 'staff',
     label:
@@ -680,7 +698,7 @@ export function demoPersonasFor(kind: OrgKind, tier: InstitutionTier): { key: st
         ? ({ all: 'Everything (all roles)', MEMBER: 'Participant (job seeker)', EMPLOYER: 'Member company: whole company', 'EMPLOYER:hiring': 'Member company: hiring', 'EMPLOYER:outplacement': 'Member company: outplacement', 'EMPLOYER:learning': 'Member company: learning and development', 'EMPLOYER:grants': 'Member company: grants and RFPs', 'EMPLOYER:workforce': 'Member company: workforce development', 'EMPLOYER:colleges': 'Member company: college partnerships' } as Record<string, string>)[p.key] ?? staffRoleLabel(p.key as InstitutionUserRole, kind)
         : p.key === 'all'
           ? 'Everything (all roles)'
-          : p.label,
+          : (ROLE_OFFICE[p.key] && names[ROLE_OFFICE[p.key]!]) || p.label,
   }))
 }
 
