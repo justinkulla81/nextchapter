@@ -168,3 +168,22 @@ It never submits and never signs. The owner submits.
 future deadline, narrow columns (~250 B each), once a day: under 1 MB a day. The stored profile is a few KB per opportunity and
 is read one at a time. Documents are fetched from the issuers' sites, not the database. Well under the 0.5 GB a day line.
 Claude calls: one read per new document (a few dozen a day at most) and one draft per response asked for.
+
+## 5. What was built (2026-11-24)
+
+- `src/lib/bid-evaluator/`: `facts.ts` (company facts and answer library, keys and parsers), `profile.ts` (what is read from
+  each document), `evaluate.ts` (gates, fit, verdict, route; pure, tested in `src/test/bid-evaluator.test.ts`), `fetch-doc.ts`
+  (listing page → the linked RFP PDF; Grants.gov → synopsis and the NOFO attachment), `read-doc.ts` (Claude fills the profile,
+  each group with its source sentence), `context.ts` (past winners from `CompetitorAward` and the document, competitors named
+  in the text, possible primes and partners from the CRM and the board directory, warm contacts at the issuer), `draft.ts`
+  (the completer), `run.ts`, `store.ts`.
+- Pages: `/support/admin/crm/funding/evaluator` (queue, verdicts, "Read the next 2"), `/support/admin/crm/funding/evaluator/<id>`
+  (answers, gates, past winners, partners, fit, "Draft the response", Markdown download), `/support/admin/crm/funding/company-facts`.
+- Tables: `BidCompanyFact`, `BidContentBlock`, `BidEvaluation` (`prisma/manual/2026-11-24-bid-evaluator.sql`, applied).
+- Every evaluation answers the same questions: must we be on a training list (and how to get on it); can we subcontract and
+  under whom; only for colleges; who is trained or served; what is trained; what results are required; eligible for training,
+  software, coaching (each separately); years in business required against ours; SOC 2 required against ours; who has won before.
+- Reads run on an admin's click (one document fetch and one Claude call each); no cron. Saving company facts re-scores the stored
+  profiles without reading documents again.
+- Not done here: the 361 unit-less grant amounts and the `BoardBid` rows that are forms, answers or long closed are left as they
+  are (rewriting existing rows needs the owner's OK). The evaluator marks those rows "Not a bid" or "Closed" in its own table.

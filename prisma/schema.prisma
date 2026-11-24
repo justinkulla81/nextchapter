@@ -19101,3 +19101,51 @@ model PartnerReferral {
   @@index([institutionId, createdAt])
   @@index([partnerId])
 }
+
+/// NextChapter's own facts a bid or grant response needs (legal name, UEI, insurance, SOC 2, rates...). One row per key;
+/// keys are defined in src/lib/bid-evaluator/facts.ts. Admin only. Applied by hand: prisma/manual/2026-11-24-bid-evaluator.sql.
+model BidCompanyFact {
+  key       String   @id
+  value     String
+  updatedBy String?
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+/// Reusable response answers (organization description, approach, accessibility...). Keys in src/lib/bid-evaluator/facts.ts.
+model BidContentBlock {
+  key       String   @id
+  body      String
+  updatedBy String?
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+/// One evaluated RFP, bid or grant: the requirements read from its document (profile), the gates and fit score against
+/// NextChapter's facts (result), and the response draft. sourceKind: FEDERAL (FundingOpportunity) | BOARD_BID (BoardBid) |
+/// CRM_GRANT (CrmOpportunity in the grants pipeline). verdict: GO | GO_SUB | RFI | WATCH | NO | CLOSED | NOT_A_BID | UNREAD.
+model BidEvaluation {
+  id          String    @id
+  sourceKind  String
+  sourceId    String
+  title       String
+  url         String
+  state       String?
+  issuer      String?
+  docUrls     String[]  @default([])
+  textChars   Int       @default(0)
+  fetchError  String?
+  profile     Json?
+  result      Json?
+  verdict     String?
+  route       String?
+  score       Int?
+  dueAt       DateTime?
+  evaluatedAt DateTime?
+  evaluatedBy String?
+  draft       Json?
+  draftedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+
+  @@unique([sourceKind, sourceId])
+  @@index([verdict, score])
+}
