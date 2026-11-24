@@ -128,7 +128,7 @@ export default async function InstitutionPortalLayout({
           persona={access.demoPersona}
           canReset
           canSkip={orgKindOf(institution.orgType) === 'college'}
-          personas={demoPersonasFor(orgKindOf(institution.orgType), institution.tier)}
+          personas={demoPersonasFor(orgKindOf(institution.orgType), institution.tier, features, officeNames)}
           college={orgKindOf(institution.orgType) === 'college'}
           checkinHref={`${orgBasePath(slug, institution.orgType)}/checkin/demo`}
           alum={(await cookies()).get(DEMO_ALUM_COOKIE)?.value ?? null}
