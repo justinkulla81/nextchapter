@@ -14,6 +14,9 @@
  * A bounce is never counted as a delivery (Resend reports both for most bounces).
  */
 
+import { isRoleAddress } from '@/lib/email/generic-address'
+export { localPart, isRoleAddress } from '@/lib/email/generic-address'
+
 export const HUNTER_OK = new Set(['deliverable', 'valid'])
 
 /**
@@ -27,15 +30,6 @@ export const HUNTER_FRESH_DAYS = 90
 /** A domain that bounced one of our emails this recently is held until a later email there is delivered cleanly. */
 export const DOMAIN_BOUNCE_HOLD_DAYS = 30
 
-const ROLE_LOCALS = new Set([
-  'info', 'information', 'contact', 'contactus', 'hello', 'hi', 'support', 'help', 'admin', 'administrator', 'office', 'team', 'jobs', 'job', 'careers',
-  'career', 'hr', 'humanresources', 'recruiting', 'recruitment', 'recruiter', 'talent', 'sales', 'marketing', 'service', 'services', 'webmaster',
-  'general', 'inquiries', 'enquiries', 'mail', 'noreply', 'no-reply', 'donotreply', 'reception', 'customerservice', 'feedback', 'press', 'media',
-  'billing', 'accounts', 'payroll', 'benefits', 'events', 'news', 'communications', 'rapidresponse', 'workforce', 'employment',
-])
-
-export const localPart = (email: string) => email.trim().toLowerCase().split('@')[0] ?? ''
-export const isRoleAddress = (email: string) => ROLE_LOCALS.has(localPart(email).replace(/[._-]/g, '')) || ROLE_LOCALS.has(localPart(email))
 
 export interface AddressFacts {
   email: string
