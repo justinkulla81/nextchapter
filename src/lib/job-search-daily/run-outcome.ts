@@ -26,3 +26,10 @@ export async function finishesWithin(work: Promise<unknown>, ms: number): Promis
     clearTimeout(timer)
   }
 }
+
+/** How many members ran past the per-member cap at each step, e.g. { "ranking jobs": 5, "sending": 2 }, for the failure email. */
+export function stallsByStep(steps: string[]): Record<string, number> {
+  const out: Record<string, number> = {}
+  for (const s of steps) out[s] = (out[s] ?? 0) + 1
+  return out
+}

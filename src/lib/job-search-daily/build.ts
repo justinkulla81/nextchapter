@@ -125,7 +125,9 @@ export interface WeeklyCheckIn {
 
 type Candidate = CandidateProfile
 
-export async function buildJobSearchDaily(candidate: Candidate, now = new Date()): Promise<JobSearchDailyContent> {
+/** `onStep` names the part being built, so a member who runs past the cron's per-member cap is reported with where it stalled. */
+export async function buildJobSearchDaily(candidate: Candidate, now = new Date(), onStep: (step: string) => void = () => {}): Promise<JobSearchDailyContent> {
+  onStep('reading the member\'s history')
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   // ?src= lets PostHog pageviews attribute clicks back to this email.
   const jobsUrl = `${appUrl}/dashboard/find-my-job?src=job_search_daily`
@@ -180,6 +182,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
   }
 
   // ── Score + today's 3 ─────────────────────────────────────────────────
+  onStep('weekly score')
   const [sprint, engines] = await Promise.all([
     getCurrentWeekSprint(candidate.id),
     computeWeeklyEngines(candidate.id, weekNumber, candidate.privacyTier, candidate.confidentialSearchMode),
@@ -203,6 +206,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
   // New jobs ranked by fit first (board-shortlist.ts): one import can add
   // tens of thousands at once, so "the newest 500" would be an arbitrary
   // slice rather than the ones that fit.
+  onStep('ranking jobs')
   const dossier = await isDossierUnlocked(candidate.id)
   // An email: stays on the pre-v2 fit scoring until FIT_SCORING_V2_FOR_EMAILS is on.
   const fitScoring = emailFitScoringVersion()
@@ -213,6 +217,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     shownKeys,
     now,
   })
+  onStep('what changed')
   const whatChanged = await loadWhatChanged(candidate.id, shortlist.breadth.marketSize, lastSend?.sentAt ?? new Date(now.getTime() - DAY_MS), now)
   // Each job reads as it does on the board card (job-card.ts): verdict, why line, meta line.
   const cards = boardJobCardTexts({
@@ -239,6 +244,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
   // ── Likely openings (SEC filings and news), not posted yet ─────────────────────
   // Only ones tied to the member (a watched or applied company, or their
   // function), never the same filing twice.
+  onStep('likely openings')
   const likelyOpenings: DailyItem[] = (await getLikelyOpeningsForCandidate(candidate, { limit: 10 }))
     .filter((o) => o.reason && !shownKeys.has(`lo:${o.id}`))
     .slice(0, 2)
@@ -250,6 +256,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     }))
 
   // ── Moves at the companies you're tracking ────────────────────────────
+  onStep('company moves')
   // "Tracking" = Company Tracker watchlist plus anywhere they've applied.
   const trackedNames = dedupeOrgNames([
     ...watchlist.map((w) => w.companyName),
@@ -354,6 +361,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
   // ── Follow-ups and starred people ─────────────────────────────────────
   const withSrc = (href: string) =>
     href.startsWith('http') ? href : `${appUrl}${href}${href.includes('?') ? '&' : '?'}src=job_search_daily`
+  onStep('follow-ups')
   const followUpRows = await getUnifiedFollowUps(candidate.id, 50, {
     applicationMaxAgeDays: APPLICATION_MAX_AGE_DAYS,
   })
@@ -624,6 +632,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
 
   // One profile nudge, each kind at most once a week (the key carries the week).
   const week = Math.floor(now.getTime() / (7 * DAY_MS))
+  onStep('profile nudge')
   const nudge = (await profileNudges(candidate.id, { market: true }).catch(() => [])).find((n) => !shownKeys.has(`profile:${n.key}:${week}`))
   const fromProfile: DailyItem | null = nudge ? { key: `profile:${nudge.key}:${week}`, title: nudge.lead, detail: nudge.text, href: `${appUrl}${nudge.href}?src=job_search_daily` } : null
 

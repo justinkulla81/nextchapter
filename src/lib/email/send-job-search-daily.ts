@@ -47,12 +47,17 @@ function lowerFirst(s: string): string {
   return /^(Your|A|The)\b/.test(s) ? s[0].toLowerCase() + s.slice(1) : s
 }
 
-export async function sendJobSearchDaily(candidateId: string, options: { dryRun?: boolean; toOverride?: string; onlyIfUrgent?: boolean } = {}) {
+export async function sendJobSearchDaily(
+  candidateId: string,
+  options: { dryRun?: boolean; toOverride?: string; onlyIfUrgent?: boolean; onStep?: (step: string) => void } = {}
+) {
+  const onStep = options.onStep ?? (() => {})
+  onStep('loading the member')
   const candidate = await prisma.candidateProfile.findUniqueOrThrow({
     where: { id: candidateId },
   })
   const now = new Date()
-  const content = await buildJobSearchDaily(candidate, now)
+  const content = await buildJobSearchDaily(candidate, now, onStep)
 
   // No fluff: with nothing new and nothing to do, skip the day rather than
   // send a line and a score.
@@ -97,6 +102,7 @@ export async function sendJobSearchDaily(candidateId: string, options: { dryRun?
   const tracked = options.toOverride ? content : wrapHrefs(content, (url) => buildClickUrl(appUrl, sendId, url))
 
   const resend = createResend(process.env.RESEND_API_KEY)
+  onStep('sending')
   const { data: sendData, error } = await resend.emails.send({
     from: 'NextChapter <support@launchyournextchapter.com>',
     replyTo: 'support@launchyournextchapter.com',
@@ -129,6 +135,7 @@ export async function sendJobSearchDaily(candidateId: string, options: { dryRun?
   }
 
   if (!options.toOverride) {
+    onStep('recording the send')
     // Keyed by Resend's email id so the webhook can attribute delivery,
     // opens and clicks to this candidate (see applyResendEvent).
     if (sendData?.id) {
