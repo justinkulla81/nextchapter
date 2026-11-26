@@ -9,7 +9,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { withCronRun } from '@/lib/cron/run'
 import { sendsToday } from '@/lib/email/send-days'
 import { warmSharedBoard } from '@/lib/jobs/board-shortlist'
-import { finishesWithin, runStatus } from '@/lib/job-search-daily/run-outcome'
+import { finishesWithin, runStatus, stallsByStep } from '@/lib/job-search-daily/run-outcome'
 
 // 360 s when run on its own (Run now); in the 12:00 bundle the bundle's 800 s applies.
 export const maxDuration = 360
@@ -116,32 +116,34 @@ export const GET = withCronRun('job-search-daily', async (_request, ctx) => {
   let skippedForTime = 0
   let next = 0
 
-  const processCandidate = async (candidate: (typeof queue)[number]) => {
+  // Where each member that ran past the per-member cap was, so the failure email says what was slow.
+  const stalledAt: string[] = []
+
+  type Outcome = 'already sent' | 'sent' | 'nothing new' | 'not urgent' | 'send failed' | 'other'
+  // Returns the member's outcome instead of counting it: a member cut off at the cap keeps running in the background, and its late
+  // outcome must not be counted on top of the failure (on 2026-11-25, 7 members were counted as both failed and finished).
+  const processCandidate = async (candidate: (typeof queue)[number], onStep: (step: string) => void): Promise<Outcome> => {
     console.log('Job Search Daily: starting candidate', candidate.id, `${Date.now() - startedAt}ms in`)
-    if (await hasAlreadySentToday(candidate.id, 'JOB_SEARCH_DAILY')) return
+    onStep('checking today\'s send')
+    if (await hasAlreadySentToday(candidate.id, 'JOB_SEARCH_DAILY')) return 'already sent'
     const state = engagement.get(candidate.id) ?? 'active'
-    if (state === 'dormant') {
-      skippedNotUrgent++
-      return
-    }
+    if (state === 'dormant') return 'not urgent'
     const lowTouch = candidate.notificationTier === 'ESSENTIALS' || state === 'cooling'
     if (lowTouch) {
       const lastWeek = await prisma.jobSearchDailySend.findFirst({
         where: { candidateId: candidate.id, sentAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } },
         select: { id: true },
       })
-      if (lastWeek) {
-        skippedNotUrgent++
-        return
-      }
+      if (lastWeek) return 'not urgent'
     }
-    const result = await sendJobSearchDaily(candidate.id, { onlyIfUrgent: lowTouch || rotationToday })
-    if (result.sent) sent++
-    else if (result.reason === 'nothing new') skippedNothingNew++
-    else if (result.reason === 'not urgent') skippedNotUrgent++
+    const result = await sendJobSearchDaily(candidate.id, { onlyIfUrgent: lowTouch || rotationToday, onStep })
+    if (result.sent) return 'sent'
+    if (result.reason === 'nothing new' || result.reason === 'not urgent' || result.reason === 'send failed') return result.reason
+    return 'other'
   }
   // A short note after each member, so a run that is cut off still says how far it got.
-  const noteProgress = () => ctx.progress({ step: 'members', started: next, of: queue.length, sent, failed })
+  const noteProgress = () =>
+    ctx.progress({ step: 'members', started: next, of: queue.length, sent, failed, ...(stalledAt.length ? { stalledAt: stallsByStep(stalledAt) } : {}) })
   // Workers pull the next candidate until none are left or the deadline
   // passes. Candidates not reached are counted, never silently lost.
   const worker = async () => {
@@ -151,11 +153,18 @@ export const GET = withCronRun('job-search-daily', async (_request, ctx) => {
         skippedForTime++
         continue
       }
+      let step = 'starting'
       try {
-        await withTimeout(processCandidate(candidate), PER_CANDIDATE_MS)
+        const outcome = await withTimeout(processCandidate(candidate, (s) => { step = s }), PER_CANDIDATE_MS)
+        if (outcome === 'sent') sent++
+        else if (outcome === 'nothing new') skippedNothingNew++
+        else if (outcome === 'not urgent') skippedNotUrgent++
+        else if (outcome === 'send failed') failed++
       } catch (error) {
         failed++
-        console.error('Job Search Daily failed for candidate', candidate.id, error)
+        const timedOut = error instanceof Error && error.message.startsWith('timed out')
+        if (timedOut) stalledAt.push(step)
+        console.error('Job Search Daily failed for candidate', candidate.id, timedOut ? `at "${step}"` : '', error)
       }
       await noteProgress()
     }
@@ -186,11 +195,12 @@ export const GET = withCronRun('job-search-daily', async (_request, ctx) => {
     skippedNotUrgent,
     failed,
     skippedForTime,
+    stalledAt: stallsByStep(stalledAt),
   })
   // Candidates left unsent (skipped for time, or failed) make the run FAILED so the job watchdog emails about
   // it. Re-running by hand is safe: anyone already sent today is skipped.
   return NextResponse.json(
-    { checked: eligible.length, sent, skippedNothingNew, skippedNotUrgent, failed, skippedForTime },
+    { checked: eligible.length, sent, skippedNothingNew, skippedNotUrgent, failed, skippedForTime, ...(stalledAt.length ? { stalledAt: stallsByStep(stalledAt) } : {}) },
     { status: runStatus({ failed, skippedForTime }) }
   )
 }, { recordResult: true })

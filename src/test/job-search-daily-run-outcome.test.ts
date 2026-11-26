@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { finishesWithin, runStatus } from '@/lib/job-search-daily/run-outcome'
+import { finishesWithin, runStatus, stallsByStep } from '@/lib/job-search-daily/run-outcome'
 
 describe('runStatus', () => {
   it('is OK only when every member was handled', () => {
@@ -27,5 +27,12 @@ describe('finishesWithin', () => {
   it('reports a load that throws, with its message', async () => {
     const r = await finishesWithin(Promise.reject(new Error('db down')), 1000)
     expect(r).toMatchObject({ ok: false, reason: 'db down' })
+  })
+})
+
+describe('stallsByStep', () => {
+  it('counts members cut off at the cap by the step they were in', () => {
+    expect(stallsByStep(['ranking jobs', 'sending', 'ranking jobs'])).toEqual({ 'ranking jobs': 2, sending: 1 })
+    expect(stallsByStep([])).toEqual({})
   })
 })
